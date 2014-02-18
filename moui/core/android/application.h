@@ -15,16 +15,31 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+#ifndef MOUI_CORE_ANDROID_APPLICATION_H_
+#define MOUI_CORE_ANDROID_APPLICATION_H_
 
-#include "moui/core/application.h"
-#include "moui/core/path.h"
-#include "moui/core/utility-inl.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+#include "jni.h"
+#include "moui/base.h"
 
-void moui_main();
+namespace moui {
 
-#endif  // MOUI_MOUI_H_
+class Application {
+ public:
+  static Application* SharedApplication();
+
+  Application();
+  ~Application();
+
+  void Init(JNIEnv* env, jobject activity);
+
+  JNIEnv* GetJNIEnv() const;
+
+  jobject GetMainActivity() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Application);
+};
+
+}  // namespace moui
+
+#endif  // MOUI_CORE_ANDROID_APPLICATION_H_

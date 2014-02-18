@@ -15,16 +15,13 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+#ifndef MOUI_OPENGL_H_
+#define MOUI_OPENGL_H_
 
-#include "moui/core/application.h"
-#include "moui/core/path.h"
-#include "moui/core/utility-inl.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+#if MOUI_ANDROID
+#include <GLES2/gl2.h>
+#elif MOUI_IOS
+#include <OpenGLES/ES2/gl.h>
+#endif
 
-void moui_main();
-
-#endif  // MOUI_MOUI_H_
+#endif  // MOUI_OPENGL_H_

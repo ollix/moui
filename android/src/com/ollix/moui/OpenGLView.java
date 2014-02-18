@@ -15,16 +15,23 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+package com.ollix.moui;
 
-#include "moui/core/application.h"
-#include "moui/core/path.h"
-#include "moui/core/utility-inl.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+import com.ollix.moui.OpenGLRenderer;
+import android.content.Context;
+import android.graphics.PixelFormat;
+import android.opengl.GLSurfaceView;
 
-void moui_main();
+public class OpenGLView extends GLSurfaceView {
+  public OpenGLView(Context context, long mouiViewPointer) {
+    super(context);
 
-#endif  // MOUI_MOUI_H_
+    setEGLContextClientVersion(2);  // adopts OpenGL ES 2.0 context
+    setZOrderOnTop(true);
+    setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+    getHolder().setFormat(PixelFormat.TRANSLUCENT);
+
+    setRenderer(new OpenGLRenderer(mouiViewPointer));
+    setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+  }
+}

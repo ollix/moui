@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <thread>
 
-#include "moui/opengl.h"
+#include "moui/opengl_hook.h"
 
 namespace moui {
 

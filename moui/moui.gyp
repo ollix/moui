@@ -27,22 +27,31 @@
         'include_dirs': [ '..' ],
         'conditions': [
           ['OS=="android"', {
-            'defines': [ 'MOUI_ANDROID_PLATFORM' ],
+            'defines': [ 'MOUI_ANDROID' ],
           }],
           ['OS=="ios"', {
-            'defines': [ 'MOUI_IOS_PLATFORM' ],
+            'defines': [ 'MOUI_IOS' ],
           }],
           ['OS=="mac"', {
-            'defines': [ 'MOUI_MAC_PLATFORM' ],
+            'defines': [ 'MOUI_MAC' ],
           }],
           ['OS=="win"', {
-            'defines': [ 'MOUI_WINDOWS_PLATFORM' ],
+            'defines': [ 'MOUI_WINDOWS' ],
           }],
         ],  # conditions
       },
       'conditions': [
         ['OS=="android"', {
-          'defines': [ 'MOUI_ANDROID_PLATFORM' ],
+          'sources': [
+            'core/android/application.cc',
+            'ui/android/native_view.cc',
+            'ui/android/view.cc',
+          ],
+          'defines': [ 'MOUI_ANDROID' ],
+          'ldflags': [ '-lGLESv2' ],
+          'direct_dependent_settings': {
+            'ldflags': [ '-lGLESv2' ],
+          },
         }],
         ['OS=="ios"', {
           'sources': [
@@ -52,19 +61,21 @@
             'ui/ios/native_view.mm',
             'ui/ios/view.mm',
           ],
-          'defines': [ 'MOUI_IOS_PLATFORM' ],
-          'libraries': [
-            '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
-            '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
-          ],
+          'defines': [ 'MOUI_IOS' ],
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+              '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
+            ],
+          },
         }],
         ['OS=="mac"', {
-          'defines': [ 'MOUI_MAC_PLATFORM' ],
+          'defines': [ 'MOUI_MAC' ],
         }],
         ['OS=="win"', {
-          'defines': [ 'MOUI_WINDOWS_PLATFORM' ],
+          'defines': [ 'MOUI_WINDOWS' ],
         }],
       ],  # conditions
-    }  # libmoui
+    },  # libmoui target
   ],  # targets
 }

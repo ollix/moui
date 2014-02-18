@@ -21,7 +21,7 @@
 #include <string>
 
 #include "moui/base.h"
-#include "moui/opengl.h"
+#include "moui/opengl_hook.h"
 #include "moui/ui/native_view.h"
 
 namespace moui {

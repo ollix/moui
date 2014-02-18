@@ -4,4 +4,13 @@
 # Build
 build
 out
+*.mk
 *.xcodeproj
+
+# Android
+android/bin
+android/gen
+android/libs
+android/build.xml
+android/proguard-project.txt
+android/local.properties

@@ -15,16 +15,19 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+#include "jni.h"
+#include "moui/moui.h"
 
-#include "moui/core/application.h"
-#include "moui/core/path.h"
-#include "moui/core/utility-inl.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void moui_main();
+JNIEXPORT void JNICALL Java_com_ollix_moui_OpenGLRenderer_drawFrame
+    (JNIEnv* env, jobject obj, jlong moui_view_pointer) {
+  moui::View* view = (moui::View*)moui_view_pointer;
+  view->Render();
+}
 
-#endif  // MOUI_MOUI_H_
+#ifdef __cplusplus
+}
+#endif

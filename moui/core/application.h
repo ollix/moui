@@ -15,11 +15,11 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_OPENGL_H_
-#define MOUI_OPENGL_H_
+#ifndef MOUI_CORE_APPLICATION_H_
+#define MOUI_CORE_APPLICATION_H_
 
-#if MOUI_IOS_PLATFORM
-#include <OpenGLES/ES2/gl.h>
+#if MOUI_ANDROID
+#include "moui/core/android/application.h"
 #endif
 
-#endif  // MOUI_OPENGL_H_
+#endif  // MOUI_CORE_APPLICATION_H_

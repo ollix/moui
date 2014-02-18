@@ -23,8 +23,9 @@
 namespace moui {
 
 // The NativeView behaves as a bridge to the platform-specific native view.
-// In iOS, the native view would be UIView or its subclasses. The native_handle_
-// member is the pointer to the real native view.
+// In iOS, the native view would be UIView or its subclasses. In Android, the
+// native view would be android.view.View or its subclasses. The native_handle_
+// class member stores the pointer to the real native view.
 class NativeView {
  public:
   explicit NativeView(void* native_handle);
