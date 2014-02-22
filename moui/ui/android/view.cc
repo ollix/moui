@@ -40,54 +40,6 @@ View::View() : BaseView() {
 View::~View() {
 }
 
-// The implmenetation simulates the JAVA code as same as
-// activity.getResources().getDisplayMetrics().density.
-float View::GetContentScaleFactor() const {
-  static float content_scale_factor = 0;
-  if (content_scale_factor > 0)
-    return content_scale_factor;
-
-  auto application = Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
-  // JAVA: Resources resources = activity.getResources()
-  jobject activity = application->GetMainActivity();
-  jclass activity_class = env->GetObjectClass(activity);
-  jmethodID get_resources_method = env->GetMethodID(
-      activity_class, "getResources", "()Landroid/content/res/Resources;");
-  jobject resources = env->CallObjectMethod(activity, get_resources_method);
-  // JAVA: DisplayMetrics metrics = resources.getDisplayMetrics()
-  jclass resources_class = env->GetObjectClass(resources);
-  jmethodID get_display_metrics_method = env->GetMethodID(
-      resources_class, "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
-  jobject metrics = env->CallObjectMethod(resources,
-                                          get_display_metrics_method);
-  // JAVA: metrics.density
-  jclass metrics_class = env->GetObjectClass(metrics);
-  jfieldID density_field = env->GetFieldID(metrics_class, "density", "F");
-  content_scale_factor = env->GetFloatField(metrics, density_field);
-  return content_scale_factor;
-}
-
-int View::GetHeight() const {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
-  auto application = moui::Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
-  jclass view_class = env->GetObjectClass(native_view);
-  jmethodID get_height_method = env->GetMethodID(
-      view_class, "getHeight", "()I");
-  return env->CallIntMethod(native_view, get_height_method);
-}
-
-int View::GetWidth() const {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
-  auto application = moui::Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
-  jclass view_class = env->GetObjectClass(native_view);
-  jmethodID get_width_method = env->GetMethodID(
-      view_class, "getWidth", "()I");
-  return env->CallIntMethod(native_view, get_width_method);
-}
-
 void View::Redraw() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
   auto application = moui::Application::SharedApplication();

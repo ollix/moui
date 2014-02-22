@@ -44,21 +44,6 @@ View::~View() {
   [native_view.viewController dealloc];
 }
 
-float View::GetContentScaleFactor() const {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  return native_view.contentScaleFactor;
-}
-
-int View::GetHeight() const {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  return native_view.frame.size.height;
-}
-
-int View::GetWidth() const {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  return native_view.frame.size.width;
-}
-
 void View::Redraw() const {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
   [native_view render];

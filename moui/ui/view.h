@@ -30,15 +30,6 @@ class View : public BaseView {
   View();
   ~View();
 
-  // Returns the scale factor used for rendering.
-  float GetContentScaleFactor() const;
-
-  // Returns the height of the view.
-  int GetHeight() const;
-
-  // Returns the width of the view.
-  int GetWidth() const;
-
   // The place for writing rendering code.
   virtual void Render() {};
 

@@ -33,6 +33,21 @@ void NativeView::AddSubview(const NativeView* subview) {
   [native_view addSubview:native_subview];
 }
 
+float NativeView::GetContentScaleFactor() const {
+  UIView* native_view = (__bridge UIView*)native_handle_;
+  return native_view.contentScaleFactor;
+}
+
+int NativeView::GetHeight() const {
+  UIView* native_view = (__bridge UIView*)native_handle_;
+  return native_view.frame.size.height;
+}
+
+int NativeView::GetWidth() const {
+  UIView* native_view = (__bridge UIView*)native_handle_;
+  return native_view.frame.size.width;
+}
+
 void NativeView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
   UIView* native_view = (__bridge UIView*)native_handle_;
