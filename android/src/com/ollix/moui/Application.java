@@ -15,16 +15,17 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+package com.ollix.moui;
 
-#include "moui/core/application.h"
-#include "moui/core/clock.h"
-#include "moui/core/path.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+import android.content.Context;
+import java.lang.Object;
 
-void moui_main();
+public class Application extends Object {
 
-#endif  // MOUI_MOUI_H_
+  private native void init(Context context);
+
+  public Application(Context context) {
+    super();
+    init(context);
+  }
+}

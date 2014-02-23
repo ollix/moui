@@ -93,21 +93,15 @@ static NSOperationQueue* queue = [NSOperationQueue new];
 }
 
 - (void)render {
-  if ([NSOperationQueue currentQueue] == [NSOperationQueue mainQueue]) {
-    [EAGLContext setCurrentContext:_eaglContext];
-    [self setupRenderBuffer];
-    [self setupFrameBuffer];
-    glViewport(0, 0,
-               self.frame.size.width * self.contentScaleFactor,
-               self.frame.size.height * self.contentScaleFactor);
-    _mouiView->Render();
-    [_eaglContext presentRenderbuffer:GL_RENDERBUFFER];
-    [EAGLContext setCurrentContext:nil];
-  } else {
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^(void) {
-        [self render];
-    }];
-  }
+  [EAGLContext setCurrentContext:_eaglContext];
+  [self setupRenderBuffer];
+  [self setupFrameBuffer];
+  glViewport(0, 0,
+             self.frame.size.width * self.contentScaleFactor,
+             self.frame.size.height * self.contentScaleFactor);
+  _mouiView->Render();
+  [_eaglContext presentRenderbuffer:GL_RENDERBUFFER];
+  [EAGLContext setCurrentContext:nil];
 }
 
 @end

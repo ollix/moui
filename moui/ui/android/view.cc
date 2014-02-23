@@ -50,8 +50,4 @@ void View::Redraw() const {
   env->CallVoidMethod(native_view, request_render_method);
 }
 
-void View::ScheduleRedraw(double interval) const {
-  Redraw();
-}
-
 }  // namespace moui

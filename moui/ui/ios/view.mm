@@ -21,13 +21,6 @@
 #import "moui/ui/ios/MOOpenGLView.h"
 #import "moui/ui/ios/MOOpenGLViewController.h"
 
-namespace {
-
-// The native threading queue for scheduling redraw events.
-NSOperationQueue* operation_queue = [NSOperationQueue new];
-
-}  // namespace
-
 namespace moui {
 
 // Instantiates the MOOpenGLViewController class and uses its view as the
@@ -47,13 +40,6 @@ View::~View() {
 void View::Redraw() const {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
   [native_view render];
-}
-
-void View::ScheduleRedraw(double interval) const {
-  [operation_queue addOperationWithBlock:^(void) {
-      BaseView::ScheduleRedraw(interval);
-      Redraw();
-  }];
 }
 
 }  // namespace moui

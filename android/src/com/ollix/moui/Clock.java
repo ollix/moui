@@ -15,16 +15,29 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+package com.ollix.moui;
 
-#include "moui/core/application.h"
-#include "moui/core/clock.h"
-#include "moui/core/path.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+import android.os.Handler;
+import java.lang.Object;
+import java.lang.Runnable;
 
-void moui_main();
+public class Clock extends Object {
 
-#endif  // MOUI_MOUI_H_
+  Handler mHandler;
+
+  private native void executeCallback(long callbackPointer);
+
+  public Clock() {
+    super();
+    mHandler = new Handler();
+  }
+
+  public void executeCallback(float delay, long callbackPointer) {
+    final long innerCallbackPointer = callbackPointer;
+    mHandler.postDelayed(new Runnable() {
+      public void run() {
+        executeCallback(innerCallbackPointer);
+      }
+    }, (long)(delay * 1000));
+  }
+}

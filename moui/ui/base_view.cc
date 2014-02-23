@@ -17,9 +17,7 @@
 
 #include "moui/ui/base_view.h"
 
-#include <chrono>
 #include <cstdio>
-#include <thread>
 
 #include "moui/opengl_hook.h"
 
@@ -70,16 +68,6 @@ GLuint BaseView::CompileShaderAtPath(const GLenum shader_type,
   }
   std::fclose(file);
   return shader_handle;
-}
-
-void BaseView::Redraw() const {
-}
-
-void BaseView::ScheduleRedraw(double interval) const {
-  if (interval < 0) return;
-  // Sleeps for the specified time interval.
-  int sleep_time = static_cast<int>(interval * 1000);  // milliseconds
-  std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
 }
 
 }  // namespace moui

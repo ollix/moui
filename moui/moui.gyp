@@ -44,6 +44,7 @@
         ['OS=="android"', {
           'sources': [
             'core/android/application.cc',
+            'core/android/clock.cc',
             'ui/android/native_view.cc',
             'ui/android/view.cc',
           ],
@@ -55,6 +56,7 @@
         }],
         ['OS=="ios"', {
           'sources': [
+            'core/apple/clock.mm',
             'core/apple/path.mm',
             'ui/ios/MOOpenGLView.mm',
             'ui/ios/MOOpenGLViewController.mm',

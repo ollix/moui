@@ -15,16 +15,21 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+#include <memory>
 
-#include "moui/core/application.h"
-#include "moui/core/clock.h"
-#include "moui/core/path.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+#include "jni.h"
+#include "moui/moui.h"
 
-void moui_main();
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif  // MOUI_MOUI_H_
+JNIEXPORT void JNICALL Java_com_ollix_moui_Clock_executeCallback
+    (JNIEnv* env, jobject obj, jlong callback_pointer) {
+  auto callback = reinterpret_cast<moui::Clock::Callback*>(callback_pointer);
+  moui::Clock::ExecuteCallback(callback);
+}
+
+#ifdef __cplusplus
+}
+#endif

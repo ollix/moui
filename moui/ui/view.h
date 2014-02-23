@@ -30,16 +30,13 @@ class View : public BaseView {
   View();
   ~View();
 
-  // The place for writing rendering code.
-  virtual void Render() {};
-
-  // Inherited from BaseView class.
-  virtual void ScheduleRedraw(double interval) const override final;
-
- private:
   // Inherited from BaseView class.
   virtual void Redraw() const override final;
 
+  // The place for writing rendering code.
+  virtual void Render() {};
+
+ private:
   DISALLOW_COPY_AND_ASSIGN(View);
 };
 

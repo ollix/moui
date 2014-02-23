@@ -20,6 +20,8 @@
       'target_name': 'libmoui-jni',
       'type': 'shared_library',
       'sources': [
+        'application.cc',
+        'clock.cc',
         'renderer.cc',
       ],
       'dependencies': [ '../../moui/moui.gyp:libmoui' ],

@@ -15,16 +15,21 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+#include <memory>
 
-#include "moui/core/application.h"
-#include "moui/core/clock.h"
-#include "moui/core/path.h"
-#include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+#include "jni.h"
+#include "moui/moui.h"
 
-void moui_main();
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif  // MOUI_MOUI_H_
+JNIEXPORT void JNICALL Java_com_ollix_moui_Application_init
+    (JNIEnv* env, jobject obj, jobject activity) {
+  auto application = moui::Application::SharedApplication();
+  application->Init(env, activity);
+}
+
+#ifdef __cplusplus
+}
+#endif

@@ -34,7 +34,7 @@
       ],
       'xcode_settings': {
         'CONFIGURATION_BUILD_DIR': 'build/Xcode',
-        'OTHER_CFLAGS': [
+        'OTHER_CPLUSPLUSFLAGS': [
           '-std=c++11',  # supports C++11
         ],
       },  # xcode_settings
@@ -55,7 +55,7 @@
           ['"<(GENERATOR)"=="xcode"', {
             'xcode_settings': {
               'GCC_OPTIMIZATION_LEVEL': '0',
-              'ONLY_ACTIVE_# ARCH': 'YES',
+              'ONLY_ACTIVE_ARCH': 'YES',
             },
           }],
         ],  # "<(GENERATOR)"=="xcode"

@@ -33,10 +33,10 @@ class BaseView : public NativeView {
   BaseView();
   ~BaseView();
 
-  // Schedules a redraw event after the interval in seconds. This method must
-  // be implemented in the View subclass and should always call this parent
-  // method at the beginning of the overridden method.
-  virtual void ScheduleRedraw(double interval) const;
+  // Redraws the view. This method must be implmeneted in the View subclass
+  // for performing native redraw action. The action should be performed on
+  // the main thread that can modify view.
+  virtual void Redraw() const {};
 
  protected:
   // Compiles the shader string of the specified type. Returns the shader
@@ -48,11 +48,6 @@ class BaseView : public NativeView {
   // on success or 0 on failure.
   GLuint CompileShaderAtPath(const GLenum shader_type,
                              const std::string& source_path) const;
-
-  // Redraws the view. This method must be implmeneted in the View subclass
-  // for performing native redraw action. The action should be performed on
-  // the main thread that can modify view.
-  virtual void Redraw() const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseView);

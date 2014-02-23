@@ -15,29 +15,30 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_CORE_UTILITY_INL_H_
-#define MOUI_CORE_UTILITY_INL_H_
+#include "moui/core/clock.h"
 
-#include <chrono>
+#import <Foundation/Foundation.h>
+
+namespace {
+
+dispatch_queue_t queue = dispatch_get_global_queue(
+    DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+
+}  // namespace
 
 namespace moui {
 
-// Prototypes.
+void Clock::ExecuteCallback(Callback* callback) {
+  bool func_result = callback->func();
+  if (!func_result || callback->interval < 0) {
+    delete callback;
+    return;
+  }
 
-// Returns the timestamp in milliseconds for measuring intervals. The timestamp
-// is not related to wall clock time. The specified offset will be added to the
-// current timestamp.
-inline double GetTimestamp(const double offset);
-
-// Implementation.
-
-inline double GetTimestamp(const double offset) {
-  auto now = std::chrono::steady_clock::now();
-  double timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-      now.time_since_epoch()).count() / 1000.0;
-  return timestamp + offset;
+  // Executes the callback again with interval delay.
+  dispatch_time_t delay = dispatch_time(
+      DISPATCH_TIME_NOW, callback->interval * NSEC_PER_SEC);
+  dispatch_after(delay, queue, ^{ Clock::ExecuteCallback(callback); });
 }
 
 }  // namespace moui
-
-#endif  // MOUI_CORE_PATH_H_
