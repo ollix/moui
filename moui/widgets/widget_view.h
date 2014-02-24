@@ -15,28 +15,43 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_UI_VIEW_H_
-#define MOUI_UI_VIEW_H_
+#ifndef MOUI_WIDGETS_WIDGET_VIEW_H_
+#define MOUI_WIDGETS_WIDGET_VIEW_H_
+
+#include <vector>
 
 #include "moui/base.h"
-#include "moui/ui/base_view.h"
+#include "moui/ui/view.h"
+
+struct NVGcontext;
 
 namespace moui {
 
-// The View class is a wrapper of the platform-specfic native view for
-// rendering OpenGL stuff.
-class View : public BaseView {
+class Widget;
+
+class WidgetView : public View {
  public:
-  View();
-  ~View();
+  WidgetView();
+  ~WidgetView();
+
+  void AddWidget(Widget* widget);
 
   // Inherited from BaseView class.
-  virtual void Redraw() const override final;
+  virtual void Render() override final;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(View);
+  // Renders each widget.
+  void RenderWidgets();
+
+  // The nanovg context for drawing.
+  struct NVGcontext* context_;
+
+  // A list of widgets that will be rendered to this view.
+  std::vector<Widget*> widgets_;
+
+  DISALLOW_COPY_AND_ASSIGN(WidgetView);
 };
 
 }  // namespace moui
 
-#endif  // MOUI_UI_VIEW_H_
+#endif  // MOUI_WIDGETS_WIDGET_VIEW_H_

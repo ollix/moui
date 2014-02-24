@@ -22,8 +22,6 @@
 #include "moui/ui/view.h"
 
 
-static NSOperationQueue* queue = [NSOperationQueue new];
-
 @interface MOOpenGLView (PrivateDelegateHandling)
 
 - (void)setupFrameBuffer;

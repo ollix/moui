@@ -15,28 +15,11 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_UI_VIEW_H_
-#define MOUI_UI_VIEW_H_
+#ifndef MOUI_CORE_CORE_H_
+#define MOUI_CORE_CORE_H_
 
-#include "moui/base.h"
-#include "moui/ui/base_view.h"
+#include "moui/core/application.h"
+#include "moui/core/clock.h"
+#include "moui/core/path.h"
 
-namespace moui {
-
-// The View class is a wrapper of the platform-specfic native view for
-// rendering OpenGL stuff.
-class View : public BaseView {
- public:
-  View();
-  ~View();
-
-  // Inherited from BaseView class.
-  virtual void Redraw() const override final;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(View);
-};
-
-}  // namespace moui
-
-#endif  // MOUI_UI_VIEW_H_
+#endif  // MOUI_CORE_CORE_H_

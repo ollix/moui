@@ -18,6 +18,7 @@
 #include "moui/ui/base_view.h"
 
 #include <cstdio>
+#include <string>
 
 #include "moui/opengl_hook.h"
 

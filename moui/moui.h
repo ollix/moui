@@ -18,12 +18,10 @@
 #ifndef MOUI_MOUI_H_
 #define MOUI_MOUI_H_
 
-#include "moui/core/application.h"
-#include "moui/core/clock.h"
-#include "moui/core/path.h"
+#include "moui/core/core.h"
 #include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
-#include "moui/ui/view.h"
+#include "moui/ui/ui.h"
+#include "moui/widgets/widgets.h"
 
 void moui_main();
 

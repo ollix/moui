@@ -21,40 +21,26 @@
       'type': 'static_library',
       'sources': [
         'ui/base_view.cc',
+        'widgets/widget.cc',
+        'widgets/widget_view.cc',
       ],
-      'include_dirs': [ '..' ] ,
-      'direct_dependent_settings': {
-        'include_dirs': [ '..' ],
-        'conditions': [
-          ['OS=="android"', {
-            'defines': [ 'MOUI_ANDROID' ],
-          }],
-          ['OS=="ios"', {
-            'defines': [ 'MOUI_IOS' ],
-          }],
-          ['OS=="mac"', {
-            'defines': [ 'MOUI_MAC' ],
-          }],
-          ['OS=="win"', {
-            'defines': [ 'MOUI_WINDOWS' ],
-          }],
-        ],  # conditions
-      },
+      'include_dirs': [ '..' ],
       'conditions': [
         ['OS=="android"', {
+          'defines': [ 'MOUI_ANDROID' ],
           'sources': [
             'core/android/application.cc',
             'core/android/clock.cc',
             'ui/android/native_view.cc',
             'ui/android/view.cc',
           ],
-          'defines': [ 'MOUI_ANDROID' ],
           'ldflags': [ '-lGLESv2' ],
           'direct_dependent_settings': {
             'ldflags': [ '-lGLESv2' ],
           },
         }],
         ['OS=="ios"', {
+          'defines': [ 'MOUI_IOS' ],
           'sources': [
             'core/apple/clock.mm',
             'core/apple/path.mm',
@@ -63,7 +49,6 @@
             'ui/ios/native_view.mm',
             'ui/ios/view.mm',
           ],
-          'defines': [ 'MOUI_IOS' ],
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
@@ -78,6 +63,31 @@
           'defines': [ 'MOUI_WINDOWS' ],
         }],
       ],  # conditions
+      'dependencies': [
+        'nanovg.gyp:libnanovg',
+      ],
+      'export_dependent_settings': [
+        'nanovg.gyp:libnanovg',
+      ],
+      'direct_dependent_settings': {
+        'include_dirs': [
+          '..'
+        ],
+        'conditions': [
+          ['OS=="android"', {
+            'defines': [ 'MOUI_ANDROID' ],
+          }],
+          ['OS=="ios"', {
+            'defines': [ 'MOUI_IOS' ],
+          }],
+          ['OS=="mac"', {
+            'defines': [ 'MOUI_MAC' ],
+          }],
+          ['OS=="win"', {
+            'defines': [ 'MOUI_WINDOWS' ],
+          }],
+        ],  # conditions
+      },  # direct_dependent_settings
     },  # libmoui target
   ],  # targets
 }

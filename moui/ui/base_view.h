@@ -38,6 +38,9 @@ class BaseView : public NativeView {
   // the main thread that can modify view.
   virtual void Redraw() const {};
 
+  // The place for writing rendering code.
+  virtual void Render() {};
+
  protected:
   // Compiles the shader string of the specified type. Returns the shader
   // handle on success or 0 on failure.

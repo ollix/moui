@@ -1,0 +1,3 @@
+[submodule "moui/deps/nanovg"]
+	path = moui/deps/nanovg
+	url = git@github.com:memononen/nanovg.git

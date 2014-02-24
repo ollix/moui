@@ -40,6 +40,23 @@ NativeView::~NativeView() {
   env->DeleteGlobalRef(reinterpret_cast<jobject>(native_handle_));
 }
 
+void NativeView::AddSubview(const NativeView* subview) {
+  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  jobject native_subview = reinterpret_cast<jobject>(subview->native_handle());
+
+  Application* application = Application::SharedApplication();
+  JNIEnv* env = application->GetJNIEnv();
+
+  // Skips if the native view is not a subclass of ViewGroup.
+  jclass group_view_class = env->FindClass("android/view/ViewGroup");
+  if (!env->IsInstanceOf(native_view, group_view_class))
+    return;
+
+  jmethodID add_view_method = env->GetMethodID(
+      group_view_class, "addView", "(Landroid/view/View;)V");
+  env->CallVoidMethod(native_view, add_view_method, native_subview);
+}
+
 // The implmenetation simulates the JAVA code as same as
 // activity.getResources().getDisplayMetrics().density.
 float NativeView::GetContentScaleFactor() const {
@@ -88,21 +105,9 @@ int NativeView::GetWidth() const {
   return env->CallIntMethod(native_view, get_width_method);
 }
 
-void NativeView::AddSubview(const NativeView* subview) {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
-  jobject native_subview = reinterpret_cast<jobject>(subview->native_handle());
-
-  Application* application = Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
-
-  // Skips if the native view is not a subclass of ViewGroup.
-  jclass group_view_class = env->FindClass("android/view/ViewGroup");
-  if (!env->IsInstanceOf(native_view, group_view_class))
-    return;
-
-  jmethodID add_view_method = env->GetMethodID(
-      group_view_class, "addView", "(Landroid/view/View;)V");
-  env->CallVoidMethod(native_view, add_view_method, native_subview);
+void NativeView::SetBounds(const int x, const int y, const int width,
+                           const int height) const {
+  // TODO: Implmenets SetBounds() for Android.
 }
 
 }  // namespace moui

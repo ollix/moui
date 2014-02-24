@@ -25,7 +25,6 @@
         'renderer.cc',
       ],
       'dependencies': [ '../../moui/moui.gyp:libmoui' ],
-      'export_dependent_settings': [ '../../moui/moui.gyp:libmoui' ],
     }
   ]
 }
