@@ -35,7 +35,7 @@ class Widget {
   void AddChild(Widget* child);
 
   // Implements the logic for rendering the widget.
-  virtual void Render(struct NVGcontext* context) {};
+  virtual void Render(struct NVGcontext* context) {}
 
   // Renders child widgets.
   void RenderChildren(struct NVGcontext* context);

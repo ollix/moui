@@ -36,8 +36,8 @@ class Clock {
     float interval;
   };
 
-  Clock() {};
-  ~Clock() {};
+  Clock() {}
+  ~Clock() {}
 
   // Schedules function call at a reqular interval. The callback function must
   // have the return type of bool indicating whether to stop scheduling. The

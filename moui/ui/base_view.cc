@@ -59,12 +59,12 @@ GLuint BaseView::CompileShaderAtPath(const GLenum shader_type,
     return 0;
   GLuint shader_handle = 0;
   if (std::fseek(file, 0, SEEK_END) == 0) {
-    int file_size = std::ftell(file);
+    const int kFileSize = std::ftell(file);
     std::fseek(file, 0, SEEK_SET);
-    char source_buffer[file_size];
-    if (std::fread(source_buffer, 1, file_size, file) == file_size) {
+    char source_buffer[kFileSize];
+    if (std::fread(source_buffer, 1, kFileSize, file) == kFileSize) {
       shader_handle = CompileShader(shader_type,
-                                    std::string(source_buffer, file_size));
+                                    std::string(source_buffer, kFileSize));
     }
   }
   std::fclose(file);

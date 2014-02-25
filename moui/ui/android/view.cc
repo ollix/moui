@@ -18,6 +18,7 @@
 #include "moui/ui/view.h"
 
 #include "jni.h"
+
 #include "moui/core/android/application.h"
 #include "moui/ui/base_view.h"
 
@@ -33,7 +34,7 @@ View::View() : BaseView() {
   jobject java_opengl_view = env->NewObject(opengl_view_class,
                                             opengl_view_constructor,
                                             application->GetMainActivity(),
-                                            (long)this);
+                                            (jlong)this);
   native_handle_ = env->NewGlobalRef(java_opengl_view);
 }
 

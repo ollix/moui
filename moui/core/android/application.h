@@ -19,6 +19,7 @@
 #define MOUI_CORE_ANDROID_APPLICATION_H_
 
 #include "jni.h"
+
 #include "moui/base.h"
 
 namespace moui {

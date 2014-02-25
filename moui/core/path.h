@@ -26,8 +26,8 @@ namespace moui {
 
 class Path {
  public:
-  Path() {};
-  ~Path() {};
+  Path() {}
+  ~Path() {}
 
   // Returns the direcotry path containing app resources.
   std::string GetResourceDirectory() const;

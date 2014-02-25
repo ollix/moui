@@ -15,8 +15,8 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_OPENGL_H_
-#define MOUI_OPENGL_H_
+#ifndef MOUI_OPENGL_HOOK_H_
+#define MOUI_OPENGL_HOOK_H_
 
 #if MOUI_ANDROID
 #include <GLES2/gl2.h>
@@ -24,4 +24,4 @@
 #include <OpenGLES/ES2/gl.h>
 #endif
 
-#endif  // MOUI_OPENGL_H_
+#endif  // MOUI_OPENGL_HOOK_H_

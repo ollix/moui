@@ -50,7 +50,7 @@ void Application::Init(JNIEnv* env, jobject activity) {
 
 JNIEnv* Application::GetJNIEnv() const {
   JNIEnv* env;
-  java_vm->GetEnv((void **)&env, JNI_VERSION_1_6);
+  java_vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
   return env;
 }
 

@@ -18,6 +18,7 @@
 #include <memory>
 
 #include "jni.h"
+
 #include "moui/moui.h"
 
 #ifdef __cplusplus

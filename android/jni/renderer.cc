@@ -16,6 +16,7 @@
 // Author: olliwang@ollix.com (Olli Wang)
 
 #include "jni.h"
+
 #include "moui/moui.h"
 
 #ifdef __cplusplus

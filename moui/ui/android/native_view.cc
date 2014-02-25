@@ -18,6 +18,7 @@
 #include "moui/ui/base_view.h"
 
 #include "jni.h"
+
 #include "moui/core/application.h"
 
 namespace moui {
@@ -107,7 +108,7 @@ int NativeView::GetWidth() const {
 
 void NativeView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
-  // TODO: Implmenets SetBounds() for Android.
+  // TODO(olliwang): Implmenets SetBounds() for Android.
 }
 
 }  // namespace moui

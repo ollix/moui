@@ -36,10 +36,10 @@ class BaseView : public NativeView {
   // Redraws the view. This method must be implmeneted in the View subclass
   // for performing native redraw action. The action should be performed on
   // the main thread that can modify view.
-  virtual void Redraw() const {};
+  virtual void Redraw() const {}
 
   // The place for writing rendering code.
-  virtual void Render() {};
+  virtual void Render() {}
 
  protected:
   // Compiles the shader string of the specified type. Returns the shader

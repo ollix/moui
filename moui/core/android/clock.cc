@@ -18,6 +18,7 @@
 #include "moui/core/clock.h"
 
 #include "jni.h"
+
 #include "moui/core/application.h"
 
 namespace {
