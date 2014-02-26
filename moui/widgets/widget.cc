@@ -31,20 +31,6 @@ void Widget::AddChild(Widget* child) {
   children_.push_back(child);
 }
 
-void Widget::RenderChildren(struct NVGcontext* context) {
-  for (Widget* widget : children_) {
-    if (widget->hidden())
-      continue;
-
-    nvgSave(context);
-    nvgScissor(context, widget->x(), widget->y(), widget->width(),
-               widget->height());
-    nvgTranslate(context, widget->x(), widget->y());
-    widget->Render(context);
-    nvgRestore(context);
-  }
-}
-
 void Widget::SetBounds(const int x, const int y, const int width,
                        const int height) {
   x_ = x;

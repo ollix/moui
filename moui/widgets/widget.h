@@ -37,13 +37,11 @@ class Widget {
   // Implements the logic for rendering the widget.
   virtual void Render(struct NVGcontext* context) {}
 
-  // Renders child widgets.
-  void RenderChildren(struct NVGcontext* context);
-
   // Sets the bounds of the widget.
   void SetBounds(const int x, const int y, const int width, const int height);
 
   // Setters and accessors.
+  std::vector<Widget*>& children() { return children_; }
   int height() const { return height_; }
   void set_height(int height) { height_ = height; }
   bool hidden() const { return hidden_; }

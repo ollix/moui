@@ -40,8 +40,8 @@ class WidgetView : public View {
   virtual void Render() override final;
 
  private:
-  // Renders each widget.
-  void RenderWidgets();
+  // Renders all child widgets recursively.
+  void RenderWidgets(std::vector<Widget*>& widgets);
 
   // The nanovg context for drawing.
   struct NVGcontext* context_;

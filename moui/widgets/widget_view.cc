@@ -65,12 +65,12 @@ void WidgetView::Render() {
 
   nvgBeginFrame(context_, GetWidth(), GetHeight(), GetContentScaleFactor(),
                 alpha_blend);
-  RenderWidgets();
+  RenderWidgets(widgets_);
   nvgEndFrame(context_);
 }
 
-void WidgetView::RenderWidgets() {
-  for (Widget* widget : widgets_) {
+void WidgetView::RenderWidgets(std::vector<Widget*>& widgets) {
+  for (Widget* widget : widgets) {
     if (widget->hidden())
       continue;
 
@@ -79,7 +79,7 @@ void WidgetView::RenderWidgets() {
                widget->height());
     nvgTranslate(context_, widget->x(), widget->y());
     widget->Render(context_);
-    widget->RenderChildren(context_);
+    RenderWidgets(widget->children());
     nvgRestore(context_);
   }
 }
