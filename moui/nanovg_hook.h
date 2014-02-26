@@ -15,15 +15,10 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_MOUI_H_
-#define MOUI_MOUI_H_
+#ifndef MOUI_NANOVG_HOOK_H_
+#define MOUI_NANOVG_HOOK_H_
 
-#include "moui/core/core.h"
-#include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
-#include "moui/ui/ui.h"
-#include "moui/widgets/widgets.h"
+#include "nanovg.h"
 
-void moui_main();
-
-#endif  // MOUI_MOUI_H_
+#endif  // MOUI_NANOVG_HOOK_H_

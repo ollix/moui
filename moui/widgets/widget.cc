@@ -17,7 +17,7 @@
 
 #include "moui/widgets/widget.h"
 
-#include "nanovg.h"
+#include "moui/nanovg_hook.h"
 
 namespace moui {
 

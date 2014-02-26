@@ -19,9 +19,9 @@
 
 #include <vector>
 
-#include "nanovg.h"
 #include "nanovg_gl2.h"
 
+#include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
 #include "moui/ui/view.h"
 #include "moui/widgets/widget.h"
@@ -42,7 +42,11 @@ void WidgetView::AddWidget(Widget* widget) {
 
 void WidgetView::Render() {
   if (context_ == nullptr) {
+#if MOUI_IOS || MOUI_ANDROID
     context_ = nvgCreateGLES2(GetWidth(), GetHeight(), NVG_ANTIALIAS);
+#else
+    context_ = nvgCreateGL2(GetWidth(), GetHeight(), NVG_ANTIALIAS);
+#endif
   }
 
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -53,7 +57,14 @@ void WidgetView::Render() {
   glEnable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
 
-  nvgBeginFrame(context_, GetWidth(), GetHeight(), GetContentScaleFactor());
+#if MOUI_IOS
+  int alpha_blend = NVG_PREMULTIPLIED_ALPHA;
+#else
+  int alpha_blend = NVG_STRAIGHT_ALPHA;
+#endif
+
+  nvgBeginFrame(context_, GetWidth(), GetHeight(), GetContentScaleFactor(),
+                alpha_blend);
   RenderWidgets();
   nvgEndFrame(context_);
 }
