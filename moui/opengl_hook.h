@@ -22,6 +22,8 @@
 #include <GLES2/gl2.h>
 #elif MOUI_IOS
 #include <OpenGLES/ES2/gl.h>
+#elif MOUI_MAC
+#include <OpenGL/gl.h>
 #endif
 
 #endif  // MOUI_OPENGL_HOOK_H_

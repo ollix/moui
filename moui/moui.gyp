@@ -27,7 +27,10 @@
       'include_dirs': [ '..' ],
       'conditions': [
         ['OS=="android"', {
-          'defines': [ 'MOUI_ANDROID' ],
+          'defines': [
+            'MOUI_GLES2',
+            'MOUI_ANDROID' ,
+          ],
           'sources': [
             'core/android/application.cc',
             'core/android/clock.cc',
@@ -40,7 +43,10 @@
           },
         }],
         ['OS=="ios"', {
-          'defines': [ 'MOUI_IOS' ],
+          'defines': [
+            'MOUI_GLES2',
+            'MOUI_IOS'
+          ],
           'sources': [
             'core/apple/clock.mm',
             'core/apple/path.mm',
@@ -57,7 +63,15 @@
           },
         }],
         ['OS=="mac"', {
-          'defines': [ 'MOUI_MAC' ],
+          'defines': [
+            'MOUI_GL2',
+            'MOUI_MAC'
+          ],
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+            ],
+          },
         }],
         ['OS=="win"', {
           'defines': [ 'MOUI_WINDOWS' ],
