@@ -74,7 +74,7 @@ void WidgetView::Render() {
   glEnable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
 
-#if MOUI_IOS
+#if MOUI_IOS || MOUI_MAC
   int alpha_blend = NVG_PREMULTIPLIED_ALPHA;
 #else
   int alpha_blend = NVG_STRAIGHT_ALPHA;

@@ -67,8 +67,16 @@
             'MOUI_GL2',
             'MOUI_MAC'
           ],
+          'sources': [
+            'core/apple/clock.mm',
+            'core/apple/path.mm',
+            'ui/mac/MOOpenGLView.mm',
+            'ui/mac/native_view.mm',
+            'ui/mac/view.mm',
+          ],
           'link_settings': {
             'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
               '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
             ],
           },
