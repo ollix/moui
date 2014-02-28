@@ -15,32 +15,28 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_CORE_ANDROID_APPLICATION_H_
-#define MOUI_CORE_ANDROID_APPLICATION_H_
+#include "moui/core/base_application.h"
 
-#include "jni.h"
+namespace {
 
-#include "moui/base.h"
+moui::BaseApplication* main_application = nullptr;
+
+}  // namespace
 
 namespace moui {
 
-class Application {
- public:
-  static Application* SharedApplication();
+BaseApplication::BaseApplication() {
+}
 
-  Application();
-  ~Application();
+BaseApplication::~BaseApplication() {
+}
 
-  void Init(JNIEnv* env, jobject activity);
+BaseApplication* BaseApplication::GetMainApplication() {
+  return main_application;
+}
 
-  JNIEnv* GetJNIEnv() const;
-
-  jobject GetMainActivity() const;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(Application);
-};
+void BaseApplication::RegisterMainApplication() {
+  main_application = this;
+}
 
 }  // namespace moui
-
-#endif  // MOUI_CORE_ANDROID_APPLICATION_H_

@@ -19,9 +19,7 @@
 
 #include "moui/moui.h"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT void JNICALL Java_com_ollix_moui_OpenGLRenderer_drawFrame
     (JNIEnv* env, jobject obj, jlong moui_view_pointer) {
@@ -29,6 +27,4 @@ JNIEXPORT void JNICALL Java_com_ollix_moui_OpenGLRenderer_drawFrame
   view->Render();
 }
 
-#ifdef __cplusplus
-}
-#endif
+}  // extern "C"

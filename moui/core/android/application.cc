@@ -23,38 +23,25 @@ namespace {
 
 JavaVM* java_vm = nullptr;
 jobject main_activity = nullptr;
-moui::Application* shared_application = nullptr;
 
 }  // namespace
 
 namespace moui {
 
-Application* Application::SharedApplication() {
-  if (shared_application == nullptr)
-    shared_application = new Application();
-  return shared_application;
-}
-
-Application::Application() {
-}
-
-Application::~Application() {
-}
-
-void Application::Init(JNIEnv* env, jobject activity) {
+void Application::InitJNI(JNIEnv* env, jobject activity) {
   if (main_activity != nullptr)
     env->DeleteGlobalRef(main_activity);
   main_activity = reinterpret_cast<jobject>(env->NewGlobalRef(activity));
   env->GetJavaVM(&java_vm);
 }
 
-JNIEnv* Application::GetJNIEnv() const {
+JNIEnv* Application::GetJNIEnv() {
   JNIEnv* env;
   java_vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
   return env;
 }
 
-jobject Application::GetMainActivity() const {
+jobject Application::GetMainActivity() {
   return main_activity;
 }
 

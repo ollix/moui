@@ -27,8 +27,7 @@ NativeView::NativeView(void* native_handle) {
   if (native_handle == nullptr)
     return;
 
-  Application* application = Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
+  JNIEnv* env = moui::Application::GetJNIEnv();
   native_handle_ = env->NewGlobalRef(reinterpret_cast<jobject>(native_handle));
 }
 
@@ -36,8 +35,7 @@ NativeView::~NativeView() {
   if (native_handle_ == nullptr)
     return;
 
-  Application* application = Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
+  JNIEnv* env = moui::Application::GetJNIEnv();
   env->DeleteGlobalRef(reinterpret_cast<jobject>(native_handle_));
 }
 
@@ -45,10 +43,8 @@ void NativeView::AddSubview(const NativeView* subview) {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
   jobject native_subview = reinterpret_cast<jobject>(subview->native_handle());
 
-  Application* application = Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
-
   // Skips if the native view is not a subclass of ViewGroup.
+  JNIEnv* env = moui::Application::GetJNIEnv();
   jclass group_view_class = env->FindClass("android/view/ViewGroup");
   if (!env->IsInstanceOf(native_view, group_view_class))
     return;
@@ -65,10 +61,9 @@ float NativeView::GetContentScaleFactor() const {
   if (content_scale_factor > 0)
     return content_scale_factor;
 
-  auto application = Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
   // JAVA: Resources resources = activity.getResources()
-  jobject activity = application->GetMainActivity();
+  JNIEnv* env = moui::Application::GetJNIEnv();
+  jobject activity = moui::Application::GetMainActivity();
   jclass activity_class = env->GetObjectClass(activity);
   jmethodID get_resources_method = env->GetMethodID(
       activity_class, "getResources", "()Landroid/content/res/Resources;");
@@ -88,8 +83,7 @@ float NativeView::GetContentScaleFactor() const {
 
 int NativeView::GetHeight() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
-  auto application = moui::Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
+  JNIEnv* env = moui::Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID get_height_method = env->GetMethodID(
       view_class, "getHeight", "()I");
@@ -98,8 +92,7 @@ int NativeView::GetHeight() const {
 
 int NativeView::GetWidth() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
-  auto application = moui::Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
+  JNIEnv* env = moui::Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID get_width_method = env->GetMethodID(
       view_class, "getWidth", "()I");

@@ -28,8 +28,7 @@ jobject GetJavaClock() {
   if (java_clock != nullptr)
     return java_clock;
 
-  auto application = moui::Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
+  JNIEnv* env = moui::Application::GetJNIEnv();
   jclass clock_class = env->FindClass("com/ollix/moui/Clock");
   jmethodID clock_constructor = env->GetMethodID(
       clock_class, "<init>", "()V");
@@ -49,8 +48,7 @@ void Clock::ExecuteCallback(Callback* callback) {
     return;
   }
 
-  auto application = Application::SharedApplication();
-  JNIEnv* env = application->GetJNIEnv();
+  JNIEnv* env = moui::Application::GetJNIEnv();
   jobject java_clock = GetJavaClock();
   jclass clock_class = env->GetObjectClass(java_clock);
   jmethodID execute_callback_method = env->GetMethodID(

@@ -18,8 +18,52 @@
 #ifndef MOUI_CORE_APPLICATION_H_
 #define MOUI_CORE_APPLICATION_H_
 
-#if MOUI_ANDROID
-#include "moui/core/android/application.h"
-#endif
+#include "moui/base.h"
+#include "moui/core/base_application.h"
+
+#ifdef MOUI_ANDROID
+#include "jni.h"
+#endif  // MOUI_ANDROID
+
+namespace moui {
+
+// The Application class is the base class for custom applications. This class
+// should never be instantiated directly. Instaed, creating a subclass and
+// implmenet virtual methods there. The custom application instance should call
+// the SetAsMainApplication() method once right after instantiated. For Android
+// support, the InitJNI() method should also be called before instantiating.
+class Application : public BaseApplication {
+ public:
+  Application() {}
+  ~Application() {}
+
+  // Called when the application has finished launching.
+  virtual void OnLaunch() {};
+
+  // Returns the main application. The main application must be registered
+  // before calling this method. To register the main application, call the
+  // BaseApplication::RegisterMainApplication() method on an application
+  // instance.
+  static Application* GetMainApplication() {
+    BaseApplication* application = BaseApplication::GetMainApplication();
+    return reinterpret_cast<Application*>(application);
+  }
+
+#ifdef MOUI_ANDROID
+  // Initializes the JNI environemnt. This method must be called at least once.
+  static void InitJNI(JNIEnv* env, jobject activity);
+
+  // Returns the JNIEnv variable that set in the InitJNI() method.
+  static JNIEnv* GetJNIEnv();
+
+  // Returns the Activity object that set in the InitJNI() method.
+  static jobject GetMainActivity();
+#endif  // MOUI_ANDROID
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Application);
+};
+
+}  // namespace moui
 
 #endif  // MOUI_CORE_APPLICATION_H_

@@ -21,16 +21,11 @@
 
 #include "moui/moui.h"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT void JNICALL Java_com_ollix_moui_Application_init
     (JNIEnv* env, jobject obj, jobject activity) {
-  auto application = moui::Application::SharedApplication();
-  application->Init(env, activity);
+  moui::Application::InitJNI(env, activity);
 }
 
-#ifdef __cplusplus
-}
-#endif
+}  // extern "C"

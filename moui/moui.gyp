@@ -20,6 +20,7 @@
       'target_name': 'libmoui',
       'type': 'static_library',
       'sources': [
+        'core/base_application.cc',
         'ui/base_view.cc',
         'widgets/widget.cc',
         'widgets/widget_view.cc',

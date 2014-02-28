@@ -21,9 +21,7 @@
 
 #include "moui/moui.h"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 JNIEXPORT void JNICALL Java_com_ollix_moui_Clock_executeCallback
     (JNIEnv* env, jobject obj, jlong callback_pointer) {
@@ -31,6 +29,4 @@ JNIEXPORT void JNICALL Java_com_ollix_moui_Clock_executeCallback
   moui::Clock::ExecuteCallback(callback);
 }
 
-#ifdef __cplusplus
-}
-#endif
+}  // extern "C"
