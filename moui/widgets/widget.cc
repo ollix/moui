@@ -18,10 +18,12 @@
 #include "moui/widgets/widget.h"
 
 #include "moui/nanovg_hook.h"
+#include "moui/widgets/widget_view.h"
 
 namespace moui {
 
-Widget::Widget() : height_(0), hidden_(false), width_(0), x_(0), y_(0) {
+Widget::Widget() : height_(0), hidden_(false), widget_view_(nullptr), width_(0),
+                   x_(0), y_(0) {
 }
 
 Widget::~Widget() {
@@ -29,6 +31,11 @@ Widget::~Widget() {
 
 void Widget::AddChild(Widget* child) {
   children_.push_back(child);
+}
+
+void Widget::Redraw() const {
+  if (widget_view_ != nullptr)
+    widget_view_->Redraw();
 }
 
 void Widget::SetBounds(const int x, const int y, const int width,

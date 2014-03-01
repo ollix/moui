@@ -34,6 +34,7 @@ class WidgetView : public View {
   WidgetView();
   ~WidgetView();
 
+  // Adds a widget to this view for rendering.
   void AddWidget(Widget* widget);
 
   // Inherited from BaseView class.
@@ -42,6 +43,9 @@ class WidgetView : public View {
  private:
   // Renders all child widgets recursively.
   void RenderWidgets(std::vector<Widget*>& widgets);
+
+  // Updates the widget_view property of the specified widget and its children.
+  void UpdateWidgetViewForWidget(Widget* widget);
 
   // The nanovg context for drawing.
   struct NVGcontext* context_;

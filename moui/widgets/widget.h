@@ -26,6 +26,8 @@ struct NVGcontext;
 
 namespace moui {
 
+class WidgetView;
+
 class Widget {
  public:
   explicit Widget();
@@ -33,6 +35,10 @@ class Widget {
 
   // Adds child widget.
   void AddChild(Widget* child);
+
+  // Redraws the widget view containing this widget. Note that all widgets
+  // belonged to the same widget view will be drawn by calling this method.
+  void Redraw() const;
 
   // Implements the logic for rendering the widget.
   virtual void Render(struct NVGcontext* context) {}
@@ -54,6 +60,11 @@ class Widget {
   void set_y(int y) { y_ = y; }
 
  private:
+  friend class WidgetView;
+
+  // The setter that should only be called by the WidgetView firend class.
+  void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
+
   // Holds a list of child widgets.
   std::vector<Widget*> children_;
 
@@ -62,6 +73,10 @@ class Widget {
 
   // Indicates whether the widget is hidden.
   bool hidden_;
+
+  // The WidgetView that contains the this widget instance. This is dedicated
+  // for the convenient Redraw() method.
+  WidgetView* widget_view_;
 
   // The width of the widget.
   int width_;

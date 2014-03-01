@@ -35,7 +35,7 @@ View::~View() {
 
 void View::Redraw() const {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  [native_view render];
+  [native_view setNeedsDisplay:YES];
 }
 
 }  // namespace moui

@@ -51,6 +51,7 @@ WidgetView::~WidgetView() {
 
 void WidgetView::AddWidget(Widget* widget) {
   widgets_.push_back(widget);
+  UpdateWidgetViewForWidget(widget);
 }
 
 void WidgetView::Render() {
@@ -99,6 +100,12 @@ void WidgetView::RenderWidgets(std::vector<Widget*>& widgets) {
     RenderWidgets(widget->children());
     nvgRestore(context_);
   }
+}
+
+void WidgetView::UpdateWidgetViewForWidget(Widget* widget) {
+  widget->set_widget_view(this);
+  for (Widget* child_widget : widget->children())
+    UpdateWidgetViewForWidget(child_widget);
 }
 
 }  // namespace moui
