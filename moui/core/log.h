@@ -15,12 +15,19 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_CORE_CORE_H_
-#define MOUI_CORE_CORE_H_
+#ifndef MOUI_CORE_LOG_H_
+#define MOUI_CORE_LOG_H_
 
-#include "moui/core/application.h"
-#include "moui/core/clock.h"
-#include "moui/core/log.h"
-#include "moui/core/path.h"
+#if MOUI_IOS || MOUI_MAC
+#include <cstdio>
+#elif MOUI_ANDROID
+#include <android/log.h>
+#endif  // MOUI_IOS || MOUI_MAC
 
-#endif  // MOUI_CORE_CORE_H_
+#if MOUI_IOS || MOUI_MAC
+#define MO_LOG(...) std::printf(__VA_ARGS__);
+#elif MOUI_ANDROID
+#define MO_LOG(...) __android_log_print(ANDROID_LOG_INFO, "moui", __VA_ARGS__)
+#endif
+
+#endif  // MOUI_CORE_LOG_H_

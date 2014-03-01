@@ -40,9 +40,15 @@
             'ui/android/view.cc',
             'ui/android/window.cc',
           ],
-          'ldflags': [ '-lGLESv2' ],
+          'ldflags': [
+            '-lGLESv2',
+            '-llog',
+          ],
           'direct_dependent_settings': {
-            'ldflags': [ '-lGLESv2' ],
+            'ldflags': [
+              '-lGLESv2',
+              '-llog',
+            ],
           },
         }],
         ['OS=="ios"', {
