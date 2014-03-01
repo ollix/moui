@@ -29,29 +29,35 @@ namespace moui {
 
 class Widget;
 
+// The WidgetView class is designed specifically for rendering Widget instances.
+// It sets up the nanovg context for rendering widgets, and comes with a
+// managed widget as the root widget. All other widgets should be added to the
+// managed widget for rendering.
 class WidgetView : public View {
  public:
   WidgetView();
   ~WidgetView();
 
-  // Adds a widget to this view for rendering.
-  void AddWidget(Widget* widget);
-
   // Inherited from BaseView class.
   virtual void Render() override final;
 
- private:
-  // Renders all child widgets recursively.
-  void RenderWidgets(std::vector<Widget*>& widgets);
+  // Sets the bounds for the view and its managed widget.
+  void SetBounds(const int x, const int y, const int width,
+                 const int height) const;
 
-  // Updates the widget_view property of the specified widget and its children.
-  void UpdateWidgetViewForWidget(Widget* widget);
+  // Accessor.
+  Widget* widget() { return widget_; }
+
+ private:
+  // Renders the specified widget and its children recursively. Note that
+  // hidden widgets won't be rendered.
+  void RenderWidget(Widget* widget);
 
   // The nanovg context for drawing.
   struct NVGcontext* context_;
 
-  // A list of widgets that will be rendered to this view.
-  std::vector<Widget*> widgets_;
+  // The root widget for rendering. All its children will be rendered as well.
+  Widget* widget_;
 
   DISALLOW_COPY_AND_ASSIGN(WidgetView);
 };

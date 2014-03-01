@@ -28,6 +28,9 @@ namespace moui {
 
 class WidgetView;
 
+// A widget is a graphical element that can rendering based on nanovg context.
+// Widgets must be added to the managed widget of a WidgetView instance before
+// it can be rendering.
 class Widget {
  public:
   explicit Widget();
@@ -38,6 +41,8 @@ class Widget {
 
   // Redraws the widget view containing this widget. Note that all widgets
   // belonged to the same widget view will be drawn by calling this method.
+  // Beware, if the widget instance is not attached to any widget view yet,
+  // the program will crash.
   void Redraw() const;
 
   // Implements the logic for rendering the widget.
@@ -64,6 +69,10 @@ class Widget {
 
   // The setter that should only be called by the WidgetView firend class.
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
+
+  // Updates the widget view for the specified widget and all its children
+  // recursively.
+  void UpdateWidgetViewRecursively(Widget* widget);
 
   // Holds a list of child widgets.
   std::vector<Widget*> children_;

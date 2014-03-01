@@ -21,6 +21,7 @@
 
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
+#include "moui/ui/native_view.h"
 #include "moui/ui/view.h"
 #include "moui/widgets/widget.h"
 
@@ -32,7 +33,8 @@
 
 namespace moui {
 
-WidgetView::WidgetView() : View(), context_(nullptr) {
+WidgetView::WidgetView() : View(), context_(nullptr), widget_(new Widget) {
+  widget_->set_widget_view(this);
 }
 
 WidgetView::~WidgetView() {
@@ -47,11 +49,8 @@ WidgetView::~WidgetView() {
     nvgDeleteGLES3(context_);
 #endif
   }
-}
 
-void WidgetView::AddWidget(Widget* widget) {
-  widgets_.push_back(widget);
-  UpdateWidgetViewForWidget(widget);
+  delete widget_;
 }
 
 void WidgetView::Render() {
@@ -83,29 +82,28 @@ void WidgetView::Render() {
 
   nvgBeginFrame(context_, GetWidth(), GetHeight(), GetContentScaleFactor(),
                 alpha_blend);
-  RenderWidgets(widgets_);
+  RenderWidget(widget_);
   nvgEndFrame(context_);
 }
 
-void WidgetView::RenderWidgets(std::vector<Widget*>& widgets) {
-  for (Widget* widget : widgets) {
-    if (widget->hidden())
-      continue;
-
-    nvgSave(context_);
-    nvgScissor(context_, widget->x(), widget->y(), widget->width(),
-               widget->height());
-    nvgTranslate(context_, widget->x(), widget->y());
+void WidgetView::RenderWidget(Widget* widget) {
+  nvgSave(context_);
+  nvgScissor(context_, widget->x(), widget->y(), widget->width(),
+             widget->height());
+  nvgTranslate(context_, widget->x(), widget->y());
+  if (!widget->hidden())
     widget->Render(context_);
-    RenderWidgets(widget->children());
-    nvgRestore(context_);
+  // Renders children.
+  for (Widget* child_widget : widget->children()) {
+    RenderWidget(child_widget);
   }
+  nvgRestore(context_);
 }
 
-void WidgetView::UpdateWidgetViewForWidget(Widget* widget) {
-  widget->set_widget_view(this);
-  for (Widget* child_widget : widget->children())
-    UpdateWidgetViewForWidget(child_widget);
+void WidgetView::SetBounds(const int x, const int y, const int width,
+                           const int height) const {
+  NativeView::SetBounds(x, y, width, height);
+  widget_->SetBounds(0, 0, width, height);
 }
 
 }  // namespace moui

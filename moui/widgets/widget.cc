@@ -31,11 +31,11 @@ Widget::~Widget() {
 
 void Widget::AddChild(Widget* child) {
   children_.push_back(child);
+  UpdateWidgetViewRecursively(child);
 }
 
 void Widget::Redraw() const {
-  if (widget_view_ != nullptr)
-    widget_view_->Redraw();
+  widget_view_->Redraw();
 }
 
 void Widget::SetBounds(const int x, const int y, const int width,
@@ -44,6 +44,13 @@ void Widget::SetBounds(const int x, const int y, const int width,
   y_ = y;
   width_ = width;
   height_ = height;
+}
+
+void Widget::UpdateWidgetViewRecursively(Widget* widget) {
+  widget->set_widget_view(widget_view_);
+  for (Widget* child_widget : widget->children()) {
+    UpdateWidgetViewRecursively(child_widget);
+  }
 }
 
 }  // namespace moui
