@@ -22,6 +22,7 @@
       'sources': [
         'core/base_application.cc',
         'ui/base_view.cc',
+        'ui/base_window.cc',
         'widgets/widget.cc',
         'widgets/widget_view.cc',
       ],
@@ -37,6 +38,7 @@
             'core/android/clock.cc',
             'ui/android/native_view.cc',
             'ui/android/view.cc',
+            'ui/android/window.cc',
           ],
           'ldflags': [ '-lGLESv2' ],
           'direct_dependent_settings': {
@@ -55,10 +57,13 @@
             'ui/ios/MOOpenGLViewController.mm',
             'ui/ios/native_view.mm',
             'ui/ios/view.mm',
+            'ui/ios/window.mm',
           ],
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+              '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+              '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
             ],
           },
@@ -74,6 +79,7 @@
             'ui/mac/MOOpenGLView.mm',
             'ui/mac/native_view.mm',
             'ui/mac/view.mm',
+            'ui/mac/window.mm',
           ],
           'link_settings': {
             'libraries': [

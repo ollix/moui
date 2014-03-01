@@ -48,7 +48,7 @@ void Clock::ExecuteCallback(Callback* callback) {
     return;
   }
 
-  JNIEnv* env = moui::Application::GetJNIEnv();
+  JNIEnv* env = Application::GetJNIEnv();
   jobject java_clock = GetJavaClock();
   jclass clock_class = env->GetObjectClass(java_clock);
   jmethodID execute_callback_method = env->GetMethodID(

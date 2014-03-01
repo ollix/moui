@@ -26,7 +26,7 @@
 
 namespace moui {
 
-// The View class is a wrapper of the platform-specfic native view for
+// The View class is a wrapper of the platform-specific native view for
 // rendering OpenGL stuff.
 class BaseView : public NativeView {
  public:

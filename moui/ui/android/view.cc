@@ -26,13 +26,14 @@ namespace moui {
 
 // Instantiates the JAVA OpenGLView class and sets it as the native handle.
 View::View() : BaseView() {
-  JNIEnv* env = moui::Application::GetJNIEnv();
+  JNIEnv* env = Application::GetJNIEnv();
   jclass opengl_view_class = env->FindClass("com/ollix/moui/OpenGLView");
   jmethodID opengl_view_constructor = env->GetMethodID(
       opengl_view_class, "<init>", "(Landroid/content/Context;J)V");
-  jobject java_opengl_view = env->NewObject(
-      opengl_view_class, opengl_view_constructor,
-      moui::Application::GetMainActivity(), (jlong)this);
+  jobject java_opengl_view = env->NewObject(opengl_view_class,
+                                            opengl_view_constructor,
+                                            Application::GetMainActivity(),
+                                            (jlong)this);
   native_handle_ = env->NewGlobalRef(java_opengl_view);
 }
 
@@ -41,7 +42,7 @@ View::~View() {
 
 void View::Redraw() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
-  JNIEnv* env = moui::Application::GetJNIEnv();
+  JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID request_render_method = env->GetMethodID(view_class,
                                                      "requestRender", "()V");
