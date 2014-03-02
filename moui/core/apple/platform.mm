@@ -15,13 +15,25 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_CORE_CORE_H_
-#define MOUI_CORE_CORE_H_
-
-#include "moui/core/application.h"
-#include "moui/core/clock.h"
-#include "moui/core/log.h"
-#include "moui/core/path.h"
 #include "moui/core/platform.h"
 
-#endif  // MOUI_CORE_CORE_H_
+#ifdef MOUI_IOS
+#import <UIKit/UIKit.h>
+#endif
+
+namespace moui {
+
+DeviceCategory Platform::GetDeviceCategory() {
+#if MOUI_MAC
+  return DeviceCategory::kDesktop;
+#elif MOUI_IOS
+  UIUserInterfaceIdiom user_interface_idiom = UI_USER_INTERFACE_IDIOM();
+  if (user_interface_idiom == UIUserInterfaceIdiomPhone)
+    return DeviceCategory::kPhone;
+  else if (user_interface_idiom == UIUserInterfaceIdiomPad)
+    return DeviceCategory::kTablet;
+#endif
+  return DeviceCategory::kUnknown;
+}
+
+}  // namespace moui
