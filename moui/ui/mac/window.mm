@@ -25,16 +25,15 @@
 
 namespace moui {
 
-Window::Window(void* native_handle) : BaseWindow(),
-                                      native_handle_(native_handle) {
+Window::Window(void* native_handle) : BaseWindow(native_handle) {
 }
 
 Window::~Window() {
 }
 
-Window* Window::GetMainWindow() {
-  BaseWindow* window = BaseWindow::GetMainWindow();
-  return reinterpret_cast<Window*>(window);
+std::unique_ptr<Window> Window::GetMainWindow() {
+  void* window = BaseWindow::GetMainNativeHandle();
+  return std::unique_ptr<Window>(new Window(window));
 }
 
 std::unique_ptr<NativeView> Window::GetRootView() const {

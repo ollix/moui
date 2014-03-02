@@ -26,7 +26,7 @@
 namespace moui {
 
 // Instantiates the JAVA OpenGLView class and sets it as the native handle.
-Window::Window(void* native_handle) : BaseWindow() {
+Window::Window(void* native_handle) : BaseWindow(nullptr) {
   JNIEnv* env = Application::GetJNIEnv();
   native_handle_ = env->NewGlobalRef(reinterpret_cast<jobject>(native_handle));
 }
@@ -36,11 +36,7 @@ Window::~Window() {
   env->DeleteGlobalRef(reinterpret_cast<jobject>(native_handle_));
 }
 
-Window* Window::GetMainWindow() {
-  BaseWindow* registered_main_window = BaseWindow::GetMainWindow();
-  if (registered_main_window != nullptr)
-    return reinterpret_cast<Window*>(registered_main_window);
-
+std::unique_ptr<Window> Window::GetMainWindow() {
   // JAVA: android_window = activity.getWindow()
   JNIEnv* env = Application::GetJNIEnv();
   jobject activity = Application::GetMainActivity();
@@ -48,10 +44,8 @@ Window* Window::GetMainWindow() {
   jmethodID get_window_method = env->GetMethodID(
       activity_class, "getWindow", "()Landroid/view/Window;");
   jobject android_window = env->CallObjectMethod(activity, get_window_method);
-  // Registers main window.
-  auto main_window = new Window(reinterpret_cast<void*>(android_window));
-  main_window->RegisterMainWindow();
-  return main_window;
+  auto window = new Window(reinterpret_cast<void*>(android_window));
+  return std::unique_ptr<Window>(window);
 }
 
 std::unique_ptr<NativeView> Window::GetRootView() const {

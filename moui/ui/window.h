@@ -33,14 +33,16 @@ class Window : public BaseWindow {
   explicit Window(void* native_handle);
   ~Window();
 
-  static Window* GetMainWindow();
+  // Returns the main window. For iOS, it's the keyWindow of UIApplication.
+  // For Android, it returns the current activity's window. For Mac, it
+  // returns the window previously registered through the
+  // RegisterMainNativeHandle() method.
+  static std::unique_ptr<Window> GetMainWindow();
 
+  // Returns the root view of the current window.
   std::unique_ptr<NativeView> GetRootView() const;
 
  private:
-  // The pointer to the platform-specific window instance.
-  void* native_handle_;
-
   DISALLOW_COPY_AND_ASSIGN(Window);
 };
 

@@ -7,25 +7,24 @@
 
 namespace {
 
-moui::BaseWindow* main_window = nullptr;
+void* main_native_handle = nullptr;
 
 }  // namespace
 
 namespace moui {
 
-BaseWindow::BaseWindow() {}
+BaseWindow::BaseWindow(void* native_handle) : native_handle_(native_handle) {
+}
 
 BaseWindow::~BaseWindow() {
-  if (this == main_window)
-    main_window = nullptr;
 }
 
-BaseWindow* BaseWindow::GetMainWindow() {
-  return main_window;
+void* BaseWindow::GetMainNativeHandle() {
+  return main_native_handle;
 }
 
-void BaseWindow::RegisterMainWindow() {
-  main_window = this;
+void BaseWindow::RegisterMainNativeHandle(void* native_handle) {
+  main_native_handle = native_handle;
 }
 
 }  // namespace moui

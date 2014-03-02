@@ -25,23 +25,16 @@
 
 namespace moui {
 
-Window::Window(void* native_handle) : BaseWindow(),
-                                      native_handle_(native_handle) {
+Window::Window(void* native_handle) : BaseWindow(native_handle) {
 }
 
 Window::~Window() {
 }
 
-Window* Window::GetMainWindow() {
-  BaseWindow* window = BaseWindow::GetMainWindow();
-  if (window != nullptr)
-    return reinterpret_cast<Window*>(window);
-
+std::unique_ptr<Window> Window::GetMainWindow() {
   UIApplication* application = [UIApplication sharedApplication];
   UIWindow* key_window = [application keyWindow];
-  auto main_window = new Window((__bridge void*)key_window);
-  main_window->RegisterMainWindow();
-  return main_window;
+  return std::unique_ptr<Window>(new Window((__bridge void*)key_window));
 }
 
 std::unique_ptr<NativeView> Window::GetRootView() const {

@@ -16,17 +16,20 @@ namespace moui {
 // retrieving the main window.
 class BaseWindow {
  public:
-  BaseWindow();
+  explicit BaseWindow(void* native_handle);
   ~BaseWindow();
 
-  // Returns the main window previously registered through the
-  // RegisterMainWindow() method. This method should only be called in the
-  // Window class.
-  static BaseWindow* GetMainWindow();
+  // Registers the specified native handle that can later be retrieved
+  // throguh the GetMainNativeHandle() method.
+  static void RegisterMainNativeHandle(void* native_handle);
 
-  // Registers the instance as the main window that can later be retrieved
-  // throguh the GetMainWindow() method.
-  void RegisterMainWindow();
+ protected:
+  // Returns the native handle previously registered through the
+  // RegisterMainNativeHandle() method.
+  static void* GetMainNativeHandle();
+
+  // The pointer to the platform-specific window instance.
+  void* native_handle_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseWindow);
