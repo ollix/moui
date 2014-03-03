@@ -87,15 +87,30 @@ void WidgetView::Render() {
 }
 
 void WidgetView::RenderWidget(Widget* widget) {
+  if (widget->IsHidden())
+    return;
+  const int kWidgetWidth = widget->GetWidth();
+  if (kWidgetWidth <= 0)
+    return;
+  const int kWidgetHeight = widget->GetHeight();
+  if (kWidgetHeight <= 0)
+    return;
+  const int kWidgetX = widget->GetX();
+  if ((kWidgetX + kWidgetWidth) < 0)
+    return;
+  const int kWidgetY = widget->GetY();
+  if ((kWidgetY + kWidgetHeight) < 0)
+    return;
+
   nvgSave(context_);
-  nvgScissor(context_, widget->x(), widget->y(), widget->width(),
-             widget->height());
-  nvgTranslate(context_, widget->x(), widget->y());
-  if (!widget->hidden())
-    widget->Render(context_);
-  // Renders children.
-  for (Widget* child_widget : widget->children()) {
-    RenderWidget(child_widget);
+  nvgScissor(context_, kWidgetX, kWidgetY, kWidgetWidth, kWidgetHeight);
+  nvgTranslate(context_, kWidgetX, kWidgetY);
+  widget->Render(context_);
+  // Renders visible children.
+  for (Widget* child : widget->children()) {
+    if (child->GetX() > kWidgetWidth || child->GetY() > kWidgetHeight)
+      continue;
+    RenderWidget(child);
   }
   nvgRestore(context_);
 }
@@ -103,7 +118,9 @@ void WidgetView::RenderWidget(Widget* widget) {
 void WidgetView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
   NativeView::SetBounds(x, y, width, height);
-  widget_->SetBounds(0, 0, width, height);
+  widget_->SetWidth(Widget::Unit::kPixel, width);
+  widget_->SetHeight(Widget::Unit::kPixel, height);
+  Redraw();
 }
 
 }  // namespace moui

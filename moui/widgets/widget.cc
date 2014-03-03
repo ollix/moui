@@ -17,13 +17,71 @@
 
 #include "moui/widgets/widget.h"
 
+#include <cassert>
+
 #include "moui/nanovg_hook.h"
 #include "moui/widgets/widget_view.h"
 
+namespace {
+
+// Returns the height of the widget or zero if the widget is nullptr.
+int GetHeightOrZero(const moui::Widget* widget) {
+  if (widget == nullptr)
+    return 0;
+  return widget->GetHeight();
+}
+
+// Returns the pixels of height.
+float GetHeightPixels(const moui::Widget* parent, const moui::Widget::Unit unit,
+                      const int value) {
+  float pixels;
+  switch (unit) {
+    case moui::Widget::Unit::kPercent:
+      pixels = value / 100.0 * GetHeightOrZero(parent);
+      break;
+    case moui::Widget::Unit::kPixel:
+      pixels = value;
+      break;
+    default:
+      assert(false);
+  }
+  return pixels;
+}
+
+// Returns the width of the widget or zero if the widget is nullptr.
+int GetWidthOrZero(const moui::Widget* widget) {
+  if (widget == nullptr)
+    return 0;
+  return widget->GetWidth();
+}
+
+// Returns the pixels of width.
+float GetWidthPixels(const moui::Widget* parent, const moui::Widget::Unit unit,
+                     const int value) {
+  float pixels;
+  switch (unit) {
+    case moui::Widget::Unit::kPercent:
+      pixels = value / 100.0 * GetWidthOrZero(parent);
+      break;
+    case moui::Widget::Unit::kPixel:
+      pixels = value;
+      break;
+    default:
+      assert(false);
+  }
+  return pixels;
+}
+
+}
+
 namespace moui {
 
-Widget::Widget() : height_(0), hidden_(false), widget_view_(nullptr), width_(0),
-                   x_(0), y_(0) {
+Widget::Widget() : height_unit_(Unit::kPixel), height_value_(0), hidden_(false),
+                   parent_(nullptr), widget_view_(nullptr),
+                   width_unit_(Unit::kPixel), width_value_(0),
+                   x_alignment_(Alignment::kLeft), x_unit_(Unit::kPixel),
+                   x_value_(0), y_alignment_(Alignment::kTop),
+                   y_unit_(Unit::kPixel), y_value_(0) {
 }
 
 Widget::~Widget() {
@@ -31,19 +89,94 @@ Widget::~Widget() {
 
 void Widget::AddChild(Widget* child) {
   children_.push_back(child);
+  child->set_parent(this);
   UpdateWidgetViewRecursively(child);
+  if (!child->IsHidden())
+    Redraw();
+}
+
+int Widget::GetHeight() const {
+  return GetHeightPixels(parent_, height_unit_, height_value_) + 0.5;
+}
+
+int Widget::GetWidth() const {
+  return GetWidthPixels(parent_, width_unit_, width_value_) + 0.5;
+}
+
+int Widget::GetX() const {
+  float x;
+  float offset = GetWidthPixels(parent_, x_unit_, x_value_);
+  switch (x_alignment_) {
+    case Alignment::kLeft:
+      x = offset;
+      break;
+    case Alignment::kCenter:
+      x = (parent_->GetWidth() - GetWidth()) / 2 + offset;
+      break;
+    case Alignment::kRight:
+      x = parent_->GetWidth() - GetWidth() - offset;
+      break;
+    default:
+      assert(false);
+  }
+  return x + 0.5;
+}
+
+int Widget::GetY() const {
+  float y;
+  float offset = GetHeightPixels(parent_, y_unit_, y_value_);
+  switch (y_alignment_) {
+    case Alignment::kTop:
+      y = offset;
+      break;
+    case Alignment::kMiddle:
+      y = (parent_->GetHeight() - GetHeight()) / 2 + offset;
+      break;
+    case Alignment::kBottom:
+      y = parent_->GetHeight() - GetHeight() - offset;
+      break;
+    default:
+      assert(false);
+  }
+  return y + 0.5;
+}
+
+bool Widget::IsHidden() const {
+  return hidden_;
 }
 
 void Widget::Redraw() const {
-  widget_view_->Redraw();
+  if (widget_view_ != nullptr)
+    widget_view_->Redraw();
 }
 
-void Widget::SetBounds(const int x, const int y, const int width,
-                       const int height) {
-  x_ = x;
-  y_ = y;
-  width_ = width;
-  height_ = height;
+void Widget::SetHeight(const Unit unit, const float height) {
+  height_unit_ = unit;
+  height_value_ = height;
+}
+
+void Widget::SetHidden(bool hidden) {
+  if (hidden != hidden_) {
+    hidden_ = hidden;
+    Redraw();
+  }
+}
+
+void Widget::SetWidth(const Unit unit, const float width) {
+  width_unit_ = unit;
+  width_value_ = width;
+}
+
+void Widget::SetX(const Alignment alignment, const Unit unit, const float x) {
+  x_alignment_ = alignment;
+  x_unit_ = unit;
+  x_value_ = x;
+}
+
+void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
+  y_alignment_ = alignment;
+  y_unit_ = unit;
+  y_value_ = y;
 }
 
 void Widget::UpdateWidgetViewRecursively(Widget* widget) {

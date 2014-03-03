@@ -33,41 +33,74 @@ class WidgetView;
 // it can be rendering.
 class Widget {
  public:
+  enum class Alignment {
+    kLeft,
+    kCenter,
+    kRight,
+    kTop,
+    kMiddle,
+    kBottom,
+  };
+  enum class Unit {
+    kPercent,
+    kPixel,
+  };
+
   explicit Widget();
   ~Widget();
 
   // Adds child widget.
   void AddChild(Widget* child);
 
+  // Returns the height in pixels.
+  int GetHeight() const;
+
+  // Returns the width in pixels.
+  int GetWidth() const;
+
+  // Returns the horizontal position in pixels related to its parent's left.
+  int GetX() const;
+
+  // Returns the vertical position in pixels related to its parent's top.
+  int GetY() const;
+
+  // Returns true if the widget is hidden.
+  bool IsHidden() const;
+
   // Redraws the widget view containing this widget. Note that all widgets
   // belonged to the same widget view will be drawn by calling this method.
-  // Beware, if the widget instance is not attached to any widget view yet,
-  // the program will crash.
+  // If the current widget doesn't belong to any widget view, nothing happened.
   void Redraw() const;
 
   // Implements the logic for rendering the widget.
   virtual void Render(struct NVGcontext* context) {}
 
-  // Sets the bounds of the widget.
-  void SetBounds(const int x, const int y, const int width, const int height);
+  // Sets the height with the specified unit.
+  void SetHeight(const Unit unit, const float height);
+
+  // Sets whether the widget should be visible.
+  void SetHidden(bool hidden);
+
+  // Sets the width with the specified unit.
+  void SetWidth(const Unit unit, const float width);
+
+  // Sets the horizontal position. The alignment could only be one of kLeft,
+  // kCenter, and kRight.
+  void SetX(const Alignment alignment, const Unit unit, const float x);
+
+  // Sets the vertical position. The alignment could only be one of kTop,
+  // kMiddle, and kBottom.
+  void SetY(const Alignment alignment, const Unit unit, const float y);
 
   // Setters and accessors.
   std::vector<Widget*>& children() { return children_; }
-  int height() const { return height_; }
-  void set_height(int height) { height_ = height; }
-  bool hidden() const { return hidden_; }
-  void set_hidden(bool hidden) { hidden_ = hidden; }
-  int width() const { return width_; }
-  void set_width(int width) { width_ = width; }
-  int x() const { return x_; }
-  void set_x(int x) { x_ = x; }
-  int y() const { return y_; }
-  void set_y(int y) { y_ = y; }
 
  private:
   friend class WidgetView;
 
-  // The setter that should only be called by the WidgetView firend class.
+  // Accessors.
+  void set_parent(Widget* parent) { parent_ = parent; }
+  // This setter that should only be called by the WidgetView firend class.
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
 
   // Updates the widget view for the specified widget and all its children
@@ -77,24 +110,45 @@ class Widget {
   // Holds a list of child widgets.
   std::vector<Widget*> children_;
 
-  // The height of the widget.
-  int height_;
+  // The unit of the height_value_.
+  Unit height_unit_;
+
+  // The height value represented as height_unit_.
+  float height_value_;
 
   // Indicates whether the widget is hidden.
   bool hidden_;
+
+  // The parent widget of the current widget.
+  Widget* parent_;
 
   // The WidgetView that contains the this widget instance. This is dedicated
   // for the convenient Redraw() method.
   WidgetView* widget_view_;
 
-  // The width of the widget.
-  int width_;
+  // The unit of the width_value_.
+  Unit width_unit_;
+
+  // The width value represented as width_unit_.
+  float width_value_;
+
+  // The alignment of the x_value_.
+  Alignment x_alignment_;
+
+  // The unit of the x_value_.
+  Unit x_unit_;
 
   // The horizontal position related to its parent.
-  int x_;
+  float x_value_;
+
+  // The alignment of the y_value_.
+  Alignment y_alignment_;
+
+  // The unit of the y_value_.
+  Unit y_unit_;
 
   // The vertical position related to its parent.
-  int y_;
+  float y_value_;
 
   DISALLOW_COPY_AND_ASSIGN(Widget);
 };
