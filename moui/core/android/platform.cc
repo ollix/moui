@@ -23,10 +23,11 @@
 
 namespace {
 
-// The minimum screen inches that should consider as a tablet. This value can
-// be changed through the SetMinimumTabletScreenInches() method.
+// The smallest screen dp that should consider as a tablet. This value can
+// be changed through the SetSmallestScreenWidthDpForTablet() method.
 float tablet_smallest_screen_width_dp = 600;
 
+// Returns the instance of the com.ollix.moui.Platform class on the Java side.
 jobject GetJavaPlatform() {
   static jobject java_platform = nullptr;
   if (java_platform != nullptr)
@@ -46,6 +47,7 @@ jobject GetJavaPlatform() {
 
 namespace moui {
 
+// Calls com.ollix.moui.Platform.getSmallestScreenWidthDp() on the Java side.
 DeviceCategory Platform::GetDeviceCategory() {
   static float smallest_screen_width_dp = 0;
   if (smallest_screen_width_dp >= tablet_smallest_screen_width_dp) {
