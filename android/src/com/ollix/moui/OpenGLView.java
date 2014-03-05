@@ -28,7 +28,12 @@ public class OpenGLView extends GLSurfaceView {
 
     setEGLContextClientVersion(2);  // adopts OpenGL ES 2.0 context
     setZOrderOnTop(true);
-    setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+    setEGLConfigChooser(8,  // red size
+                        8,  // green size
+                        8,  // blue size
+                        8,  // alpha size
+                        24,  // enables depth
+                        8);  // enables stencil
     getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
     setRenderer(new OpenGLRenderer(mouiViewPointer));

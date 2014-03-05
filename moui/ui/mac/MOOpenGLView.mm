@@ -51,15 +51,17 @@
 @implementation MOOpenGLView
 
 - (id)initWithMouiView:(moui::View*)mouiView {
-  if((self = [super initWithFrame:CGRectZero])) {
+  if((self = [super initWithFrame:NSMakeRect(0, 0, 0, 0)])) {
     _mouiView = mouiView;
 
     const NSOpenGLPixelFormatAttribute attributes[] =  {
         NSOpenGLPFAAccelerated,
         NSOpenGLPFAAlphaSize, 8,
         NSOpenGLPFAColorSize, 32,
+        NSOpenGLPFADepthSize, 24,
         NSOpenGLPFADoubleBuffer,
         NSOpenGLPFANoRecovery,
+        NSOpenGLPFAStencilSize, 8,
         NSOpenGLPFAWindow,
         (NSOpenGLPixelFormatAttribute)nil};
     _pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
@@ -89,6 +91,10 @@
 }
 
 - (void)render {
+  if (self.frame.size.width == 0 || self.frame.size.height == 0 ||
+      [self isHidden])
+    return;
+
   NSOpenGLContext* context = [self openGLContext];
   [context makeCurrentContext];
   _mouiView->Render();

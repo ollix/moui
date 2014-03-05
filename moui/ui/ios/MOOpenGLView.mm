@@ -25,24 +25,36 @@
 @interface MOOpenGLView (PrivateDelegateHandling)
 
 - (void)setupFrameBuffer;
-- (void)setupRenderBuffer;
 
 @end
 
 @implementation MOOpenGLView (PrivateDelegateHandling)
 
 - (void)setupFrameBuffer {
+  // Creates frame buffer.
   if (_framebuffer == 0)
     glGenFramebuffers(1, &_framebuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                            GL_RENDERBUFFER, _renderbuffer);
-}
 
-- (void)setupRenderBuffer {
-  if (_renderbuffer == 0)
-    glGenRenderbuffers(1, &_renderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _renderbuffer);
+  // Creates both stencil and depth render buffers.
+  if (_stencilAndDepthRenderbuffer == 0)
+    glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES,
+                        self.frame.size.width * self.contentScaleFactor,
+                        self.frame.size.height * self.contentScaleFactor);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+
+  // Creates the color render buffer.
+  if (_colorRenderbuffer == 0)
+    glGenRenderbuffers(1, &_colorRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                            GL_RENDERBUFFER, _colorRenderbuffer);
+
   [_eaglContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
 }
 
@@ -58,11 +70,11 @@
 
 - (id)initWithViewController:(MOOpenGLViewController*)viewController
                     mouiView:(moui::View*)mouiView {
-  if((self = [super initWithFrame:CGRectMake(0, 0, 1, 1)])) {
+  if((self = [super initWithFrame:CGRectMake(0, 0, 0, 0)])) {
+    _colorRenderbuffer = 0;
     _eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     _framebuffer = 0;
     _mouiView = mouiView;
-    _renderbuffer = 0;
     _viewController = viewController;
 
     // Initializes CAEAGLLayer.
@@ -76,10 +88,10 @@
 }
 
 - (void)dealloc {
+  if (_colorRenderbuffer != 0)
+    glDeleteRenderbuffers(1, &_colorRenderbuffer);
   if (_framebuffer != 0)
     glDeleteFramebuffers(1, &_framebuffer);
-  if (_renderbuffer != 0)
-    glDeleteRenderbuffers(1, &_renderbuffer);
 
   [_eaglContext dealloc];
   [super dealloc];
@@ -91,8 +103,11 @@
 }
 
 - (void)render {
+  if (self.frame.size.width == 0 || self.frame.size.height == 0 ||
+      self.isHidden)
+    return;
+
   [EAGLContext setCurrentContext:_eaglContext];
-  [self setupRenderBuffer];
   [self setupFrameBuffer];
   glViewport(0, 0,
              self.frame.size.width * self.contentScaleFactor,

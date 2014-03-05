@@ -27,11 +27,12 @@ class View;
 // The native iOS view for rendering OpenGL stuff.
 @interface MOOpenGLView : UIView {
  @private
-  GLuint _renderbuffer;
+  GLuint _colorRenderbuffer;
   GLuint _framebuffer;
   EAGLContext* _eaglContext;
   CAEAGLLayer* _eaglLayer;
   moui::View* _mouiView;
+  GLuint _stencilAndDepthRenderbuffer;
   __weak MOOpenGLViewController* _viewController;
 }
 
