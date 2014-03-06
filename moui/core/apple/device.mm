@@ -15,25 +15,38 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#include "moui/core/platform.h"
+#include "moui/core/device.h"
 
-#ifdef MOUI_IOS
+#include <cassert>
+
+#if MOUI_IOS
 #import <UIKit/UIKit.h>
+#elif MOUI_MAC
+#import <Cocoa/Cocoa.h>
 #endif
 
 namespace moui {
 
-DeviceCategory Platform::GetDeviceCategory() {
+Device::Category Device::GetCategory() {
 #if MOUI_MAC
-  return DeviceCategory::kDesktop;
+  return Category::kDesktop;
 #elif MOUI_IOS
   UIUserInterfaceIdiom user_interface_idiom = UI_USER_INTERFACE_IDIOM();
   if (user_interface_idiom == UIUserInterfaceIdiomPhone)
-    return DeviceCategory::kPhone;
+    return Category::kPhone;
   else if (user_interface_idiom == UIUserInterfaceIdiomPad)
-    return DeviceCategory::kTablet;
+    return Category::kTablet;
 #endif
-  return DeviceCategory::kUnknown;
+  assert(false);
+}
+
+float Device::GetScreenScaleFactor() {
+#if MOUI_IOS
+  return [[UIScreen mainScreen] scale];
+#elif MOUI_MAC
+  return [[NSScreen mainScreen] backingScaleFactor];
+#endif
+  assert(false);
 }
 
 }  // namespace moui

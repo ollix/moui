@@ -20,8 +20,8 @@
 
 #include "moui/core/application.h"
 #include "moui/core/clock.h"
+#include "moui/core/device.h"
 #include "moui/core/log.h"
 #include "moui/core/path.h"
-#include "moui/core/platform.h"
 
 #endif  // MOUI_CORE_CORE_H_

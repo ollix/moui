@@ -19,6 +19,7 @@
 
 #include <vector>
 
+#include "moui/core/device.h"
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
 #include "moui/ui/native_view.h"
@@ -80,8 +81,8 @@ void WidgetView::Render() {
   int alpha_blend = NVG_STRAIGHT_ALPHA;
 #endif
 
-  nvgBeginFrame(context_, GetWidth(), GetHeight(), GetContentScaleFactor(),
-                alpha_blend);
+  nvgBeginFrame(context_, GetWidth(), GetHeight(),
+                Device::GetScreenScaleFactor(), alpha_blend);
   RenderWidget(widget_);
   nvgEndFrame(context_);
 }

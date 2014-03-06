@@ -54,33 +54,6 @@ void NativeView::AddSubview(const NativeView* subview) {
   env->CallVoidMethod(native_view, add_view_method, native_subview);
 }
 
-// The implmenetation simulates the JAVA code as same as
-// activity.getResources().getDisplayMetrics().density.
-float NativeView::GetContentScaleFactor() const {
-  static float content_scale_factor = 0;
-  if (content_scale_factor > 0)
-    return content_scale_factor;
-
-  // JAVA: Resources resources = activity.getResources()
-  JNIEnv* env = Application::GetJNIEnv();
-  jobject activity = Application::GetMainActivity();
-  jclass activity_class = env->GetObjectClass(activity);
-  jmethodID get_resources_method = env->GetMethodID(
-      activity_class, "getResources", "()Landroid/content/res/Resources;");
-  jobject resources = env->CallObjectMethod(activity, get_resources_method);
-  // JAVA: DisplayMetrics metrics = resources.getDisplayMetrics()
-  jclass resources_class = env->GetObjectClass(resources);
-  jmethodID get_display_metrics_method = env->GetMethodID(
-      resources_class, "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
-  jobject metrics = env->CallObjectMethod(resources,
-                                          get_display_metrics_method);
-  // JAVA: metrics.density
-  jclass metrics_class = env->GetObjectClass(metrics);
-  jfieldID density_field = env->GetFieldID(metrics_class, "density", "F");
-  content_scale_factor = env->GetFloatField(metrics, density_field);
-  return content_scale_factor;
-}
-
 int NativeView::GetHeight() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
   JNIEnv* env = Application::GetJNIEnv();

@@ -36,7 +36,7 @@
           'sources': [
             'core/android/application.cc',
             'core/android/clock.cc',
-            'core/android/platform.cc',
+            'core/android/device.cc',
             'ui/android/native_view.cc',
             'ui/android/view.cc',
             'ui/android/window.cc',
@@ -59,8 +59,8 @@
           ],
           'sources': [
             'core/apple/clock.mm',
+            'core/apple/device.mm',
             'core/apple/path.mm',
-            'core/apple/platform.mm',
             'ui/ios/MOOpenGLView.mm',
             'ui/ios/MOOpenGLViewController.mm',
             'ui/ios/native_view.mm',
@@ -83,8 +83,8 @@
           ],
           'sources': [
             'core/apple/clock.mm',
+            'core/apple/device.mm',
             'core/apple/path.mm',
-            'core/apple/platform.mm',
             'ui/mac/MOOpenGLView.mm',
             'ui/mac/native_view.mm',
             'ui/mac/view.mm',

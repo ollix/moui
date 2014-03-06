@@ -33,10 +33,6 @@ void NativeView::AddSubview(const NativeView* subview) {
   [native_view addSubview:native_subview];
 }
 
-float NativeView::GetContentScaleFactor() const {
-  return [[NSScreen mainScreen] backingScaleFactor];
-}
-
 int NativeView::GetHeight() const {
   NSView* native_view = (__bridge NSView*)native_handle_;
   return native_view.frame.size.height;

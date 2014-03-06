@@ -22,13 +22,21 @@ import android.util.DisplayMetrics;
 import java.lang.Math;
 import java.lang.Object;
 
-public class Platform extends Object {
+public class Device extends Object {
 
   private Activity mActivity = null;
 
-  public Platform(Activity activity) {
+  public Device(Activity activity) {
     super();
     mActivity = activity;
+  }
+
+  // Returns the logical density of the screen.
+  public float getScreenScaleFactor() {
+    // DisplayMetrics metrics = new DisplayMetrics();
+    // mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+    DisplayMetrics metrics = mActivity.getResources().getDisplayMetrics();
+    return metrics.density;
   }
 
   // Returns the smallest screen size an application will see in normal
@@ -36,8 +44,7 @@ public class Platform extends Object {
   // This is the smallest value of both screen width dp and screen height dp
   // in both portrait and landscape.
   public float getSmallestScreenWidthDp() {
-    DisplayMetrics metrics = new DisplayMetrics();
-    mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+    DisplayMetrics metrics = mActivity.getResources().getDisplayMetrics();
     int smallestWidthPixels = Math.min(metrics.widthPixels,
                                        metrics.heightPixels);
     return smallestWidthPixels / metrics.density;

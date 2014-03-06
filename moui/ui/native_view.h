@@ -34,9 +34,6 @@ class NativeView {
   // Adds a subview to the current view.
   void AddSubview(const NativeView* subview);
 
-  // Returns the scale factor used for rendering.
-  float GetContentScaleFactor() const;
-
   // Returns the height of the view.
   int GetHeight() const;
 
