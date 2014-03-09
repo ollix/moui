@@ -21,6 +21,26 @@
 
 #include "moui/core/application.h"
 
+namespace {
+
+// Returns the instance of the com.ollix.moui.NativeView class on the Java side.
+jobject GetJavaNativeView() {
+  static jobject java_native_view = nullptr;
+  if (java_native_view != nullptr)
+    return java_native_view;
+
+  JNIEnv* env = moui::Application::GetJNIEnv();
+  jclass native_view_class = env->FindClass("com/ollix/moui/NativeView");
+  jmethodID native_view_constructor = env->GetMethodID(
+      native_view_class, "<init>", "()V");
+  jobject native_view_obj = env->NewObject(native_view_class,
+                                           native_view_constructor);
+  java_native_view = env->NewGlobalRef(native_view_obj);
+  return java_native_view;
+}
+
+}  // namespace
+
 namespace moui {
 
 NativeView::NativeView(void* native_handle) {
@@ -39,21 +59,20 @@ NativeView::~NativeView() {
   env->DeleteGlobalRef(reinterpret_cast<jobject>(native_handle_));
 }
 
+// Calls com.ollix.moui.NativeView.addSubview() on the Java side.
 void NativeView::AddSubview(const NativeView* subview) {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
-  jobject native_subview = reinterpret_cast<jobject>(subview->native_handle());
-
-  // Skips if the native view is not a subclass of ViewGroup.
-  JNIEnv* env = Application::GetJNIEnv();
-  jclass group_view_class = env->FindClass("android/view/ViewGroup");
-  if (!env->IsInstanceOf(native_view, group_view_class))
-    return;
-
-  jmethodID add_view_method = env->GetMethodID(
-      group_view_class, "addView", "(Landroid/view/View;)V");
-  env->CallVoidMethod(native_view, add_view_method, native_subview);
+  jobject native_view = GetJavaNativeView();
+  JNIEnv* env = moui::Application::GetJNIEnv();
+  jclass native_view_class = env->GetObjectClass(native_view);
+  jmethodID add_subview_method = env->GetMethodID(
+      native_view_class, "addSubview",
+      "(Landroid/view/View;Landroid/view/View;)V");
+  env->CallVoidMethod(native_view, add_subview_method,
+                      reinterpret_cast<jobject>(native_handle_),
+                      reinterpret_cast<jobject>(subview->native_handle()));
 }
 
+// Calls android.view.View.getHeight() on the Java side.
 int NativeView::GetHeight() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
   JNIEnv* env = Application::GetJNIEnv();
@@ -63,6 +82,7 @@ int NativeView::GetHeight() const {
   return env->CallIntMethod(native_view, get_height_method);
 }
 
+// Calls android.view.View.getWidth() on the Java side.
 int NativeView::GetWidth() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
   JNIEnv* env = Application::GetJNIEnv();
@@ -72,9 +92,17 @@ int NativeView::GetWidth() const {
   return env->CallIntMethod(native_view, get_width_method);
 }
 
+// Calls com.ollix.moui.NativeView.setBounds() on the Java side.
 void NativeView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
-  // TODO(olliwang): Implmenets SetBounds() for Android.
+  jobject native_view = GetJavaNativeView();
+  JNIEnv* env = moui::Application::GetJNIEnv();
+  jclass native_view_class = env->GetObjectClass(native_view);
+  jmethodID set_bounds_method = env->GetMethodID(
+      native_view_class, "setBounds", "(Landroid/view/View;IIII)V");
+  env->CallVoidMethod(native_view, set_bounds_method,
+                      reinterpret_cast<jobject>(native_handle_),
+                      x, y, width, height);
 }
 
 }  // namespace moui
