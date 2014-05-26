@@ -21,8 +21,7 @@
 #include <vector>
 
 #include "moui/base.h"
-
-struct NVGcontext;
+#include "moui/nanovg_hook.h"
 
 namespace moui {
 
@@ -73,7 +72,7 @@ class Widget {
   void Redraw() const;
 
   // Implements the logic for rendering the widget.
-  virtual void Render(struct NVGcontext* context) {}
+  virtual void Render(NVGcontext* context) {}
 
   // Sets the height with the specified unit.
   void SetHeight(const Unit unit, const float height);

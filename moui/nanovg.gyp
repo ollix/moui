@@ -21,28 +21,13 @@
       'type': 'static_library',
       'sources': [
         'deps/nanovg/src/nanovg.c',
-        'deps/nanovg/src/stb_image.c',
       ],
       'include_dirs': [
         'deps/nanovg/src',
       ],
-      'conditions': [
-        ['OS=="android" or OS=="ios"', {
-          'defines': [ 'NANOVG_GLES2_IMPLEMENTATION' ],
-        }, {
-          'defines': [ 'NANOVG_GL2_IMPLEMENTATION' ],
-        }],
-      ],
       "direct_dependent_settings": {
         "include_dirs": [
           'deps/nanovg/src',
-        ],
-        'conditions': [
-          ['OS=="android" or OS=="ios"', {
-            'defines': [ 'NANOVG_GLES2_IMPLEMENTATION' ],
-          }, {
-            'defines': [ 'NANOVG_GL2_IMPLEMENTATION' ],
-          }],
         ],
       },
     },

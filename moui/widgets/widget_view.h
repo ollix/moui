@@ -18,12 +18,9 @@
 #ifndef MOUI_WIDGETS_WIDGET_VIEW_H_
 #define MOUI_WIDGETS_WIDGET_VIEW_H_
 
-#include <vector>
-
 #include "moui/base.h"
+#include "moui/nanovg_hook.h"
 #include "moui/ui/view.h"
-
-struct NVGcontext;
 
 namespace moui {
 
@@ -54,7 +51,7 @@ class WidgetView : public View {
   void RenderWidget(Widget* widget);
 
   // The nanovg context for drawing.
-  struct NVGcontext* context_;
+  NVGcontext* context_;
 
   // The root widget for rendering. All its children will be rendered as well.
   Widget* widget_;

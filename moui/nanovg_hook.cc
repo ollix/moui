@@ -15,33 +15,20 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_NANOVG_HOOK_H_
-#define MOUI_NANOVG_HOOK_H_
-
-#if defined MOUI_GL2
-#  define NANOVG_GL2
-#  define nvgCreateGL(flags) nvgCreateGL2(flags)
-#  define nvgDeleteGL(context) nvgDeleteGL2(context)
-#elif defined MOUI_GLES2
-#  define NANOVG_GLES2
-#  define nvgCreateGL(flags) nvgCreateGLES2(flags)
-#  define nvgDeleteGL(context) nvgDeleteGLES2(context)
-#elif defined MOUI_GL3
-#  define NANOVG_GL3
-#  define nvgCreateGL(flags) nvgCreateGL3(flags)
-#  define nvgDeleteGL(context) nvgDeleteGL3(context)
-#elif defined MOUI_GLES3
-#  define NANOVG_GLES3
-#  define nvgCreateGL(flags) nvgCreateGLES3(flags)
-#  define nvgDeleteGL(context) nvgDeleteGLES3(context)
-#endif
-
 #include "moui/opengl_hook.h"
 #include "nanovg.h"
+
+// Makes sure the nanovg implementation loaded once to prevent "undefined
+// symbols" or "duplicate symbols" issues. Only includes the "nanovg_hook.h"
+// header file in other modules to use nanovg.
+#if defined MOUI_GL2
+#  define NANOVG_GL2_IMPLEMENTATION
+#elif defined MOUI_GLES2
+#  define NANOVG_GLES2_IMPLEMENTATION
+#elif defined MOUI_GL3
+#  define NANOVG_GL3_IMPLEMENTATION
+#elif defined MOUI_GLES3
+#  define NANOVG_GLES3_IMPLEMENTATION
+#endif
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
-
-// Workaround to fix the missing prototype in nanovg.
-void nvgluBindFramebuffer(NVGLUframebuffer* fb);
-
-#endif  // MOUI_NANOVG_HOOK_H_

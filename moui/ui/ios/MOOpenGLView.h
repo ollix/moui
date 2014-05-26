@@ -15,7 +15,7 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#import <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/gl.h>
 #import <UIKit/UIKit.h>
 
 namespace moui {

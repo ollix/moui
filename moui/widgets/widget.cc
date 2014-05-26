@@ -19,7 +19,6 @@
 
 #include <cassert>
 
-#include "moui/nanovg_hook.h"
 #include "moui/widgets/widget_view.h"
 
 namespace {

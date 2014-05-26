@@ -21,6 +21,7 @@
       'type': 'static_library',
       'sources': [
         'core/base_application.cc',
+        'nanovg_hook.cc',
         'ui/base_view.cc',
         'ui/base_window.cc',
         'widgets/widget.cc',
@@ -31,7 +32,7 @@
         ['OS=="android"', {
           'defines': [
             'MOUI_GLES2',
-            'MOUI_ANDROID' ,
+            'MOUI_ANDROID',
           ],
           'sources': [
             'core/android/application.cc',
@@ -55,7 +56,7 @@
         ['OS=="ios"', {
           'defines': [
             'MOUI_GLES2',
-            'MOUI_IOS'
+            'MOUI_IOS',
           ],
           'sources': [
             'core/apple/clock.mm',
@@ -79,7 +80,7 @@
         ['OS=="mac"', {
           'defines': [
             'MOUI_GL2',
-            'MOUI_MAC'
+            'MOUI_MAC',
           ],
           'sources': [
             'core/apple/clock.mm',
@@ -113,16 +114,27 @@
         ],
         'conditions': [
           ['OS=="android"', {
-            'defines': [ 'MOUI_ANDROID' ],
+            'defines': [
+              'MOUI_GLES2',
+              'MOUI_ANDROID',
+            ],
           }],
           ['OS=="ios"', {
-            'defines': [ 'MOUI_IOS' ],
+            'defines': [
+              'MOUI_GLES2',
+              'MOUI_IOS',
+            ],
           }],
           ['OS=="mac"', {
-            'defines': [ 'MOUI_MAC' ],
+            'defines': [
+              'MOUI_GL2',
+              'MOUI_MAC',
+            ],
           }],
           ['OS=="win"', {
-            'defines': [ 'MOUI_WINDOWS' ],
+            'defines': [
+              'MOUI_WINDOWS',
+            ],
           }],
         ],  # conditions
       },  # direct_dependent_settings
