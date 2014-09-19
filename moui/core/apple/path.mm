@@ -23,11 +23,27 @@
 
 namespace moui {
 
-std::string Path::GetResourceDirectory() const {
-  NSBundle* bundle = [NSBundle mainBundle];
-  if (bundle == nil)
-    return "";
-  return std::string([[bundle resourcePath] UTF8String]);
+std::string Path::GetDirectory(const Directory directory) {
+  // Resource directory.
+  if (directory == Directory::kResource) {
+    NSBundle* bundle = [NSBundle mainBundle];
+    if (bundle == nil)
+      return "";
+    return std::string([[bundle resourcePath] UTF8String]);
+  }
+
+  // Other directories.
+  NSSearchPathDirectory search_path_directory;
+  switch(directory) {
+    case Directory::kLibrary:
+      search_path_directory = NSLibraryDirectory;
+      break;
+    default:
+      return "";
+  }
+  NSArray* results = [[NSFileManager defaultManager]
+      URLsForDirectory:search_path_directory inDomains:NSUserDomainMask];
+  return [[[results lastObject] path] UTF8String];
 }
 
 }  // namespace moui

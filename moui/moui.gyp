@@ -55,6 +55,7 @@
         }],
         ['OS=="ios"', {
           'defines': [
+            'MOUI_APPLE',
             'MOUI_GLES2',
             'MOUI_IOS',
           ],
@@ -79,6 +80,7 @@
         }],
         ['OS=="mac"', {
           'defines': [
+            'MOUI_APPLE',
             'MOUI_GL2',
             'MOUI_MAC',
           ],
@@ -121,12 +123,14 @@
           }],
           ['OS=="ios"', {
             'defines': [
+              'MOUI_APPLE',
               'MOUI_GLES2',
               'MOUI_IOS',
             ],
           }],
           ['OS=="mac"', {
             'defines': [
+              'MOUI_APPLE',
               'MOUI_GL2',
               'MOUI_MAC',
             ],

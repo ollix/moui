@@ -26,16 +26,18 @@ namespace moui {
 
 class Path {
  public:
+  enum class Directory {
+#ifdef MOUI_APPLE
+    kLibrary,
+    kResource,
+#endif
+  };
+
   Path() {}
   ~Path() {}
 
   // Returns the direcotry path containing app resources.
-  std::string GetResourceDirectory() const;
-
-  // Returns the path to the resource filename.
-  std::string GetResourcePath(const std::string& filename) {
-    return GetResourceDirectory() + "/" + filename;
-  }
+  static std::string GetDirectory(const Directory directory);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Path);

@@ -18,15 +18,15 @@
 #ifndef MOUI_CORE_LOG_H_
 #define MOUI_CORE_LOG_H_
 
-#if MOUI_IOS || MOUI_MAC
+#if defined MOUI_APPLE
 #include <cstdio>
-#elif MOUI_ANDROID
+#elif defined MOUI_ANDROID
 #include <android/log.h>
-#endif  // MOUI_IOS || MOUI_MAC
+#endif
 
-#if MOUI_IOS || MOUI_MAC
+#if defined MOUI_APPLE
 #define MO_LOG(...) std::printf(__VA_ARGS__);
-#elif MOUI_ANDROID
+#elif defined MOUI_ANDROID
 #define MO_LOG(...) __android_log_print(ANDROID_LOG_INFO, "moui", __VA_ARGS__)
 #endif
 
