@@ -19,6 +19,7 @@
 #define MOUI_WIDGETS_WIDGET_VIEW_H_
 
 #include "moui/base.h"
+#include "moui/core/event.h"
 #include "moui/nanovg_hook.h"
 #include "moui/ui/view.h"
 
@@ -36,11 +37,17 @@ class WidgetView : public View {
   ~WidgetView();
 
   // Inherited from BaseView class.
+  virtual void HandleEvent(std::unique_ptr<Event> event) override final;
+
+  // Inherited from BaseView class.
   virtual void Render() override final;
 
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width,
                  const int height) const;
+
+  // Inherited from BaseView class.
+  virtual bool ShouldHandleEvent(const Point location) override final;
 
   // Accessor.
   Widget* widget() { return widget_; }
@@ -50,8 +57,16 @@ class WidgetView : public View {
   // hidden widgets won't be rendered.
   void RenderWidget(Widget* widget);
 
+  // Inherited from BaseView class.
+  bool ShouldHandleEvent(const Point location, Widget* widget);
+
   // The nanovg context for drawing.
   NVGcontext* context_;
+
+  // The widget that is responsible to respond events passed to the
+  // HandleEvent() method. The value is updated in the ShouldHandleEvent()
+  // method.
+  Widget* event_responder_;
 
   // The root widget for rendering. All its children will be rendered as well.
   Widget* widget_;

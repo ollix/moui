@@ -22,7 +22,8 @@
       'sources': [
         'application.cc',
         'clock.cc',
-        'renderer.cc',
+        'opengl_renderer.cc',
+        'opengl_view.cc',
       ],
       'dependencies': [ '../../moui/moui.gyp:libmoui' ],
     }

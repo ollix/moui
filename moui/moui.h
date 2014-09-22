@@ -18,6 +18,7 @@
 #ifndef MOUI_MOUI_H_
 #define MOUI_MOUI_H_
 
+#include "moui/base.h"
 #include "moui/core/core.h"
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"

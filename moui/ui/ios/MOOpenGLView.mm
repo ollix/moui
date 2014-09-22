@@ -17,19 +17,34 @@
 
 #import "moui/ui/ios/MOOpenGLView.h"
 
+#include <memory>
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
 
+#include "moui/core/event.h"
 #include "moui/ui/view.h"
+#include "moui/widgets/widget.h"
 
 
 @interface MOOpenGLView (PrivateDelegateHandling)
 
+- (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
 - (void)setupFrameBuffer;
 
 @end
 
 @implementation MOOpenGLView (PrivateDelegateHandling)
+
+- (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type {
+  auto mouiEvent = new moui::Event(type);
+  auto locations = mouiEvent->locations();
+  for (UITouch* touch in [event allTouches]) {
+    CGPoint location = [touch locationInView:self];
+    locations->push_back({static_cast<float>(location.x),
+                          static_cast<float>(location.y)});
+  }
+  _mouiView->HandleEvent(std::unique_ptr<moui::Event>(mouiEvent));
+}
 
 - (void)setupFrameBuffer {
   // Creates frame buffer.
@@ -98,9 +113,10 @@
   [super dealloc];
 }
 
-// Allows click through this view.
--(BOOL)pointInside:(CGPoint)point withEvent:(UIEvent*)event {
-  return NO;
+// If this method returns NO, the event will be passed to the next responder.
+-(BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+  return _mouiView->ShouldHandleEvent({static_cast<float>(point.x),
+                                       static_cast<float>(point.y)});
 }
 
 - (void)render {
@@ -116,6 +132,22 @@
   _mouiView->Render();
   [_eaglContext presentRenderbuffer:GL_RENDERBUFFER];
   [EAGLContext setCurrentContext:nil];
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+  [self handleEvent:event withType:moui::Event::Type::kDown];
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+  [self handleEvent:event withType:moui::Event::Type::kCancel];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+  [self handleEvent:event withType:moui::Event::Type::kUp];
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+  [self handleEvent:event withType:moui::Event::Type::kMove];
 }
 
 @end

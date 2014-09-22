@@ -38,7 +38,7 @@ class Application : public BaseApplication {
   ~Application() {}
 
   // Called when the application has finished launching.
-  virtual void OnLaunch() {};
+  virtual void OnLaunch() {}
 
   // Returns the main application. The main application must be registered
   // before calling this method. To register the main application, call the

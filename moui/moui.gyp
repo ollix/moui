@@ -21,9 +21,11 @@
       'type': 'static_library',
       'sources': [
         'core/base_application.cc',
+        'core/event.cc',
         'nanovg_hook.cc',
         'ui/base_view.cc',
         'ui/base_window.cc',
+        'widgets/control.cc',
         'widgets/widget.cc',
         'widgets/widget_view.cc',
       ],

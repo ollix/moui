@@ -21,10 +21,22 @@ import com.ollix.moui.OpenGLRenderer;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
+import android.view.MotionEvent;
+import android.util.Log;
 
 public class OpenGLView extends GLSurfaceView {
+
+  private boolean mHandlingEvent;
+  private long mMouiViewPointer;
+  private native void handleEvent(long mouiViewPointer, int action, float x,
+                                  float y);
+  private native boolean shouldHandleEvent(long mouiViewPointer, float x,
+                                           float y);
+
   public OpenGLView(Context context, long mouiViewPointer) {
     super(context);
+    mHandlingEvent = false;
+    mMouiViewPointer = mouiViewPointer;
 
     setEGLContextClientVersion(2);  // adopts OpenGL ES 2.0 context
     setZOrderOnTop(true);
@@ -38,5 +50,33 @@ public class OpenGLView extends GLSurfaceView {
 
     setRenderer(new OpenGLRenderer(mouiViewPointer));
     setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+  }
+
+  // Returns the value returned by native view's HandleEvent() method.
+  // If false, the event will be passed to the next responser.
+  @Override
+  public boolean onTouchEvent(MotionEvent event) {
+    // Do nothing if the event is not handling and is not the initial action.
+    if (!mHandlingEvent && event.getAction() != MotionEvent.ACTION_DOWN) {
+      return false;
+    }
+    // Determines the action location.
+    int[] coords = new int[2];
+    getLocationInWindow(coords);
+    final float x = event.getRawX() - coords[0];
+    final float y = event.getRawY() - coords[1];
+    // If it's an initial action, checks if it should handle consequent events.
+    if (!mHandlingEvent && !shouldHandleEvent(mMouiViewPointer, x, y)) {
+      return false;
+    }
+    mHandlingEvent = true;
+    // Handles the event in corresponded moui view.
+    handleEvent(mMouiViewPointer, event.getAction(), x, y);
+    // Resets mHandlingEvent if the action is complete.
+    if (event.getAction() == MotionEvent.ACTION_UP ||
+        event.getAction() == MotionEvent.ACTION_CANCEL) {
+      mHandlingEvent = false;
+    }
+    return true;  // Returns true means this event has consumed.
   }
 }

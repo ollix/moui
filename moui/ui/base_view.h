@@ -18,9 +18,11 @@
 #ifndef MOUI_UI_BASE_VIEW_H_
 #define MOUI_UI_BASE_VIEW_H_
 
+#include <memory>
 #include <string>
 
 #include "moui/base.h"
+#include "moui/core/event.h"
 #include "moui/opengl_hook.h"
 #include "moui/ui/native_view.h"
 
@@ -33,6 +35,10 @@ class BaseView : public NativeView {
   BaseView();
   ~BaseView();
 
+  // This method gets called when the view received an event. To receive events,
+  // the ShouldHandleEvent() method should be overriden to return true.
+  virtual void HandleEvent(std::unique_ptr<Event> event) {}
+
   // Redraws the view. This method must be implmeneted in the View subclass
   // for performing native redraw action. The action should be performed on
   // the main thread that can modify view.
@@ -40,6 +46,13 @@ class BaseView : public NativeView {
 
   // The place for writing rendering code.
   virtual void Render() {}
+
+  // This method gets called when an event is about to occur. The returned
+  // boolean indicates whether the view should handle the event. By default
+  // it returns false so it simply ignores any coming event and the platform
+  // will pass the event to the next responder. This method could be
+  // implemented in the subclass to change the default behavior.
+  virtual bool ShouldHandleEvent(const Point location) { return false; }
 
  protected:
   // Compiles the shader string of the specified type. Returns the shader

@@ -17,6 +17,7 @@
 
 #import "moui/ui/mac/MOOpenGLView.h"
 
+#include <memory>
 #include <OpenGL/gl.h>
 
 #include "moui/ui/view.h"
@@ -24,11 +25,31 @@
 
 @interface MOOpenGLView (PrivateDelegateHandling)
 
+- (NSPoint)convertToInternalPoint:(NSPoint)parentViewPoint;
+- (void)handleEvent:(NSEvent *)event withType:(moui::Event::Type)type;
 - (NSOpenGLContext *)openGLContext;
 
 @end
 
 @implementation MOOpenGLView (PrivateDelegateHandling)
+
+- (NSPoint)convertToInternalPoint:(NSPoint)parentViewPoint {
+  NSPoint point;
+  point.x = parentViewPoint.x - self.frame.origin.x,
+  point.y = self.frame.size.height - (parentViewPoint.y - self.frame.origin.y);
+  return point;
+}
+
+- (void)handleEvent:(NSEvent *)event withType:(moui::Event::Type)type {
+  auto mouiEvent = new moui::Event(type);
+  // Adds the event location.
+  NSPoint locationInWindow = [event locationInWindow];
+  NSPoint locationInView = [self convertPoint:locationInWindow fromView:self];
+  NSPoint location = [self convertToInternalPoint:locationInView];
+  mouiEvent->locations()->push_back({static_cast<float>(location.x),
+                                     static_cast<float>(location.y)});
+  _mouiView->HandleEvent(std::unique_ptr<moui::Event>(mouiEvent));
+}
 
 - (NSOpenGLContext *)openGLContext {
   if (_openGLContext != nil)
@@ -50,7 +71,7 @@
 
 @implementation MOOpenGLView
 
-- (id)initWithMouiView:(moui::View*)mouiView {
+- (id)initWithMouiView:(moui::View *)mouiView {
   if((self = [super initWithFrame:NSMakeRect(0, 0, 0, 0)])) {
     _mouiView = mouiView;
 
@@ -80,14 +101,29 @@
   [self render];
 }
 
-// Allows click through this view.
-- (NSView *)hitTest:(NSPoint)aPoint {
-  return nil;
+- (NSView *)hitTest:(NSPoint)parentViewPoint {
+  NSPoint point = [self convertToInternalPoint:parentViewPoint];
+  if (_mouiView->ShouldHandleEvent({static_cast<float>(point.x),
+                                    static_cast<float>(point.y)}))
+    return self;
+  return nil;  // passes to the next responder
 }
 
 - (void)lockFocus {
   [super lockFocus];
   [[self openGLContext] makeCurrentContext];
+}
+
+- (void)mouseDown:(NSEvent *)event {
+  [self handleEvent:event withType:moui::Event::Type::kDown];
+}
+
+- (void)mouseDragged:(NSEvent *)event {
+  [self handleEvent:event withType:moui::Event::Type::kMove];
+}
+
+- (void)mouseUp:(NSEvent *)event {
+  [self handleEvent:event withType:moui::Event::Type::kUp];
 }
 
 - (void)render {

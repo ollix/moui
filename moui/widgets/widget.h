@@ -25,6 +25,7 @@
 
 namespace moui {
 
+class Event;
 class WidgetView;
 
 // A widget is a graphical element that can rendering based on nanovg context.
@@ -51,6 +52,10 @@ class Widget {
   // Adds child widget.
   void AddChild(Widget* child);
 
+  // Returns true if the point is within the region of widget bounding box
+  // plus paddings.
+  bool CollidePoint(const Point point, const int padding) const;
+
   // Returns the height in pixels.
   int GetHeight() const;
 
@@ -70,9 +75,6 @@ class Widget {
   // belonged to the same widget view will be drawn by calling this method.
   // If the current widget doesn't belong to any widget view, nothing happened.
   void Redraw() const;
-
-  // Implements the logic for rendering the widget.
-  virtual void Render(NVGcontext* context) {}
 
   // Sets the height with the specified unit.
   void SetHeight(const Unit unit, const float height);
@@ -97,9 +99,33 @@ class Widget {
  private:
   friend class WidgetView;
 
-  // Accessors.
+  // This method gets called when the widget received an event. In order to
+  // receive an event, the ShouldHandleEvent() method must return true.
+  // The actual implmentation should be done in subclass and the passed event
+  // object will be deallocated automatically.
+  //
+  // Note that this method should only be called in the
+  // WidgetView::HandleEvent() method.
+  virtual void HandleEvent(Event* event) {}
+
+  // Implements the logic for rendering the widget. The actual implementation
+  // should be done in subclass.
+  //
+  // Note that this method should only be called in the
+  // WidgetView::RenderWidget() method.
+  virtual void Render(NVGcontext* context) {}
+
+  // This method gets called when an event is about to occur. The returned
+  // boolean indicates whether the widget should handle the event. By default
+  // it returns true if the passed location collides the widget's bounding
+  // box. This method could be implemented in the subclass to change the
+  // default behavior.
+  virtual bool ShouldHandleEvent(const Point location);
+
+  // This accessors and setters that should only be called by the WidgetView
+  // firend class.
   void set_parent(Widget* parent) { parent_ = parent; }
-  // This setter that should only be called by the WidgetView firend class.
+  WidgetView* widget_view() const { return widget_view_; }
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
 
   // Updates the widget view for the specified widget and all its children

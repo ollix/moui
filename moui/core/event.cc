@@ -15,23 +15,14 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_BASE_H_
-#define MOUI_BASE_H_
+#include "moui/core/event.h"
 
 namespace moui {
 
-// Indicates a specific location.
-struct Point {
-  float x;
-  float y;
-};
+Event::Event(const Type type) : type_(type) {
+}
 
-// A macro to disallow the copy constructor and operator= functions
-// This should be used in the private: declarations for a class
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);               \
-  void operator=(const TypeName&)
+Event::~Event() {
+}
 
 }  // namespace moui
-
-#endif  // MOUI_BASE_H_

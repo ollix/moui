@@ -18,6 +18,7 @@
 #include "moui/widgets/widget_view.h"
 
 #include "moui/core/device.h"
+#include "moui/core/event.h"
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
 #include "moui/ui/native_view.h"
@@ -26,7 +27,8 @@
 
 namespace moui {
 
-WidgetView::WidgetView() : View(), context_(nullptr), widget_(new Widget) {
+WidgetView::WidgetView() : View(), context_(nullptr), event_responder_(nullptr),
+                           widget_(new Widget) {
   widget_->set_widget_view(this);
 }
 
@@ -35,6 +37,20 @@ WidgetView::~WidgetView() {
     nvgDeleteGL(context_);
   }
   delete widget_;
+}
+
+void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
+  if (event_responder_ == nullptr)
+    return;
+  // Resets the event responder if the widget view of the current responder
+  // widget is not this widget view object. This may happen when the responder
+  // widget is deattached from this widget view.
+  if (event_responder_->widget_view() != this) {
+    event_responder_ = nullptr;
+    return;
+  }
+  // Asks the current responder widget to handle the event.
+  event_responder_->HandleEvent(event.get());
 }
 
 void WidgetView::Render() {
@@ -91,6 +107,27 @@ void WidgetView::SetBounds(const int x, const int y, const int width,
   widget_->SetWidth(Widget::Unit::kPixel, width);
   widget_->SetHeight(Widget::Unit::kPixel, height);
   Redraw();
+}
+
+// Starts with widget_ to find the event responder recursively.
+bool WidgetView::ShouldHandleEvent(const Point location) {
+  return ShouldHandleEvent(location, widget_);
+}
+
+// Iterates children widgets of the specified widget in reversed order to find
+// the event responder recursively.
+bool WidgetView::ShouldHandleEvent(const Point location, Widget* widget) {
+  for (auto it = widget->children().rbegin();
+       it != widget->children().rend(); it++) {
+    Widget* child = reinterpret_cast<Widget*>(*it);
+    if (ShouldHandleEvent(location, child)) {
+      return true;
+    } else if (child->ShouldHandleEvent(location)) {
+      event_responder_ = child;
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace moui

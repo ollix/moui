@@ -21,6 +21,7 @@
 #include "moui/core/application.h"
 #include "moui/core/clock.h"
 #include "moui/core/device.h"
+#include "moui/core/event.h"
 #include "moui/core/log.h"
 #include "moui/core/path.h"
 

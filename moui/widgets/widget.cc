@@ -18,7 +18,9 @@
 #include "moui/widgets/widget.h"
 
 #include <cassert>
+#include <vector>
 
+#include "moui/core/event.h"
 #include "moui/widgets/widget_view.h"
 
 namespace {
@@ -71,7 +73,7 @@ float GetWidthPixels(const moui::Widget* parent, const moui::Widget::Unit unit,
   return pixels;
 }
 
-}
+}  // namespace
 
 namespace moui {
 
@@ -92,6 +94,22 @@ void Widget::AddChild(Widget* child) {
   UpdateWidgetViewRecursively(child);
   if (!child->IsHidden())
     Redraw();
+}
+
+bool Widget::CollidePoint(const Point point, const int padding) const {
+  const int kWidgetX = GetX();
+  if (point.x < (kWidgetX - padding))
+    return false;
+  const int kWidgetY = GetY();
+  if (point.y < (kWidgetY - padding))
+    return false;
+  const int kWidgetWidth = GetWidth();
+  if (point.x >= (kWidgetX + kWidgetWidth + padding))
+    return false;
+  const int kWidgetHeight = GetHeight();
+  if (point.y >= (kWidgetY + kWidgetHeight + padding))
+    return false;
+  return true;
 }
 
 int Widget::GetHeight() const {
@@ -176,6 +194,10 @@ void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
   y_alignment_ = alignment;
   y_unit_ = unit;
   y_value_ = y;
+}
+
+bool Widget::ShouldHandleEvent(const Point location) {
+  return CollidePoint(location, 0);
 }
 
 void Widget::UpdateWidgetViewRecursively(Widget* widget) {

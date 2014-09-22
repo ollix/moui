@@ -15,23 +15,43 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_BASE_H_
-#define MOUI_BASE_H_
+#ifndef MOUI_CORE_EVENT_H_
+#define MOUI_CORE_EVENT_H_
+
+#include <vector>
+
+#include "moui/base.h"
 
 namespace moui {
 
-// Indicates a specific location.
-struct Point {
-  float x;
-  float y;
-};
+class Event {
+ public:
+  // The available event types.
+  enum class Type {
+    // Touch events
+    kDown,
+    kMove,
+    kUp,
+    kCancel,
+  };
 
-// A macro to disallow the copy constructor and operator= functions
-// This should be used in the private: declarations for a class
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);               \
-  void operator=(const TypeName&)
+  explicit Event(const Type type);
+  ~Event();
+
+  // Accessors.
+  std::vector<Point>* locations() { return &locations_; }
+  Type type() const { return type_; }
+
+ private:
+  // The locations in a View occurred for a mouse or touch based event.
+  std::vector<Point> locations_;
+
+  // The type of the event.
+  const Type type_;
+
+  DISALLOW_COPY_AND_ASSIGN(Event);
+};
 
 }  // namespace moui
 
-#endif  // MOUI_BASE_H_
+#endif  // MOUI_CORE_EVENT_H_
