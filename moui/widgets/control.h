@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "moui/base.h"
+#include "moui/nanovg_hook.h"
 #include "moui/widgets/widget.h"
 
 namespace moui {
@@ -74,6 +75,21 @@ class Control : public Widget {
   Control();
   ~Control();
 
+  // Binds a function or class method to handle particular control events.
+  // The signature of the callback function must be `void(Control)`.
+  //
+  // Examples:
+  // BindAction(events, Function)  // function
+  // BindAction(events, &Class::Method)  // class method
+  template<class Callback>
+  void BindAction(const ControlEvents events, Callback&& callback) {
+    auto action = new Action;
+    action->callback = std::bind(callback, this);
+    action->control_events = events;
+    action->target = nullptr;
+    actions_.push_back(action);
+  }
+
   // Binds an instance method to handle particular control events.
   // The signature of the callback function must be `void(Control)`.
   //
@@ -88,19 +104,29 @@ class Control : public Widget {
     actions_.push_back(action);
   }
 
-  // Binds a function or class method to handle particular control events.
-  // The signature of the callback function must be `void(Control)`.
+  // Binds a function or class method for rendering the control with passed
+  // state. Calling another BindRenderFunction() for the same state will
+  // overwrite the previous one.
   //
   // Examples:
-  // BindAction(events, Function)  // function
-  // BindAction(events, &Class::Method)  // class method
+  // BindRenderFunction(state, Function)  // function
+  // BindRenderFunction(state, &Class::Method)  // class method
   template<class Callback>
-  void BindAction(const ControlEvents events, Callback&& callback) {
-    auto action = new Action;
-    action->callback = std::bind(callback, this);
-    action->control_events = events;
-    action->target = nullptr;
-    actions_.push_back(action);
+  void BindRenderFunction(const ControlState state, Callback&& callback) {
+    render_functions_[GetStateIndex(state)] = \
+        std::bind(callback, std::ref(context_));
+  }
+
+  // Binds an instance method for rendering the control with passed state.
+  // Calling another BindRenderFunction() for the same state will overwrite
+  // the previous one.
+  //
+  // Example: BindRenderFunction(state, &Class::Method, instance)
+  template<class Callback, class TargetType>
+  void BindRenderFunction(const ControlState state, Callback&& callback,
+                          TargetType&& target) {
+    render_functions_[GetStateIndex(state)] = \
+        std::bind(callback, target, std::ref(context_));
   }
 
   // Returns true if the current state is disabled.
@@ -147,6 +173,9 @@ class Control : public Widget {
                      const std::function<void()>* callback,
                      const void* target);
 
+  // Unbinds the render function for a control state.
+  void UnbindRenderFunction(const ControlState state);
+
   // Setters.
   void set_highlighted_margin(const int margin) {
     highlighted_margin_ = margin;
@@ -162,26 +191,67 @@ class Control : public Widget {
     void* target;  // nullptr or the instance the callback belongs to.
   };
 
+  // Executes the render function for passed state. Returns false if there is
+  // no binded render function.
+  bool ExecuteRenderFunction(const ControlState state);
+
+  // Returns the image identifier of the generated image of the currently
+  // rendering image with default highlighed effect.
+  int GenerateDefaultHighlightedImage(NVGcontext* context);
+
+  // Returns the index of a state. A negative number will be returned if the
+  // passed state represents more than one states.
+  int GetStateIndex(const ControlState state) const;
+
   // Responds to the passed control events that populated by HandleEvent().
   void HandleControlEvents(const ControlEvents events);
 
   // Inherited from Widget class.
   virtual void HandleEvent(Event* event) override final;
 
+  // Inherited from Widget class. The method takes control of how to render the
+  // control. Subclasses should never override this method either. To render
+  // customzied appearance. Use BindRenderFunction() to bind a function for
+  // rendering a specific control state.
+  virtual void Render(NVGcontext* context) override final;
+
   // Inherited from Widget class.
   virtual bool ShouldHandleEvent(const Point location) override final;
+
+  // Updates the internal context_.
+  void UpdateContext(NVGcontext* context);
 
   // Holds a list of all binded actions. HandleControlEvents() will iterate
   // the list to fire callbacks with matched control events.
   std::vector<Action*> actions_;
 
-  // A bitmask value that indicates the state of a control. A control can have
-  // more than one state at a time.
-  ControlState state_;
+  // The weak reference to nanovg context that will be updated at the
+  // beginning of Render(). This reference is required to implement
+  // BindRenderFunction() and ExecuteRenderFunction().
+  NVGcontext* context_;
+
+  // Keeps the image identifier of the normal image in highlighted state
+  // that generated automatically by GenerateDefaultHighlightedImage().
+  int default_highlighted_normal_image_;
+
+  // Keeps the image identifier of the selected image in highlighted state
+  // that generated automatically by GenerateDefaultHighlightedImage().
+  int default_highlighted_selected_image_;
 
   // The margin in points expanding the widget's bounding box as highlighted
   // area.
   int highlighted_margin_;
+
+  // Keeps the binded render functions for different control states. The vector
+  // will be initialized in constructor to have the same number of elemens as
+  // control states. The element position corresponded to a control state is
+  // determined by GetStateIndex(). Each element could be NULL to represent no
+  // binded render function.
+  std::vector<std::function<void()>> render_functions_;
+
+  // A bitmask value that indicates the state of a control. A control can have
+  // more than one state at a time.
+  ControlState state_;
 
   // The margin in points expanding the widget's boudning box as touch down
   // area.

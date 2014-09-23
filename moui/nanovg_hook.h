@@ -44,4 +44,13 @@
 // Workaround to fix the missing prototype in nanovg.
 void nvgluBindFramebuffer(NVGLUframebuffer* fb);
 
+// Additonal APIs for nanovg.
+namespace moui {
+
+// Returns the image identifier of the screenshot or 0 on failure.
+int nvgCreateImageScreenshot(NVGcontext* context, const int x, const int y,
+                             const int width, const int height);
+
+}  // namespace moui
+
 #endif  // MOUI_NANOVG_HOOK_H_

@@ -95,6 +95,7 @@ class Widget {
 
   // Setters and accessors.
   std::vector<Widget*>& children() { return children_; }
+  WidgetView* widget_view() const { return widget_view_; }
 
  private:
   friend class WidgetView;
@@ -125,7 +126,6 @@ class Widget {
   // This accessors and setters that should only be called by the WidgetView
   // firend class.
   void set_parent(Widget* parent) { parent_ = parent; }
-  WidgetView* widget_view() const { return widget_view_; }
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
 
   // Updates the widget view for the specified widget and all its children
