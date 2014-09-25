@@ -74,7 +74,7 @@ class Widget {
   // Redraws the widget view containing this widget. Note that all widgets
   // belonged to the same widget view will be drawn by calling this method.
   // If the current widget doesn't belong to any widget view, nothing happened.
-  void Redraw() const;
+  void Redraw();
 
   // Sets the height with the specified unit.
   void SetHeight(const Unit unit, const float height);

@@ -37,7 +37,7 @@ View::~View() {
   [native_view.viewController dealloc];
 }
 
-void View::Redraw() const {
+void View::RenderNativeView() const {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
   [native_view render];
 }

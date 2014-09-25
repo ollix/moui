@@ -39,10 +39,8 @@ class BaseView : public NativeView {
   // the ShouldHandleEvent() method should be overriden to return true.
   virtual void HandleEvent(std::unique_ptr<Event> event) {}
 
-  // Redraws the view. This method must be implmeneted in the View subclass
-  // for performing native redraw action. The action should be performed on
-  // the main thread that can modify view.
-  virtual void Redraw() const {}
+  // Redraws the view.
+  void Redraw();
 
   // The place for writing rendering code.
   virtual void Render() {}
@@ -65,7 +63,17 @@ class BaseView : public NativeView {
   GLuint CompileShaderAtPath(const GLenum shader_type,
                              const std::string& source_path) const;
 
+  // Calls the render function from native view. This method must be
+  // implmeneted in the View subclass.
+  virtual void RenderNativeView() const {}
+
  private:
+  // Indicates whether the view is currently redrawing.
+  bool is_redrawing_;
+
+  // Indicates whether the view is waiting for redraw.
+  bool waiting_for_redraw_;
+
   DISALLOW_COPY_AND_ASSIGN(BaseView);
 };
 

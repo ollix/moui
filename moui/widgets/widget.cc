@@ -162,7 +162,7 @@ bool Widget::IsHidden() const {
   return hidden_;
 }
 
-void Widget::Redraw() const {
+void Widget::Redraw() {
   if (widget_view_ != nullptr)
     widget_view_->Redraw();
 }

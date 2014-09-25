@@ -44,7 +44,7 @@ class WidgetView : public View {
 
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width,
-                 const int height) const;
+                 const int height);
 
   // Inherited from BaseView class.
   virtual bool ShouldHandleEvent(const Point location) override final;

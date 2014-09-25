@@ -102,7 +102,7 @@ void WidgetView::RenderWidget(Widget* widget) {
 }
 
 void WidgetView::SetBounds(const int x, const int y, const int width,
-                           const int height) const {
+                           const int height) {
   NativeView::SetBounds(x, y, width, height);
   widget_->SetWidth(Widget::Unit::kPixel, width);
   widget_->SetHeight(Widget::Unit::kPixel, height);

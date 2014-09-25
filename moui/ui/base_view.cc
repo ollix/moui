@@ -18,13 +18,22 @@
 #include "moui/ui/base_view.h"
 
 #include <cstdio>
+#include <mutex>
 #include <string>
 
 #include "moui/opengl_hook.h"
 
+namespace {
+
+// The mutex for making Redraw() thread-safe.
+std::mutex redraw_mutex;
+
+}  // namespace;
+
 namespace moui {
 
-BaseView::BaseView() : NativeView(nullptr) {
+BaseView::BaseView() : NativeView(nullptr), is_redrawing_(false),
+                       waiting_for_redraw_(false) {
 }
 
 BaseView::~BaseView() {
@@ -69,6 +78,31 @@ GLuint BaseView::CompileShaderAtPath(const GLenum shader_type,
   }
   std::fclose(file);
   return shader_handle;
+}
+
+// Calls RenderNativeView() to perform the acutal rendering on native view but
+// wrapped in a mutex to make sure it's thread-safe.
+void BaseView::Redraw() {
+  // Waits for redraw if it's currently redrawing.
+  redraw_mutex.lock();
+  if (is_redrawing_) {
+    waiting_for_redraw_ = true;
+    redraw_mutex.unlock();
+    return;
+  }
+  is_redrawing_ = true;
+  redraw_mutex.unlock();
+
+  RenderNativeView();
+
+  // Resets mutex variables and redraw if waiting_for_redraw_ is true.
+  redraw_mutex.lock();
+  const bool kShouldRedraw = waiting_for_redraw_;
+  is_redrawing_ = false;
+  waiting_for_redraw_ = false;
+  redraw_mutex.unlock();
+  if (kShouldRedraw)
+    Redraw();
 }
 
 }  // namespace moui

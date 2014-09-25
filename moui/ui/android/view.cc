@@ -40,7 +40,7 @@ View::View() : BaseView() {
 View::~View() {
 }
 
-void View::Redraw() const {
+void View::RenderNativeView() const {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
