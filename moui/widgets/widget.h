@@ -18,6 +18,7 @@
 #ifndef MOUI_WIDGETS_WIDGET_H_
 #define MOUI_WIDGETS_WIDGET_H_
 
+#include <mutex>
 #include <vector>
 
 #include "moui/base.h"
@@ -46,7 +47,8 @@ class Widget {
     kPixel,
   };
 
-  explicit Widget();
+  Widget();
+  explicit Widget(const bool caches_rendering);
   ~Widget();
 
   // Adds child widget.
@@ -97,8 +99,27 @@ class Widget {
   std::vector<Widget*>& children() { return children_; }
   WidgetView* widget_view() const { return widget_view_; }
 
+ protected:
+  // Initializes the environemnt for rendering in the passed framebuffer.
+  // A new framebuffer will be created automatically if *framebuffer is nullptr.
+  // EndRenderbufferUpdates() should be called when updates finished.
+  void BeginRenderbufferUpdates(NVGcontext* context,
+                                NVGLUframebuffer** framebuffer);
+
+  // Ends the framebuffer environment previously created by
+  // BeginRenderbufferUpdates()
+  void EndRenderbufferUpdates();
+
+  // The weak reference to nanovg context that will be updated by WidgetView
+  // and is guaranteed to be available in all render method variants.
+  NVGcontext* context_;
+
  private:
   friend class WidgetView;
+
+  // This method will get called when context_ is about to change. Subclasses
+  // can implmenet this method to free nanovg objects binded to it.
+  virtual void ContextWillChange(NVGcontext* context) {};
 
   // This method gets called when the widget received an event. In order to
   // receive an event, the ShouldHandleEvent() method must return true.
@@ -116,6 +137,26 @@ class Widget {
   // WidgetView::RenderWidget() method.
   virtual void Render(NVGcontext* context) {}
 
+  // Renders Render() in default_framebuffer_ if caches_rendering_ is true.
+  void RenderDefaultFramebuffer(NVGcontext* context);
+
+  // Provides an opportunity to render offscreen stuff before on screen
+  // rendering. A typical use is to create a framebuffer and rendering there.
+  // Once done, the framebuffer can be drawn for on-screen rendering.
+  //
+  // An example to implement this method:
+  //    NVGLUframebuffer* framebuffer;  // usually defined as a class member
+  //    BeginRenderbufferUpdates(context, &framebuffer);
+  //    nvgBeginFrame(context, GetWidth(), GetHeight(), ScreenScaleFactor);
+  //    ...
+  //    nvgEndFrame(context);
+  //    EndRenderbufferUpdates();
+  virtual void RenderOffscreen(NVGcontext* context) {}
+
+  // Either renders Render() directly or renders default_framebuffer_ if
+  // caches_rendering_ is true.
+  void RenderOnDemand(NVGcontext* context);
+
   // This method gets called when an event is about to occur. The returned
   // boolean indicates whether the widget should handle the event. By default
   // it returns true if the passed location collides the widget's bounding
@@ -123,17 +164,37 @@ class Widget {
   // default behavior.
   virtual bool ShouldHandleEvent(const Point location);
 
-  // This accessors and setters that should only be called by the WidgetView
-  // firend class.
-  void set_parent(Widget* parent) { parent_ = parent; }
-  void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
+  // Updates the internal context_.
+  void UpdateContext(NVGcontext* context);
 
   // Updates the widget view for the specified widget and all its children
   // recursively.
   void UpdateWidgetViewRecursively(Widget* widget);
 
+  // This accessors and setters that should only be called by the WidgetView
+  // firend class.
+  void set_parent(Widget* parent) { parent_ = parent; }
+  void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
+
+  // Indicates whether the rendering in Render() should be rendered in
+  // `default_framebuffer_` to cache the rendering result. If true, Render()
+  // won't be executed every time the corresponded WidgetView redraws. This
+  // value should be decided to meet the expected rendering design.
+  const bool caches_rendering_;
+
   // Holds a list of child widgets.
   std::vector<Widget*> children_;
+
+  // The default framebuffer for rendering Render() if caches_rendering_ is
+  // true.
+  NVGLUframebuffer* default_framebuffer_;
+
+  // The mutex for making the mechanism of updating default_framebuffer_
+  // thread-safe.
+  std::mutex* default_framebuffer_mutex_;
+
+  // The NVGpaint object corresonded to the default_framebuffer_.
+  NVGpaint default_framebuffer_paint_;
 
   // The unit of the height_value_.
   Unit height_unit_;
@@ -146,6 +207,9 @@ class Widget {
 
   // The parent widget of the current widget.
   Widget* parent_;
+
+  // Indicates whether the default_framebuffer_ should be drawn.
+  bool should_redraw_default_framebuffer_;
 
   // The WidgetView that contains the this widget instance. This is dedicated
   // for the convenient Redraw() method.

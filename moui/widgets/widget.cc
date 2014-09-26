@@ -18,8 +18,10 @@
 #include "moui/widgets/widget.h"
 
 #include <cassert>
+#include <mutex>
 #include <vector>
 
+#include "moui/core/device.h"
 #include "moui/core/event.h"
 #include "moui/widgets/widget_view.h"
 
@@ -77,15 +79,23 @@ float GetWidthPixels(const moui::Widget* parent, const moui::Widget::Unit unit,
 
 namespace moui {
 
-Widget::Widget() : height_unit_(Unit::kPixel), height_value_(0), hidden_(false),
-                   parent_(nullptr), widget_view_(nullptr),
-                   width_unit_(Unit::kPixel), width_value_(0),
-                   x_alignment_(Alignment::kLeft), x_unit_(Unit::kPixel),
-                   x_value_(0), y_alignment_(Alignment::kTop),
-                   y_unit_(Unit::kPixel), y_value_(0) {
+Widget::Widget() : Widget(true) {
+}
+
+Widget::Widget(const bool caches_rendering)
+    : caches_rendering_(caches_rendering), context_(nullptr),
+      default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
+      height_unit_(Unit::kPixel), height_value_(0), hidden_(false),
+      parent_(nullptr), should_redraw_default_framebuffer_(true),
+      widget_view_(nullptr), width_unit_(Unit::kPixel), width_value_(0),
+      x_alignment_(Alignment::kLeft), x_unit_(Unit::kPixel), x_value_(0),
+      y_alignment_(Alignment::kTop), y_unit_(Unit::kPixel), y_value_(0) {
+  if (caches_rendering)
+    default_framebuffer_mutex_ = new std::mutex;
 }
 
 Widget::~Widget() {
+  UpdateContext(nullptr);
 }
 
 void Widget::AddChild(Widget* child) {
@@ -94,6 +104,21 @@ void Widget::AddChild(Widget* child) {
   UpdateWidgetViewRecursively(child);
   if (!child->IsHidden())
     Redraw();
+}
+
+void Widget::BeginRenderbufferUpdates(NVGcontext* context,
+                                      NVGLUframebuffer** framebuffer) {
+  const int kScreenScaleFactor = Device::GetScreenScaleFactor();
+  const int kWidth = GetWidth() * kScreenScaleFactor;
+  const int kHeight = GetHeight() * kScreenScaleFactor;
+
+  if (*framebuffer == nullptr)
+    *framebuffer = nvgluCreateFramebuffer(context, kWidth, kHeight, 0);
+  nvgluBindFramebuffer(*framebuffer);
+  glViewport(0, 0, kWidth, kHeight);
+  glClearColor(0, 0, 0, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 bool Widget::CollidePoint(const Point point, const int padding) const {
@@ -110,6 +135,10 @@ bool Widget::CollidePoint(const Point point, const int padding) const {
   if (point.y >= (kWidgetY + kWidgetHeight + padding))
     return false;
   return true;
+}
+
+void Widget::EndRenderbufferUpdates() {
+  nvgluBindFramebuffer(NULL);
 }
 
 int Widget::GetHeight() const {
@@ -163,8 +192,52 @@ bool Widget::IsHidden() const {
 }
 
 void Widget::Redraw() {
-  if (widget_view_ != nullptr)
-    widget_view_->Redraw();
+  if (widget_view_ == nullptr)
+    return;
+
+  if (caches_rendering_) {
+    default_framebuffer_mutex_->lock();
+    should_redraw_default_framebuffer_ = true;
+    default_framebuffer_mutex_->unlock();
+  }
+
+  widget_view_->Redraw();
+}
+
+void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
+  if (!caches_rendering_)
+    return;
+
+  default_framebuffer_mutex_->lock();
+  if (!should_redraw_default_framebuffer_) {
+    default_framebuffer_mutex_->unlock();
+    return;
+  }
+  should_redraw_default_framebuffer_ = false;
+
+  const int kWidth = GetWidth();
+  const int kHeight = GetHeight();
+
+  BeginRenderbufferUpdates(context, &default_framebuffer_);
+  nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
+  Render(context);
+  nvgEndFrame(context);
+  EndRenderbufferUpdates();
+
+  default_framebuffer_paint_ = nvgImagePattern(
+      context, 0, kHeight, kWidth, kHeight, 0, default_framebuffer_->image, 1);
+  default_framebuffer_mutex_->unlock();
+}
+
+void Widget::RenderOnDemand(NVGcontext* context) {
+  if (caches_rendering_) {
+    nvgBeginPath(context);
+    nvgRect(context, 0, 0, GetWidth(), GetHeight());
+    nvgFillPaint(context, default_framebuffer_paint_);
+    nvgFill(context);
+  } else {
+    Render(context);
+  }
 }
 
 void Widget::SetHeight(const Unit unit, const float height) {
@@ -198,6 +271,22 @@ void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
 
 bool Widget::ShouldHandleEvent(const Point location) {
   return CollidePoint(location, 0);
+}
+
+void Widget::UpdateContext(NVGcontext* context) {
+  if (context == context_)
+    return;
+
+  // Resets the default framebuffer if caches_rendering_ is true.
+  if (context_ != nullptr && default_framebuffer_ != nullptr) {
+    default_framebuffer_mutex_->lock();
+    nvgluDeleteFramebuffer(context_, default_framebuffer_);
+    default_framebuffer_ = nullptr;
+    default_framebuffer_mutex_->unlock();
+  }
+
+  ContextWillChange(context_);
+  context_ = context;
 }
 
 void Widget::UpdateWidgetViewRecursively(Widget* widget) {

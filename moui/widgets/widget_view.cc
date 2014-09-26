@@ -58,21 +58,28 @@ void WidgetView::Render() {
     context_ = nvgCreateGL(NVG_ANTIALIAS);
   }
 
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-  glEnable(GL_BLEND);
+  // Render offscreen stuff before on-screen rendering.
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
+  RenderWidget(kWidgetRenderMethod::kRenderOffscreen, widget_);
+  RenderWidget(kWidgetRenderMethod::kRenderDefaultFramebuffer, widget_);
 
-  nvgBeginFrame(context_, GetWidth(), GetHeight(),
-                Device::GetScreenScaleFactor());
-  RenderWidget(widget_);
+  // Renders on screen.
+  const int kWidth = GetWidth();
+  const int kHeight = GetHeight();
+  const int kScreenScaleFactor = Device::GetScreenScaleFactor();
+
+  glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
+  glClearColor(0, 0, 0, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+  nvgBeginFrame(context_, kWidth, kHeight, kScreenScaleFactor);
+  RenderWidget(kWidgetRenderMethod::kRenderOnDemand, widget_);
   nvgEndFrame(context_);
 }
 
-void WidgetView::RenderWidget(Widget* widget) {
+void WidgetView::RenderWidget(const kWidgetRenderMethod render_method,
+                              Widget* widget) {
   if (widget->IsHidden())
     return;
   const int kWidgetWidth = widget->GetWidth();
@@ -91,12 +98,23 @@ void WidgetView::RenderWidget(Widget* widget) {
   nvgSave(context_);
   nvgScissor(context_, kWidgetX, kWidgetY, kWidgetWidth, kWidgetHeight);
   nvgTranslate(context_, kWidgetX, kWidgetY);
-  widget->Render(context_);
+  widget->UpdateContext(context_);
+  switch (render_method) {
+    case kWidgetRenderMethod::kRenderDefaultFramebuffer:
+      widget->RenderDefaultFramebuffer(context_);
+      break;
+    case kWidgetRenderMethod::kRenderOnDemand:
+      widget->RenderOnDemand(context_);
+      break;
+    case kWidgetRenderMethod::kRenderOffscreen:
+      widget->RenderOffscreen(context_);
+      break;
+  }
   // Renders visible children.
   for (Widget* child : widget->children()) {
     if (child->GetX() > kWidgetWidth || child->GetY() > kWidgetHeight)
       continue;
-    RenderWidget(child);
+    RenderWidget(render_method, child);
   }
   nvgRestore(context_);
 }

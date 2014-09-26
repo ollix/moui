@@ -191,13 +191,12 @@ class Control : public Widget {
     void* target;  // nullptr or the instance the callback belongs to.
   };
 
-  // Executes the render function for passed state. Returns false if there is
-  // no binded render function.
-  bool ExecuteRenderFunction(const ControlState state);
+  // Inherited from Widget class.
+  virtual void ContextWillChange(NVGcontext* context) override final;
 
-  // Returns the image identifier of the generated image of the currently
-  // rendering image with default highlighed effect.
-  int GenerateDefaultHighlightedImage(NVGcontext* context);
+  // Executes the render function for passed state or fills white background
+  // if nothing binded.
+  void ExecuteRenderFunction(const ControlState state);
 
   // Returns the index of a state. A negative number will be returned if the
   // passed state represents more than one states.
@@ -209,38 +208,45 @@ class Control : public Widget {
   // Inherited from Widget class.
   virtual void HandleEvent(Event* event) override final;
 
-  // Inherited from Widget class. The method takes control of how to render the
-  // control. Subclasses should never override this method either. To render
-  // customzied appearance. Use BindRenderFunction() to bind a function for
-  // rendering a specific control state.
+  // Inherited from Widget class. This method takes control of how to render
+  // the control. Subclasses should never override this method either.
+  // To render customzied appearance. Use BindRenderFunction() to bind a
+  // function for rendering a specific control state.
   virtual void Render(NVGcontext* context) override final;
+
+  // Returns true if a render function is binded to the passed control state.
+  bool RenderFunctionIsBinded(const ControlState state) const;
+
+  // Inherited from Widget class.
+  virtual void RenderOffscreen(NVGcontext* context) override final;
 
   // Inherited from Widget class.
   virtual bool ShouldHandleEvent(const Point location) override final;
-
-  // Updates the internal context_.
-  void UpdateContext(NVGcontext* context);
 
   // Holds a list of all binded actions. HandleControlEvents() will iterate
   // the list to fire callbacks with matched control events.
   std::vector<Action*> actions_;
 
-  // The weak reference to nanovg context that will be updated at the
-  // beginning of Render(). This reference is required to implement
-  // BindRenderFunction() and ExecuteRenderFunction().
-  NVGcontext* context_;
-
-  // Keeps the image identifier of the normal image in highlighted state
-  // that generated automatically by GenerateDefaultHighlightedImage().
-  int default_highlighted_normal_image_;
-
-  // Keeps the image identifier of the selected image in highlighted state
-  // that generated automatically by GenerateDefaultHighlightedImage().
-  int default_highlighted_selected_image_;
+  // The framebuffer for rendering the control in disabled state. The rendering
+  // will be done in RenderOffscreen() on demand.
+  NVGLUframebuffer* disabled_state_framebuffer_;
 
   // The margin in points expanding the widget's bounding box as highlighted
   // area.
   int highlighted_margin_;
+
+  // The framebuffer for rendering the control in highlighted state. The
+  // rendering will be done in RenderOffscreen() on demand.
+  NVGLUframebuffer* highlighted_state_framebuffer_;
+
+  // The framebuffer for rendering the control in normal state. The rendering
+  // will be done in RenderOffscreen() on demand.
+  NVGLUframebuffer* normal_state_framebuffer_;
+
+  // The framebuffer for rendering the control in normal state with default
+  // highlighted effect. The rendering will be done in RenderOffscreen() on
+  // demand.
+  NVGLUframebuffer* normal_state_with_highlighted_effect_framebuffer_;
 
   // Keeps the binded render functions for different control states. The vector
   // will be initialized in constructor to have the same number of elemens as
@@ -248,6 +254,15 @@ class Control : public Widget {
   // determined by GetStateIndex(). Each element could be NULL to represent no
   // binded render function.
   std::vector<std::function<void()>> render_functions_;
+
+  // The framebuffer for rendering the control in selected state. The rendering
+  // will be done in RenderOffscreen() on demand.
+  NVGLUframebuffer* selected_state_framebuffer_;
+
+  // The framebuffer for rendering the control in selected state with default
+  // highlighted effect. The rendering will be done in RenderOffscreen() on
+  // demand.
+  NVGLUframebuffer* selected_state_with_highlighted_effect_framebuffer_;
 
   // A bitmask value that indicates the state of a control. A control can have
   // more than one state at a time.

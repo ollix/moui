@@ -126,9 +126,6 @@
 
   [EAGLContext setCurrentContext:_eaglContext];
   [self setupFrameBuffer];
-  glViewport(0, 0,
-             self.frame.size.width * self.contentScaleFactor,
-             self.frame.size.height * self.contentScaleFactor);
   _mouiView->Render();
   [_eaglContext presentRenderbuffer:GL_RENDERBUFFER];
   [EAGLContext setCurrentContext:nil];

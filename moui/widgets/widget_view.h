@@ -39,7 +39,7 @@ class WidgetView : public View {
   // Inherited from BaseView class.
   virtual void HandleEvent(std::unique_ptr<Event> event) override final;
 
-  // Inherited from BaseView class.
+  // Inherited from BaseView class. Renders belonged widgets recursively.
   virtual void Render() override final;
 
   // Sets the bounds for the view and its managed widget.
@@ -53,9 +53,16 @@ class WidgetView : public View {
   Widget* widget() { return widget_; }
 
  private:
+  // Corresonded render methods of the Widget class.
+  enum class kWidgetRenderMethod {
+    kRenderDefaultFramebuffer,  // Widget::RenderDefaultFramebuffer()
+    kRenderOffscreen,  // Widget::RenderOffscreen()
+    kRenderOnDemand,  // Widget::RenderOnDemand()
+  };
+
   // Renders the specified widget and its children recursively. Note that
   // hidden widgets won't be rendered.
-  void RenderWidget(Widget* widget);
+  void RenderWidget(const kWidgetRenderMethod render_method, Widget* widget);
 
   // Inherited from BaseView class.
   bool ShouldHandleEvent(const Point location, Widget* widget);
