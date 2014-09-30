@@ -36,18 +36,9 @@ class WidgetView : public View {
   WidgetView();
   ~WidgetView();
 
-  // Inherited from BaseView class.
-  virtual void HandleEvent(std::unique_ptr<Event> event) override final;
-
-  // Inherited from BaseView class. Renders belonged widgets recursively.
-  virtual void Render() override final;
-
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width,
                  const int height);
-
-  // Inherited from BaseView class.
-  virtual bool ShouldHandleEvent(const Point location) override final;
 
   // Accessor.
   Widget* widget() { return widget_; }
@@ -60,11 +51,21 @@ class WidgetView : public View {
     kRenderOnDemand,  // Widget::RenderOnDemand()
   };
 
+  // Inherited from BaseView class.
+  virtual void HandleEvent(std::unique_ptr<Event> event) override final;
+
+  // Inherited from BaseView class. Renders belonged widgets recursively.
+  virtual void Render() override final;
+
   // Renders the specified widget and its children recursively. Note that
   // hidden widgets won't be rendered.
   void RenderWidget(const kWidgetRenderMethod render_method, Widget* widget);
 
   // Inherited from BaseView class.
+  virtual bool ShouldHandleEvent(const Point location) override final;
+
+  // Returns true if the passed widget of any of its children should handle
+  // coming events.
   bool ShouldHandleEvent(const Point location, Widget* widget);
 
   // The nanovg context for drawing.

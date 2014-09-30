@@ -63,11 +63,11 @@ class BaseView : public NativeView {
   GLuint CompileShaderAtPath(const GLenum shader_type,
                              const std::string& source_path) const;
 
+ private:
   // Calls the render function from native view. This method must be
   // implmeneted in the View subclass.
   virtual void RenderNativeView() const {}
 
- private:
   // Indicates whether the view is currently redrawing.
   bool is_redrawing_;
 
