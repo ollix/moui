@@ -17,6 +17,8 @@
 
 #include "moui/widgets/widget_view.h"
 
+#include <cassert>
+
 #include "moui/core/device.h"
 #include "moui/core/event.h"
 #include "moui/nanovg_hook.h"
@@ -56,7 +58,11 @@ void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
 void WidgetView::Render() {
   if (context_ == nullptr) {
     context_ = nvgCreateGL(NVG_ANTIALIAS);
+    ContextDidCreate(context_);
   }
+
+  // Notifies belonged widgets the rendering will occur.
+  RenderWidget(kWidgetRenderMethod::kWidgetWillRender, widget_);
 
   // Render offscreen stuff before on-screen rendering.
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -95,28 +101,37 @@ void WidgetView::RenderWidget(const kWidgetRenderMethod render_method,
   if ((kWidgetY + kWidgetHeight) < 0)
     return;
 
-  nvgSave(context_);
-  nvgScissor(context_, kWidgetX, kWidgetY, kWidgetWidth, kWidgetHeight);
-  nvgTranslate(context_, kWidgetX, kWidgetY);
-  widget->UpdateContext(context_);
-  switch (render_method) {
-    case kWidgetRenderMethod::kRenderDefaultFramebuffer:
-      widget->RenderDefaultFramebuffer(context_);
-      break;
-    case kWidgetRenderMethod::kRenderOnDemand:
-      widget->RenderOnDemand(context_);
-      break;
-    case kWidgetRenderMethod::kRenderOffscreen:
-      widget->RenderOffscreen(context_);
-      break;
+  if (render_method == kWidgetRenderMethod::kWidgetWillRender) {
+    widget->WidgetWillRender(context_);
+  } else {
+    nvgSave(context_);
+    nvgScissor(context_, kWidgetX, kWidgetY, kWidgetWidth, kWidgetHeight);
+    nvgTranslate(context_, kWidgetX, kWidgetY);
+    widget->UpdateContext(context_);
+    switch (render_method) {
+      case kWidgetRenderMethod::kRenderDefaultFramebuffer:
+        widget->RenderDefaultFramebuffer(context_);
+        break;
+      case kWidgetRenderMethod::kRenderOnDemand:
+        widget->RenderOnDemand(context_);
+        break;
+      case kWidgetRenderMethod::kRenderOffscreen:
+        widget->RenderOffscreen(context_);
+        break;
+      default:
+        assert(false);
+    }
   }
+
   // Renders visible children.
   for (Widget* child : widget->children()) {
     if (child->GetX() > kWidgetWidth || child->GetY() > kWidgetHeight)
       continue;
     RenderWidget(render_method, child);
   }
-  nvgRestore(context_);
+
+  if (render_method != kWidgetRenderMethod::kWidgetWillRender)
+    nvgRestore(context_);
 }
 
 void WidgetView::SetBounds(const int x, const int y, const int width,

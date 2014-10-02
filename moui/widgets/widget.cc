@@ -240,6 +240,14 @@ void Widget::RenderOnDemand(NVGcontext* context) {
   }
 }
 
+void Widget::SetBounds(const int x, const int y, const int width,
+                       const int height) {
+  SetX(Alignment::kLeft, Unit::kPixel, x);
+  SetY(Alignment::kTop, Unit::kPixel, y);
+  SetWidth(Unit::kPixel, width);
+  SetHeight(Unit::kPixel, height);
+}
+
 void Widget::SetHeight(const Unit unit, const float height) {
   height_unit_ = unit;
   height_value_ = height;

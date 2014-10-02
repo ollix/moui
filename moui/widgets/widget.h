@@ -78,6 +78,9 @@ class Widget {
   // If the current widget doesn't belong to any widget view, nothing happened.
   void Redraw();
 
+  // Sets the bounds of the view in pixels.
+  void SetBounds(const int x, const int y, const int width, const int height);
+
   // Sets the height with the specified unit.
   void SetHeight(const Unit unit, const float height);
 
@@ -169,6 +172,10 @@ class Widget {
   // Updates the widget view for the specified widget and all its children
   // recursively.
   void UpdateWidgetViewRecursively(Widget* widget);
+
+  // This method will get called before any Render()-like method executes in
+  // a rendering process.
+  virtual void WidgetWillRender(NVGcontext* context) {};
 
   // This accessors and setters that should only be called by the WidgetView
   // firend class.

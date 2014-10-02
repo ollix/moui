@@ -19,6 +19,7 @@
 #define MOUI_WIDGETS_WIDGETS_H_
 
 #include "moui/widgets/control.h"
+#include "moui/widgets/label.h"
 #include "moui/widgets/widget.h"
 #include "moui/widgets/widget_view.h"
 

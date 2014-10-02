@@ -49,7 +49,11 @@ class WidgetView : public View {
     kRenderDefaultFramebuffer,  // Widget::RenderDefaultFramebuffer()
     kRenderOffscreen,  // Widget::RenderOffscreen()
     kRenderOnDemand,  // Widget::RenderOnDemand()
+    kWidgetWillRender,  // Widget::WidgetWillRender()
   };
+
+  // This method gets called right after `context_` is created in Rneder().
+  virtual void ContextDidCreate(NVGcontext* context) {};
 
   // Inherited from BaseView class.
   virtual void HandleEvent(std::unique_ptr<Event> event) override final;

@@ -26,6 +26,7 @@
         'ui/base_view.cc',
         'ui/base_window.cc',
         'widgets/control.cc',
+        'widgets/label.cc',
         'widgets/widget.cc',
         'widgets/widget_view.cc',
       ],
