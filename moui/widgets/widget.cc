@@ -270,7 +270,7 @@ void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
 }
 
 bool Widget::ShouldHandleEvent(const Point location) {
-  return CollidePoint(location, 0);
+  return false;
 }
 
 void Widget::UpdateContext(NVGcontext* context) {

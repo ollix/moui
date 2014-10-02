@@ -159,9 +159,8 @@ class Widget {
 
   // This method gets called when an event is about to occur. The returned
   // boolean indicates whether the widget should handle the event. By default
-  // it returns true if the passed location collides the widget's bounding
-  // box. This method could be implemented in the subclass to change the
-  // default behavior.
+  // it returns false and simply ignores any event. This method could be
+  // implemented in the subclass to change the default behavior.
   virtual bool ShouldHandleEvent(const Point location);
 
   // Updates the internal context_.
