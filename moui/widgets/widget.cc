@@ -86,12 +86,16 @@ Widget::Widget(const bool caches_rendering)
     : caches_rendering_(caches_rendering), context_(nullptr),
       default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
       height_unit_(Unit::kPixel), height_value_(0), hidden_(false),
-      parent_(nullptr), should_redraw_default_framebuffer_(true),
-      widget_view_(nullptr), width_unit_(Unit::kPixel), width_value_(0),
+      is_opaque_(true), parent_(nullptr),
+      should_redraw_default_framebuffer_(true), widget_view_(nullptr),
+      width_unit_(Unit::kPixel), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPixel), x_value_(0),
       y_alignment_(Alignment::kTop), y_unit_(Unit::kPixel), y_value_(0) {
   if (caches_rendering)
     default_framebuffer_mutex_ = new std::mutex;
+
+  // Sets white as default background color.
+  set_background_color(255, 255, 255, 255);
 }
 
 Widget::~Widget() {
@@ -204,6 +208,17 @@ void Widget::Redraw() {
   widget_view_->Redraw();
 }
 
+void Widget::RenderBackgroundColor(NVGcontext* context) {
+  // Do nothing if the widget is not opaque or the color's alpha value is 0.
+  if (!is_opaque_ || background_color_.rgba[3] == 0)
+    return;
+
+  nvgBeginPath(context);
+  nvgRect(context, 0, 0, GetWidth(), GetHeight());
+  nvgFillColor(context, background_color_);
+  nvgFill(context);
+}
+
 void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
   if (!caches_rendering_)
     return;
@@ -220,6 +235,7 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
 
   BeginRenderbufferUpdates(context, &default_framebuffer_);
   nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
+  RenderBackgroundColor(context);
   Render(context);
   nvgEndFrame(context);
   EndRenderbufferUpdates();
@@ -236,6 +252,7 @@ void Widget::RenderOnDemand(NVGcontext* context) {
     nvgFillPaint(context, default_framebuffer_paint_);
     nvgFill(context);
   } else {
+    RenderBackgroundColor(context);
     Render(context);
   }
 }

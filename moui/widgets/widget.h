@@ -99,7 +99,14 @@ class Widget {
   void SetY(const Alignment alignment, const Unit unit, const float y);
 
   // Setters and accessors.
+  NVGcolor background_color() const { return background_color_; }
+  void set_background_color(const float red, const float green,
+                            const float blue, const float alpha) {
+    background_color_ = nvgRGBA(red, green, blue, alpha);
+  }
   std::vector<Widget*>& children() { return children_; }
+  bool is_opaque() const { return is_opaque_; }
+  void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
   WidgetView* widget_view() const { return widget_view_; }
 
  protected:
@@ -139,6 +146,10 @@ class Widget {
   // Note that this method should only be called in the
   // WidgetView::RenderWidget() method.
   virtual void Render(NVGcontext* context) {}
+
+  // Renders the background color before executing Render() if the widget
+  // is opaque.
+  void RenderBackgroundColor(NVGcontext* context);
 
   // Renders Render() in default_framebuffer_ if caches_rendering_ is true.
   void RenderDefaultFramebuffer(NVGcontext* context);
@@ -182,6 +193,10 @@ class Widget {
   void set_parent(Widget* parent) { parent_ = parent; }
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
 
+  // The background color of the widget that will be rendered automatically if
+  // is_opaque_ is true. The default color is white.
+  NVGcolor background_color_;
+
   // Indicates whether the rendering in Render() should be rendered in
   // `default_framebuffer_` to cache the rendering result. If true, Render()
   // won't be executed every time the corresponded WidgetView redraws. This
@@ -210,6 +225,10 @@ class Widget {
 
   // Indicates whether the widget is hidden.
   bool hidden_;
+
+  // Indicates whether the widget is opaque. If true, the background color
+  // will be filled to the entire bounding rectangle. The default value is true.
+  bool is_opaque_;
 
   // The parent widget of the current widget.
   Widget* parent_;
