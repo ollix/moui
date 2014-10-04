@@ -20,6 +20,7 @@
 
 #include "moui/widgets/control.h"
 #include "moui/widgets/label.h"
+#include "moui/widgets/progress_view.h"
 #include "moui/widgets/widget.h"
 #include "moui/widgets/widget_view.h"
 
