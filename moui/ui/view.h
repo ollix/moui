@@ -30,9 +30,15 @@ class View : public BaseView {
   View();
   ~View();
 
+  // Inherited from BaseView class.
+  virtual void Redraw() override final;
+
  private:
   // Inherited from BaseView class.
-  virtual void RenderNativeView() const override final;
+  virtual void StartUpdatingNativeView() override final;
+
+  // Inherited from BaseView class.
+  virtual void StopUpdatingNativeView() override final;
 
   DISALLOW_COPY_AND_ASSIGN(View);
 };

@@ -70,6 +70,9 @@ class Widget {
   // Returns the vertical position in pixels related to its parent's top.
   int GetY() const;
 
+  // Returns true if the widget is animating.
+  bool IsAnimating() const;
+
   // Returns true if the widget is hidden.
   bool IsHidden() const;
 
@@ -97,6 +100,16 @@ class Widget {
   // Sets the vertical position. The alignment could only be one of kTop,
   // kMiddle, and kBottom.
   void SetY(const Alignment alignment, const Unit unit, const float y);
+
+  // Starts updating the widget synchronized to the refresh rate of the display
+  // continuously. StopAnimation() must be called for each StartAnimation().
+  // If the widget is not yet attached to a WidgetView object, nothing happened.
+  void StartAnimation();
+
+  // Ends previous StartAnimation() call. The animation will actually stop if
+  // all StartAnimation() calls are ended. If the widget is not yet attached
+  // to a WidgetView object, nothing happened.
+  void StopAnimation();
 
   // Setters and accessors.
   NVGcolor background_color() const { return background_color_; }
@@ -192,6 +205,10 @@ class Widget {
   // firend class.
   void set_parent(Widget* parent) { parent_ = parent; }
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
+
+  // The number of animation reuqests that updated by StartAnimation() and
+  // StopAnimation(). The widget is animating if this value is greater than 0.
+  int animation_count_;
 
   // The background color of the widget that will be rendered automatically if
   // is_opaque_ is true. The default color is white.

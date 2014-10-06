@@ -79,4 +79,13 @@ public class OpenGLView extends GLSurfaceView {
     }
     return true;  // Returns true means this event has consumed.
   }
+
+  public void startUpdatingView() {
+    requestRender();  // guarantees the view will be rendered at least once
+    setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+  }
+
+  public void stopUpdatingView() {
+    setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+  }
 }

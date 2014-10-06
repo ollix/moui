@@ -83,10 +83,10 @@ Widget::Widget() : Widget(true) {
 }
 
 Widget::Widget(const bool caches_rendering)
-    : caches_rendering_(caches_rendering), context_(nullptr),
-      default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
-      height_unit_(Unit::kPixel), height_value_(0), hidden_(false),
-      is_opaque_(true), parent_(nullptr),
+    : animation_count_(0), caches_rendering_(caches_rendering),
+      context_(nullptr), default_framebuffer_(nullptr),
+      default_framebuffer_mutex_(nullptr), height_unit_(Unit::kPixel),
+      height_value_(0), hidden_(false), is_opaque_(true), parent_(nullptr),
       should_redraw_default_framebuffer_(true), widget_view_(nullptr),
       width_unit_(Unit::kPixel), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPixel), x_value_(0),
@@ -191,6 +191,10 @@ int Widget::GetY() const {
   return y + 0.5;
 }
 
+bool Widget::IsAnimating() const {
+  return animation_count_ > 0;
+}
+
 bool Widget::IsHidden() const {
   return hidden_;
 }
@@ -224,7 +228,7 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
     return;
 
   default_framebuffer_mutex_->lock();
-  if (!should_redraw_default_framebuffer_) {
+  if (!should_redraw_default_framebuffer_ && !IsAnimating()) {
     default_framebuffer_mutex_->unlock();
     return;
   }
@@ -296,6 +300,20 @@ void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
 
 bool Widget::ShouldHandleEvent(const Point location) {
   return false;
+}
+
+void Widget::StartAnimation() {
+  if (widget_view_ == nullptr)
+    return;
+  ++animation_count_;
+  widget_view_->StartAnimation();
+}
+
+void Widget::StopAnimation() {
+  if (widget_view_ == nullptr)
+    return;
+  animation_count_ = std::max(0, animation_count_ - 1);
+  widget_view_->StopAnimation();
 }
 
 void Widget::UpdateContext(NVGcontext* context) {

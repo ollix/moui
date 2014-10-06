@@ -22,6 +22,21 @@
 
 #include "moui/ui/view.h"
 
+namespace {
+
+// The callback function of MOOpenGLView's _displayLink that marks the view's
+// contents as needing to be updated.
+static CVReturn renderCallback(CVDisplayLinkRef displayLink,
+                               const CVTimeStamp *inNow,
+                               const CVTimeStamp *inOutputTime,
+                               CVOptionFlags flagsIn,
+                               CVOptionFlags *flagsOut,
+                               void *view) {
+  [(__bridge MOOpenGLView *)view setNeedsDisplay:YES];
+  return kCVReturnSuccess;
+}
+
+}  // namespace
 
 @interface MOOpenGLView (PrivateDelegateHandling)
 
@@ -74,6 +89,7 @@
 - (id)initWithMouiView:(moui::View *)mouiView {
   if((self = [super initWithFrame:NSMakeRect(0, 0, 0, 0)])) {
     _mouiView = mouiView;
+    _stopsUpdatingView = YES;
 
     const NSOpenGLPixelFormatAttribute attributes[] =  {
         NSOpenGLPFAAccelerated,
@@ -86,6 +102,12 @@
         NSOpenGLPFAWindow,
         (NSOpenGLPixelFormatAttribute)nil};
     _pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
+
+    if (CVDisplayLinkCreateWithCGDisplay(CGMainDisplayID(), &_displayLink) == \
+        kCVReturnSuccess) {
+      CVDisplayLinkSetOutputCallback(_displayLink, renderCallback,
+                                     (__bridge void *)self);
+    }
   }
   return self;
 }
@@ -135,6 +157,24 @@
   [context makeCurrentContext];
   _mouiView->Render();
   [context flushBuffer];
+
+  @synchronized(self) {
+    if (_stopsUpdatingView)
+      CVDisplayLinkStop(_displayLink);
+  }
+}
+
+- (void)startUpdatingView {
+  @synchronized(self) {
+    _stopsUpdatingView = NO;
+    CVDisplayLinkStart(_displayLink);
+  }
+}
+
+- (void)stopUpdatingView {
+  @synchronized(self) {
+    _stopsUpdatingView = YES;
+  }
 }
 
 @end

@@ -24,12 +24,28 @@ class View;
 // The native iOS view for rendering OpenGL stuff.
 @interface MOOpenGLView : NSView {
  @private
+  CVDisplayLinkRef _displayLink;
   moui::View* _mouiView;
   NSOpenGLContext* _openGLContext;
   NSOpenGLPixelFormat* _pixelFormat;
+  BOOL _stopsUpdatingView;
 }
 
 - (id)initWithMouiView:(moui::View*)mouiView;
+
+// Sets up the OpenGL context and asks corresponded moui view to render.
+// This method should never be called directly. Instead, calling
+// `startUpdatingView` to execute this method automatically.
 - (void)render;
+
+// Starts updating the view synchronized to the refresh rate of the display.
+// The view will be updated continuously until `stopUpdatingView` is called.
+// Calling this method guarantees the view will be updated at least once.
+- (void)startUpdatingView;
+
+// Requests to stop updating the view previously activated by
+// `startUpdatingView`. The updates will actually stop when the latest
+// rendering is done.
+- (void)stopUpdatingView;
 
 @end

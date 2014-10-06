@@ -20,6 +20,7 @@
 #include <memory>
 #include <OpenGLES/ES2/gl.h>
 #include <OpenGLES/ES2/glext.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include "moui/core/event.h"
 #include "moui/ui/view.h"
@@ -91,6 +92,7 @@
     _eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     _framebuffer = 0;
     _mouiView = mouiView;
+    _stopsUpdatingView = YES;
     _viewController = viewController;
 
     // Initializes CAEAGLLayer.
@@ -109,6 +111,7 @@
   if (_framebuffer != 0)
     glDeleteFramebuffers(1, &_framebuffer);
 
+  [_display_link dealloc];
   [_eaglContext dealloc];
   [super dealloc];
 }
@@ -129,6 +132,40 @@
   _mouiView->Render();
   [_eaglContext presentRenderbuffer:GL_RENDERBUFFER];
   [EAGLContext setCurrentContext:nil];
+
+  // Removes the display link from the run loop if no need to update the view
+  // continuously.
+  @synchronized(self) {
+    if (_stopsUpdatingView) {
+      [_display_link invalidate];
+      _display_link = nil;
+    }
+  }
+}
+
+// Sets `_stopsUpdatingView` to NO to make sure `_display_link` stays in the
+// run loop and keep updating the view continuously. If the updating mechanism
+// was not activated yet or stopped previously, a new CADisplayLink object will
+// be created and added to the run loop.
+- (void)startUpdatingView {
+  @synchronized(self) {
+    _stopsUpdatingView = NO;
+    if (_display_link != nil)
+      return;
+
+    _display_link = [CADisplayLink displayLinkWithTarget:self
+                                                selector:@selector(render)];
+    [_display_link addToRunLoop:[NSRunLoop mainRunLoop]
+                        forMode:NSRunLoopCommonModes];
+  }
+}
+
+// Simply sets `_stopsUpdatingView` to YES to stop updating when the latest
+// rendering is done.
+- (void)stopUpdatingView {
+  @synchronized(self) {
+    _stopsUpdatingView = YES;
+  }
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {

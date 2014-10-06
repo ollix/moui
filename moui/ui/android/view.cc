@@ -40,13 +40,34 @@ View::View() : BaseView() {
 View::~View() {
 }
 
-void View::RenderNativeView() const {
+// Calls com.ollix.OpenGLView.requestRender() on the Java side.
+void View::Redraw() {
   jobject native_view = reinterpret_cast<jobject>(native_handle_);
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID request_render_method = env->GetMethodID(view_class,
                                                      "requestRender", "()V");
   env->CallVoidMethod(native_view, request_render_method);
+}
+
+// Calls com.ollix.OpenGLView.startUpdatingView() on the Java side.
+void View::StartUpdatingNativeView() {
+  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  JNIEnv* env = Application::GetJNIEnv();
+  jclass view_class = env->GetObjectClass(native_view);
+  jmethodID start_updating_view_method = env->GetMethodID(
+      view_class, "startUpdatingView", "()V");
+  env->CallVoidMethod(native_view, start_updating_view_method);
+}
+
+// Calls com.ollix.OpenGLView.stopUpdatingView() on the Java side.
+void View::StopUpdatingNativeView() {
+  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  JNIEnv* env = Application::GetJNIEnv();
+  jclass view_class = env->GetObjectClass(native_view);
+  jmethodID stop_updating_view_method = env->GetMethodID(
+      view_class, "stopUpdatingView", "()V");
+  env->CallVoidMethod(native_view, stop_updating_view_method);
 }
 
 }  // namespace moui

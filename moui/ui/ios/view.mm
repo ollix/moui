@@ -31,15 +31,24 @@ View::View() : BaseView() {
   native_handle_ = (__bridge void*)view_controller.view;
 }
 
-// Releases the native view if it's a moui-customized MOOpenGLView class.
 View::~View() {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
   [native_view.viewController dealloc];
 }
 
-void View::RenderNativeView() const {
+void View::Redraw() {
+  StartAnimation();
+  StopAnimation();
+}
+
+void View::StartUpdatingNativeView() {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  [native_view render];
+  [native_view startUpdatingView];
+}
+
+void View::StopUpdatingNativeView() {
+  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
+  [native_view stopUpdatingView];
 }
 
 }  // namespace moui

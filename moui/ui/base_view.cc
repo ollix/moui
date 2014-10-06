@@ -17,6 +17,7 @@
 
 #include "moui/ui/base_view.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <mutex>
 #include <string>
@@ -25,15 +26,14 @@
 
 namespace {
 
-// The mutex for making Redraw() thread-safe.
-std::mutex redraw_mutex;
+// The mutex for making animation thread-safe.
+std::mutex animation_mutex;
 
 }  // namespace;
 
 namespace moui {
 
-BaseView::BaseView() : NativeView(nullptr), is_redrawing_(false),
-                       waiting_for_redraw_(false) {
+BaseView::BaseView() : NativeView(nullptr), animation_count_(0) {
 }
 
 BaseView::~BaseView() {
@@ -80,29 +80,24 @@ GLuint BaseView::CompileShaderAtPath(const GLenum shader_type,
   return shader_handle;
 }
 
-// Calls RenderNativeView() to perform the acutal rendering on native view but
-// wrapped in a mutex to make sure it's thread-safe.
-void BaseView::Redraw() {
-  // Waits for redraw if it's currently redrawing.
-  redraw_mutex.lock();
-  if (is_redrawing_) {
-    waiting_for_redraw_ = true;
-    redraw_mutex.unlock();
-    return;
-  }
-  is_redrawing_ = true;
-  redraw_mutex.unlock();
+bool BaseView::IsAnimating() const {
+  return animation_count_ > 0;
+}
 
-  RenderNativeView();
+void BaseView::StartAnimation() {
+  animation_mutex.lock();
+  ++animation_count_;
+  StartUpdatingNativeView();
+  animation_mutex.unlock();
+}
 
-  // Resets mutex variables and redraw if waiting_for_redraw_ is true.
-  redraw_mutex.lock();
-  const bool kShouldRedraw = waiting_for_redraw_;
-  is_redrawing_ = false;
-  waiting_for_redraw_ = false;
-  redraw_mutex.unlock();
-  if (kShouldRedraw)
-    Redraw();
+void BaseView::StopAnimation() {
+  animation_mutex.lock();
+  --animation_count_;
+  if (animation_count_ == 0)
+    StopUpdatingNativeView();
+  animation_count_ = std::max(0, animation_count_);
+  animation_mutex.unlock();
 }
 
 }  // namespace moui

@@ -33,9 +33,19 @@ View::~View() {
   [native_view dealloc];
 }
 
-void View::RenderNativeView() const {
+void View::Redraw() {
+  StartAnimation();
+  StopAnimation();
+}
+
+void View::StartUpdatingNativeView() {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  [native_view setNeedsDisplay:YES];
+  [native_view startUpdatingView];
+}
+
+void View::StopUpdatingNativeView() {
+  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
+  [native_view stopUpdatingView];
 }
 
 }  // namespace moui
