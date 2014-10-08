@@ -15,7 +15,7 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#import "moui/ui/mac/MOOpenGLView.h"
+#import "moui/ui/mac/opengl_view_mac.h"
 
 #include <memory>
 #include <OpenGL/gl.h>

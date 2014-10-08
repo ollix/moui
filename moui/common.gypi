@@ -13,24 +13,24 @@
 # limitations under the License.
 {
   'conditions': [
-    ['OS=="mac" and "<(GENERATOR)"=="ninja"', {
+    ['OS == "mac" and "<(GENERATOR)" == "ninja"', {
       'make_global_settings': [
         ['CC', '/usr/bin/clang'],
         ['CXX', '/usr/bin/clang++'],
       ],
-    }],  # OS=="mac" and "<(GENERATOR)"=="ninja"
-    ['"<(GENERATOR)"=="xcode" and (OS=="mac" or OS=="ios")', {
+    }],  # OS == "mac" and "<(GENERATOR)" == "ninja"
+    ['"<(GENERATOR)" == "xcode" and (OS == "mac" or OS == "ios")', {
       'conditions': [
-        ['OS=="ios"', {
+        ['OS == "ios"', {
           'xcode_settings': {
             'SDKROOT': 'iphoneos',  # -isysroot
           },
-        }],  # OS=="ios"
-        ['OS=="mac"', {
+        }],  # OS == "ios"
+        ['OS == "mac"', {
           'xcode_settings': {
             'SDKROOT': 'macosx',  # -isysroot
           },
-        }],  # OS=="mac"
+        }],  # OS == "mac"
       ],
       'xcode_settings': {
         'CONFIGURATION_BUILD_DIR': 'build/Xcode',
@@ -38,7 +38,7 @@
           '-std=c++11',  # supports C++11
         ],
       },  # xcode_settings
-    }],  # OS=="mac" or OS="ios"
+    }],  # OS == "mac" or OS == "ios"
   ],  # conditions
   'target_defaults': {
     'default_configuration': 'Debug',
@@ -52,13 +52,13 @@
           'DEBUG',
         ],
         'conditions': [
-          ['"<(GENERATOR)"=="xcode"', {
+          ['"<(GENERATOR)" == "xcode"', {
             'xcode_settings': {
               'GCC_OPTIMIZATION_LEVEL': '0',
               'ONLY_ACTIVE_ARCH': 'YES',
             },
           }],
-        ],  # "<(GENERATOR)"=="xcode"
+        ],  # "<(GENERATOR)" == "xcode"
       },  # Debug
       'Release': {
         'cflags': [
@@ -68,12 +68,12 @@
           'NDEBUG',
         ],
         'conditions': [
-          ['"<(GENERATOR)"=="xcode"', {
+          ['"<(GENERATOR)" == "xcode"', {
             'xcode_settings': {
               'GCC_OPTIMIZATION_LEVEL': 's',
             },
           }],
-        ],  # "<(GENERATOR)"=="xcode"
+        ],  # "<(GENERATOR)" == "xcode"
       }  # Release
     },  # configurations
   },  # target_defaults

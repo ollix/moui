@@ -20,11 +20,29 @@
       'target_name': 'libmoui',
       'type': 'static_library',
       'sources': [
+        'core/android/application_android.cc',
+        'core/android/clock_android.cc',
+        'core/android/device_android.cc',
+        'core/apple/clock_apple.mm',
+        'core/apple/device_apple.mm',
+        'core/apple/path_apple.mm',
         'core/base_application.cc',
         'core/event.cc',
         'nanovg_hook.cc',
         'ui/base_view.cc',
         'ui/base_window.cc',
+        'ui/android/native_view_android.cc',
+        'ui/android/view_android.cc',
+        'ui/android/window_android.cc',
+        'ui/ios/native_view_ios.mm',
+        'ui/ios/opengl_view_ios.mm',
+        'ui/ios/opengl_view_controller_ios.mm',
+        'ui/ios/view_ios.mm',
+        'ui/ios/window_ios.mm',
+        'ui/mac/opengl_view_mac.mm',
+        'ui/mac/native_view_mac.mm',
+        'ui/mac/view_mac.mm',
+        'ui/mac/window_mac.mm',
         'widgets/control.cc',
         'widgets/label.cc',
         'widgets/page_control.cc',
@@ -34,18 +52,10 @@
       ],
       'include_dirs': [ '..' ],
       'conditions': [
-        ['OS=="android"', {
+        ['OS == "android"', {
           'defines': [
             'MOUI_GLES2',
             'MOUI_ANDROID',
-          ],
-          'sources': [
-            'core/android/application.cc',
-            'core/android/clock.cc',
-            'core/android/device.cc',
-            'ui/android/native_view.cc',
-            'ui/android/view.cc',
-            'ui/android/window.cc',
           ],
           'ldflags': [
             '-lGLESv2',
@@ -57,22 +67,21 @@
               '-llog',
             ],
           },
+        }, {  # OS != "android"
+          'sources!': [
+            'core/android/application_android.cc',
+            'core/android/clock_android.cc',
+            'core/android/device_android.cc',
+            'ui/android/native_view_android.cc',
+            'ui/android/view_android.cc',
+            'ui/android/window_android.cc',
+          ],
         }],
-        ['OS=="ios"', {
+        ['OS == "ios"', {
           'defines': [
             'MOUI_APPLE',
             'MOUI_GLES2',
             'MOUI_IOS',
-          ],
-          'sources': [
-            'core/apple/clock.mm',
-            'core/apple/device.mm',
-            'core/apple/path.mm',
-            'ui/ios/MOOpenGLView.mm',
-            'ui/ios/MOOpenGLViewController.mm',
-            'ui/ios/native_view.mm',
-            'ui/ios/view.mm',
-            'ui/ios/window.mm',
           ],
           'link_settings': {
             'libraries': [
@@ -82,21 +91,20 @@
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
             ],
           },
+        }, {  # OS != "ios"
+          'sources!': [
+            'ui/ios/native_view_ios.mm',
+            'ui/ios/opengl_view_ios.mm',
+            'ui/ios/opengl_view_controller_ios.mm',
+            'ui/ios/view_ios.mm',
+            'ui/ios/window_ios.mm',
+          ],
         }],
-        ['OS=="mac"', {
+        ['OS == "mac"', {
           'defines': [
             'MOUI_APPLE',
             'MOUI_GL2',
             'MOUI_MAC',
-          ],
-          'sources': [
-            'core/apple/clock.mm',
-            'core/apple/device.mm',
-            'core/apple/path.mm',
-            'ui/mac/MOOpenGLView.mm',
-            'ui/mac/native_view.mm',
-            'ui/mac/view.mm',
-            'ui/mac/window.mm',
           ],
           'link_settings': {
             'libraries': [
@@ -104,9 +112,23 @@
               '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
             ],
           },
+        }, {  # OS != "mac"
+          'sources!': [
+            'ui/mac/opengl_view_mac.mm',
+            'ui/mac/native_view_mac.mm',
+            'ui/mac/view_mac.mm',
+            'ui/mac/window_mac.mm',
+          ],
         }],
-        ['OS=="win"', {
+        ['OS == "win"', {
           'defines': [ 'MOUI_WINDOWS' ],
+        }],
+        ['OS != "mac" and OS != "ios"', {
+          'sources!': [
+            'core/apple/clock_apple.mm',
+            'core/apple/device_apple.mm',
+            'core/apple/path_apple.mm',
+          ],
         }],
       ],  # conditions
       'dependencies': [
@@ -120,27 +142,27 @@
           '..'
         ],
         'conditions': [
-          ['OS=="android"', {
+          ['OS == "android"', {
             'defines': [
               'MOUI_GLES2',
               'MOUI_ANDROID',
             ],
           }],
-          ['OS=="ios"', {
+          ['OS == "ios"', {
             'defines': [
               'MOUI_APPLE',
               'MOUI_GLES2',
               'MOUI_IOS',
             ],
           }],
-          ['OS=="mac"', {
+          ['OS == "mac"', {
             'defines': [
               'MOUI_APPLE',
               'MOUI_GL2',
               'MOUI_MAC',
             ],
           }],
-          ['OS=="win"', {
+          ['OS == "win"', {
             'defines': [
               'MOUI_WINDOWS',
             ],

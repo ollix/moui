@@ -18,19 +18,22 @@
 #include "moui/ui/view.h"
 
 #include "moui/ui/base_view.h"
-#import "moui/ui/mac/MOOpenGLView.h"
+#import "moui/ui/ios/opengl_view_ios.h"
+#import "moui/ui/ios/opengl_view_controller_ios.h"
 
 namespace moui {
 
-// Instantiates the MOOpenGLView class and uses it as the native handle.
+// Instantiates the MOOpenGLViewController class and uses its view as the
+// native handle.
 View::View() : BaseView() {
-  MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
-  native_handle_ = (__bridge void*)view;
+  MOOpenGLViewController* view_controller = \
+      [[MOOpenGLViewController alloc] initWithMouiView:this];
+  native_handle_ = (__bridge void*)view_controller.view;
 }
 
 View::~View() {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  [native_view dealloc];
+  [native_view.viewController dealloc];
 }
 
 void View::Redraw() {

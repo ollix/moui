@@ -15,7 +15,7 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#import "moui/ui/ios/MOOpenGLView.h"
+#import "moui/ui/ios/opengl_view_ios.h"
 
 #include <memory>
 #include <OpenGLES/ES2/gl.h>

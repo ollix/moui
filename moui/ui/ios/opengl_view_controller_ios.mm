@@ -15,9 +15,9 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#import "moui/ui/ios/MOOpenGLViewController.h"
+#import "moui/ui/ios/opengl_view_controller_ios.h"
 
-#import "moui/ui/ios/MOOpenGLView.h"
+#import "moui/ui/ios/opengl_view_ios.h"
 #import "moui/ui/view.h"
 
 
