@@ -120,6 +120,7 @@ class Widget {
   std::vector<Widget*>& children() { return children_; }
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
+  Widget* parent() const { return parent_; }
   WidgetView* widget_view() const { return widget_view_; }
 
  protected:

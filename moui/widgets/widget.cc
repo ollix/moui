@@ -126,19 +126,19 @@ void Widget::BeginRenderbufferUpdates(NVGcontext* context,
 }
 
 bool Widget::CollidePoint(const Point point, const int padding) const {
-  const int kWidgetX = GetX();
-  if (point.x < (kWidgetX - padding))
-    return false;
-  const int kWidgetY = GetY();
-  if (point.y < (kWidgetY - padding))
-    return false;
-  const int kWidgetWidth = GetWidth();
-  if (point.x >= (kWidgetX + kWidgetWidth + padding))
-    return false;
-  const int kWidgetHeight = GetHeight();
-  if (point.y >= (kWidgetY + kWidgetHeight + padding))
-    return false;
-  return true;
+  // Determines the widget's origin related to the root widget.
+  int origin_x = GetX();
+  int origin_y = GetY();
+  Widget* parent = this->parent();
+  while (parent != nullptr) {
+    origin_x += parent->GetX();
+    origin_y += parent->GetY();
+    parent = parent->parent();
+  }
+  return (point.x >= (origin_x - padding) &&
+          point.y >= (origin_y - padding) &&
+          point.x <= (origin_x + GetWidth() + padding) &&
+          point.y <= (origin_y + GetHeight() + padding));
 }
 
 void Widget::EndRenderbufferUpdates() {
