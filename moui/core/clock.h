@@ -56,11 +56,15 @@ class Clock {
   // defined here for bridging JNI code.
   static void ExecuteCallback(Callback* callback);
 
-  static double GetTimestamp(const double offset) {
+  // Returns a time point representing the current point in time. The time
+  // point is not related to wall clock time and cannot decrease as physical
+  // time moves forward. It is best suitable for measuring intervals.
+  // In addition, the time point is represented in seconds but is accurate to
+  // nanoseconds.
+  static double GetTimestamp() {
     auto now = std::chrono::steady_clock::now();
-    double timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-        now.time_since_epoch()).count() / 1000.0;
-    return timestamp + offset;
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+        now.time_since_epoch()).count() / 1000000000.0;
   }
 
  private:
