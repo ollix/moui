@@ -85,18 +85,20 @@
   return [CAEAGLLayer class];
 }
 
-- (id)initWithViewController:(MOOpenGLViewController*)viewController
-                    mouiView:(moui::View*)mouiView {
+- (id)initWithViewController:(MOOpenGLViewController *)viewController
+                    mouiView:(moui::View *)mouiView {
   if((self = [super initWithFrame:CGRectMake(0, 0, 0, 0)])) {
     _colorRenderbuffer = 0;
     _eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     _framebuffer = 0;
     _mouiView = mouiView;
+    _needsRedraw = NO;
     _stopsUpdatingView = YES;
     _viewController = viewController;
 
     // Initializes CAEAGLLayer.
-    _eaglLayer = (CAEAGLLayer*)self.layer;
+    _eaglLayer = (CAEAGLLayer *)self.layer;
+    _eaglLayer.delegate = self;
     _eaglLayer.opaque = NO;
 
     // Makes sure the rendering resolution is matched to the screen.
@@ -114,6 +116,22 @@
   [_display_link dealloc];
   [_eaglContext dealloc];
   [super dealloc];
+}
+
+// Triggered by `setNeedsDisplay` from _mouiView's Redraw(). This method
+// guarantees the view will be updated in the next refresh cycle of the display.
+- (void)displayLayer:(CALayer *)layer {
+  @synchronized(self) {
+    if (_needsRedraw)
+      return;
+
+    _needsRedraw = YES;
+    // Attaches `_display_link` to the run loop if it's invalidated.
+    if (_stopsUpdatingView) {
+      [self startUpdatingView];
+      [self stopUpdatingView];
+    }
+  }
 }
 
 // If this method returns NO, the event will be passed to the next responder.
@@ -136,9 +154,11 @@
   // Removes the display link from the run loop if no need to update the view
   // continuously.
   @synchronized(self) {
-    if (_stopsUpdatingView) {
-      [_display_link invalidate];
+    if (_stopsUpdatingView && !_needsRedraw) {
+      [_display_link invalidate];  // this also releases `_display_link`
       _display_link = nil;
+    } else {
+      _needsRedraw = NO;
     }
   }
 }

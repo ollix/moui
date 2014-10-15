@@ -89,6 +89,7 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 - (id)initWithMouiView:(moui::View *)mouiView {
   if((self = [super initWithFrame:NSMakeRect(0, 0, 0, 0)])) {
     _mouiView = mouiView;
+    _needsRedraw = NO;
     _stopsUpdatingView = YES;
 
     const NSOpenGLPixelFormatAttribute attributes[] =  {
@@ -159,8 +160,24 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
   [context flushBuffer];
 
   @synchronized(self) {
-    if (_stopsUpdatingView)
+    if (_stopsUpdatingView && !_needsRedraw)
       CVDisplayLinkStop(_displayLink);
+    else
+      _needsRedraw = NO;
+  }
+}
+
+- (void)setNeedsRedraw {
+  @synchronized(self) {
+    if (_needsRedraw)
+      return;
+
+    _needsRedraw = YES;
+    // Rusumes `displayLink` if it's stopped.
+    if (_stopsUpdatingView == YES) {
+      [self startUpdatingView];
+      [self stopUpdatingView];
+    }
   }
 }
 

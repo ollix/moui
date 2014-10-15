@@ -26,6 +26,7 @@ class View;
  @private
   CVDisplayLinkRef _displayLink;
   moui::View* _mouiView;
+  BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
   NSOpenGLContext* _openGLContext;
   NSOpenGLPixelFormat* _pixelFormat;
   BOOL _stopsUpdatingView;
@@ -38,14 +39,15 @@ class View;
 // `startUpdatingView` to execute this method automatically.
 - (void)render;
 
+// Guarantees the view to update in the next refresh cycle of the display.
+- (void)setNeedsRedraw;
+
 // Starts updating the view synchronized to the refresh rate of the display.
 // The view will be updated continuously until `stopUpdatingView` is called.
-// Calling this method guarantees the view will be updated at least once.
 - (void)startUpdatingView;
 
 // Requests to stop updating the view previously activated by
-// `startUpdatingView`. The updates will actually stop when the latest
-// rendering is done.
+// `startUpdatingView`.
 - (void)stopUpdatingView;
 
 @end

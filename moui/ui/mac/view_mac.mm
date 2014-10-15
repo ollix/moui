@@ -34,8 +34,8 @@ View::~View() {
 }
 
 void View::Redraw() {
-  StartAnimation();
-  StopAnimation();
+  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
+  [native_view setNeedsRedraw];
 }
 
 void View::StartUpdatingNativeView() {

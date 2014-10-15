@@ -36,9 +36,11 @@ View::~View() {
   [native_view.viewController dealloc];
 }
 
+// Calls CALayer's `setNeedsDisplay` method to trigger the `displayLayer:`
+// method defined in MOOpenGLView.
 void View::Redraw() {
-  StartAnimation();
-  StopAnimation();
+  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
+  [[native_view layer] setNeedsDisplay];
 }
 
 void View::StartUpdatingNativeView() {

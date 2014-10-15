@@ -33,6 +33,7 @@ class View;
   EAGLContext* _eaglContext;
   CAEAGLLayer* _eaglLayer;
   moui::View* _mouiView;
+  BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
   GLuint _stencilAndDepthRenderbuffer;
   __weak MOOpenGLViewController* _viewController;
   BOOL _stopsUpdatingView;
@@ -40,8 +41,8 @@ class View;
 
 @property(nonatomic, assign) MOOpenGLViewController* viewController;
 
-- (id)initWithViewController:(MOOpenGLViewController*)viewController
-                    mouiView:(moui::View*)mouiView;
+- (id)initWithViewController:(MOOpenGLViewController *)viewController
+                    mouiView:(moui::View *)mouiView;
 
 // Sets up the OpenGL context and asks corresponded moui view to render.
 // This method should never be called directly. Instead, calling
@@ -50,12 +51,10 @@ class View;
 
 // Starts updating the view synchronized to the refresh rate of the display.
 // The view will be updated continuously until `stopUpdatingView` is called.
-// Calling this method guarantees the view will be updated at least once.
 - (void)startUpdatingView;
 
 // Requests to stop updating the view previously activated by
-// `startUpdatingView`. The updates will actually stop when the latest
-// rendering is done.
+// `startUpdatingView`.
 - (void)stopUpdatingView;
 
 @end
