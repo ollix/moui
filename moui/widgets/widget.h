@@ -168,19 +168,6 @@ class Widget {
   // Renders Render() in default_framebuffer_ if caches_rendering_ is true.
   void RenderDefaultFramebuffer(NVGcontext* context);
 
-  // Provides an opportunity to render offscreen stuff before on screen
-  // rendering. A typical use is to create a framebuffer and rendering there.
-  // Once done, the framebuffer can be drawn for on-screen rendering.
-  //
-  // An example to implement this method:
-  //    NVGLUframebuffer* framebuffer;  // usually defined as a class member
-  //    BeginRenderbufferUpdates(context, &framebuffer);
-  //    nvgBeginFrame(context, GetWidth(), GetHeight(), ScreenScaleFactor);
-  //    ...
-  //    nvgEndFrame(context);
-  //    EndRenderbufferUpdates();
-  virtual void RenderOffscreen(NVGcontext* context) {}
-
   // Either renders Render() directly or renders default_framebuffer_ if
   // caches_rendering_ is true.
   void RenderOnDemand(NVGcontext* context);
@@ -191,15 +178,34 @@ class Widget {
   // implemented in the subclass to change the default behavior.
   virtual bool ShouldHandleEvent(const Point location);
 
+  // Updates inherited attributes recursively from the passed widget to all of
+  // its children.
+  void UpdateChildrenRecursively(Widget* widget);
+
   // Updates the internal context_.
   void UpdateContext(NVGcontext* context);
 
-  // Updates the widget view for the specified widget and all its children
-  // recursively.
-  void UpdateWidgetViewRecursively(Widget* widget);
+  // This method gets called when the corresponded widget view finished
+  // rendering all visible widgets in a rendering cycle. Note that this method
+  // only get called if the widget is also visible on screen. or the widget is
+  // not rendered at all.
+  virtual void WidgetDidRender(NVGcontext* context) {};
 
-  // This method will get called before any Render()-like method executes in
-  // a rendering process.
+  // This method gets called when the corresponded widget view is ready to
+  // render widgets. However, if the widget is not visible on screen in a
+  // rendering cycle. This method will be skipped.
+  //
+  // This method also provides an opportunity for offscreen rendering.
+  // A typical use is to create a framebuffer and rendering there. Once done,
+  // the framebuffer can be drawn in Render().
+  //
+  // An example to implement this method for offscreen rendering:
+  //    NVGLUframebuffer* framebuffer;  // usually defined as a class member
+  //    BeginRenderbufferUpdates(context, &framebuffer);
+  //    nvgBeginFrame(context, GetWidth(), GetHeight(), ScreenScaleFactor);
+  //    ...
+  //    nvgEndFrame(context);
+  //    EndRenderbufferUpdates();
   virtual void WidgetWillRender(NVGcontext* context) {};
 
   // This accessors and setters that should only be called by the WidgetView

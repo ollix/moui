@@ -218,10 +218,11 @@ class Control : public Widget {
   bool RenderFunctionIsBinded(const ControlState state) const;
 
   // Inherited from Widget class.
-  virtual void RenderOffscreen(NVGcontext* context) override final;
-
-  // Inherited from Widget class.
   virtual bool ShouldHandleEvent(const Point location) override final;
+
+  // Inherited from Widget class. Renders the current state to corresonded
+  // framebuffer offscreen.
+  virtual void WidgetWillRender(NVGcontext* context) override final;
 
   // Holds a list of all binded actions. HandleControlEvents() will iterate
   // the list to fire callbacks with matched control events.

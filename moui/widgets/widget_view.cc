@@ -18,6 +18,7 @@
 #include "moui/widgets/widget_view.h"
 
 #include <cassert>
+#include <vector>
 
 #include "moui/core/device.h"
 #include "moui/core/event.h"
@@ -55,83 +56,109 @@ void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
   event_responder_->HandleEvent(event.get());
 }
 
+// If the passed widget is visible on screen. Creates a WidgetItem object for
+// the widget and adds it to the `widget_list`. Then repeats this process for
+// its child widgets.
+void WidgetView::PopulateWidgetList(WidgetList* widget_list, Widget* widget,
+                                    WidgetItem* parent_item) {
+  if (widget->IsHidden()) return;
+  const int kWidgetWidth = widget->GetWidth();
+  if (kWidgetWidth <= 0) return;
+  const int kWidgetHeight = widget->GetHeight();
+  if (kWidgetWidth <= 0) return;
+
+  // Determines the translate origin and the scissor area.
+  Point translate_origin = {0.0f, 0.0f};
+  Point scissor_origin = {0.0f, 0.0f};
+  float scissor_width = kWidgetWidth;
+  float scissor_height = kWidgetHeight;
+  if (parent_item != nullptr) {
+    translate_origin.x = parent_item->translate_origin.x + widget->GetX();
+    translate_origin.y = parent_item->translate_origin.y + widget->GetY();
+    // Determines the scissor's horizontal position.
+    scissor_origin.x = std::max(parent_item->scissor_origin.x,
+                                translate_origin.x);
+    if (scissor_origin.x >= GetWidth()) return;
+    // Determines the scissor's vertical position.
+    scissor_origin.y = std::max(parent_item->scissor_origin.y,
+                                translate_origin.y);
+    if (scissor_origin.y >= GetHeight()) return;
+    // Stops if the widget is invisible on the scissor's left or top.
+    if ((translate_origin.x + kWidgetWidth - 1) < scissor_origin.x ||
+        (translate_origin.y + kWidgetHeight - 1) < scissor_origin.y)
+      return;
+    // Determines the scissor width.
+    const float kParentOriginX = parent_item->scissor_origin.x;
+    scissor_width = std::min(
+        scissor_width,
+        kParentOriginX + parent_item->scissor_width - scissor_origin.x);
+    scissor_width = std::min(
+        scissor_width,
+        scissor_origin.x + kWidgetWidth - kParentOriginX);
+    if (scissor_width <= 0 || (scissor_origin.x + scissor_width - 1) < 0)
+      return;
+    // Determines the scissor height.
+    const float kParentOriginY = parent_item->scissor_origin.y;
+    scissor_height = std::min(
+        scissor_height,
+        kParentOriginY + parent_item->scissor_height - scissor_origin.y);
+    scissor_height = std::min(
+        scissor_height, scissor_origin.y + kWidgetHeight - kParentOriginY);
+    if (scissor_height <= 0 || (scissor_origin.y + scissor_height - 1) < 0)
+      return;
+  }
+
+  // The widget is visible. Adds it to the widget list and checks its children.
+  auto item = new WidgetItem{widget, parent_item, translate_origin,
+                             scissor_origin, scissor_width, scissor_height};;
+  widget_list->push_back(item);
+  for (Widget* child : widget->children())
+    PopulateWidgetList(widget_list, child, item);
+}
+
 void WidgetView::Render() {
   if (context_ == nullptr) {
     context_ = nvgCreateGL(NVG_ANTIALIAS);
+    widget_->UpdateContext(context_);
     ContextDidCreate(context_);
   }
 
-  // Notifies belonged widgets the rendering will occur.
-  RenderWidget(kWidgetRenderMethod::kWidgetWillRender, widget_);
+  // Determines widgets to render in order and filters invisible onces.
+  WidgetList widget_list;
+  PopulateWidgetList(&widget_list, widget_, nullptr);
 
-  // Render offscreen stuff before on-screen rendering.
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  RenderWidget(kWidgetRenderMethod::kRenderOffscreen, widget_);
-  RenderWidget(kWidgetRenderMethod::kRenderDefaultFramebuffer, widget_);
+  // Notifies valid widgets that the rendering on screen will occur and
+  // provides an opportunity to do offscreen rendering.
+  for (WidgetItem* item : widget_list) {
+    item->widget->WidgetWillRender(context_);
+    item->widget->RenderDefaultFramebuffer(context_);
+  }
 
-  // Renders on screen.
+  // Renders visible widgets on screen.
   const int kWidth = GetWidth();
   const int kHeight = GetHeight();
   const int kScreenScaleFactor = Device::GetScreenScaleFactor();
-
   glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
   nvgBeginFrame(context_, kWidth, kHeight, kScreenScaleFactor);
-  RenderWidget(kWidgetRenderMethod::kRenderOnDemand, widget_);
-  nvgEndFrame(context_);
-}
-
-void WidgetView::RenderWidget(const kWidgetRenderMethod render_method,
-                              Widget* widget) {
-  if (widget->IsHidden())
-    return;
-  const int kWidgetWidth = widget->GetWidth();
-  if (kWidgetWidth <= 0)
-    return;
-  const int kWidgetHeight = widget->GetHeight();
-  if (kWidgetHeight <= 0)
-    return;
-  const int kWidgetX = widget->GetX();
-  if ((kWidgetX + kWidgetWidth) < 0)
-    return;
-  const int kWidgetY = widget->GetY();
-  if ((kWidgetY + kWidgetHeight) < 0)
-    return;
-
-  if (render_method == kWidgetRenderMethod::kWidgetWillRender) {
-    widget->WidgetWillRender(context_);
-  } else {
+  for (WidgetItem* item : widget_list) {
     nvgSave(context_);
-    nvgScissor(context_, kWidgetX, kWidgetY, kWidgetWidth, kWidgetHeight);
-    nvgTranslate(context_, kWidgetX, kWidgetY);
-    widget->UpdateContext(context_);
-    switch (render_method) {
-      case kWidgetRenderMethod::kRenderDefaultFramebuffer:
-        widget->RenderDefaultFramebuffer(context_);
-        break;
-      case kWidgetRenderMethod::kRenderOnDemand:
-        widget->RenderOnDemand(context_);
-        break;
-      case kWidgetRenderMethod::kRenderOffscreen:
-        widget->RenderOffscreen(context_);
-        break;
-      default:
-        assert(false);
-    }
-  }
-
-  // Renders visible children.
-  for (Widget* child : widget->children()) {
-    if (child->GetX() > kWidgetWidth || child->GetY() > kWidgetHeight)
-      continue;
-    RenderWidget(render_method, child);
-  }
-
-  if (render_method != kWidgetRenderMethod::kWidgetWillRender)
+    nvgScissor(context_, item->scissor_origin.x, item->scissor_origin.y,
+               item->scissor_width, item->scissor_height);
+    nvgTranslate(context_, item->translate_origin.x,
+                 item->translate_origin.y);
+    item->widget->RenderOnDemand(context_);
     nvgRestore(context_);
+  }
+  nvgEndFrame(context_);
+
+  // Notifies widgets that the rendering process is done and releases memory.
+  for (WidgetItem* item : widget_list) {
+    item->widget->WidgetDidRender(context_);
+    delete item;
+  }
 }
 
 void WidgetView::SetBounds(const int x, const int y, const int width,
@@ -139,7 +166,6 @@ void WidgetView::SetBounds(const int x, const int y, const int width,
   NativeView::SetBounds(x, y, width, height);
   widget_->SetWidth(Widget::Unit::kPixel, width);
   widget_->SetHeight(Widget::Unit::kPixel, height);
-  Redraw();
 }
 
 // Starts with widget_ to find the event responder recursively.

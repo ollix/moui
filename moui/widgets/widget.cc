@@ -105,7 +105,7 @@ Widget::~Widget() {
 void Widget::AddChild(Widget* child) {
   children_.push_back(child);
   child->set_parent(this);
-  UpdateWidgetViewRecursively(child);
+  UpdateChildrenRecursively(child);
   if (!child->IsHidden())
     Redraw();
 }
@@ -208,7 +208,6 @@ void Widget::Redraw() {
     should_redraw_default_framebuffer_ = true;
     default_framebuffer_mutex_->unlock();
   }
-
   widget_view_->Redraw();
 }
 
@@ -316,6 +315,13 @@ void Widget::StopAnimation() {
   widget_view_->StopAnimation();
 }
 
+void Widget::UpdateChildrenRecursively(Widget* widget) {
+  widget->set_widget_view(widget_view_);
+  widget->UpdateContext(context_);
+  for (Widget* child_widget : widget->children())
+    UpdateChildrenRecursively(child_widget);
+}
+
 void Widget::UpdateContext(NVGcontext* context) {
   if (context == context_)
     return;
@@ -330,13 +336,7 @@ void Widget::UpdateContext(NVGcontext* context) {
 
   ContextWillChange(context_);
   context_ = context;
-}
-
-void Widget::UpdateWidgetViewRecursively(Widget* widget) {
-  widget->set_widget_view(widget_view_);
-  for (Widget* child_widget : widget->children()) {
-    UpdateWidgetViewRecursively(child_widget);
-  }
+  UpdateChildrenRecursively(this);
 }
 
 }  // namespace moui
