@@ -58,7 +58,7 @@ class PageControl : public Widget {
   }
   void set_page_indicator_dot_diameter(const int diameter) {
     page_indicator_dot_diameter_ = diameter;
-    SetHeight(Widget::Unit::kPixel, diameter);
+    SetHeight(Widget::Unit::kPoint, diameter);
   }
   int page_indicator_dot_padding() const { return page_indicator_dot_padding_; }
   void set_page_indicator_dot_padding(const int padding) {

@@ -44,7 +44,7 @@ class Widget {
   };
   enum class Unit {
     kPercent,
-    kPixel,
+    kPoint,
   };
 
   Widget();
@@ -58,16 +58,16 @@ class Widget {
   // plus paddings.
   bool CollidePoint(const Point point, const int padding) const;
 
-  // Returns the height in pixels.
+  // Returns the height in points.
   int GetHeight() const;
 
-  // Returns the width in pixels.
+  // Returns the width in points.
   int GetWidth() const;
 
-  // Returns the horizontal position in pixels related to its parent's left.
+  // Returns the horizontal position in points related to its parent's left.
   int GetX() const;
 
-  // Returns the vertical position in pixels related to its parent's top.
+  // Returns the vertical position in points related to its parent's top.
   int GetY() const;
 
   // Returns true if the widget is animating.
@@ -81,7 +81,7 @@ class Widget {
   // If the current widget doesn't belong to any widget view, nothing happened.
   void Redraw();
 
-  // Sets the bounds of the view in pixels.
+  // Sets the bounds of the view in points.
   void SetBounds(const int x, const int y, const int width, const int height);
 
   // Sets the height with the specified unit.
@@ -208,9 +208,10 @@ class Widget {
   //    EndRenderbufferUpdates();
   virtual void WidgetWillRender(NVGcontext* context) {};
 
-  // This accessors and setters that should only be called by the WidgetView
-  // firend class.
+  //  Sets the parent.
   void set_parent(Widget* parent) { parent_ = parent; }
+
+  // This setter should only be called by the WidgetView firend class.
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
 
   // The number of animation reuqests that updated by StartAnimation() and

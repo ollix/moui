@@ -168,13 +168,13 @@ void Label::WidgetWillRender(NVGcontext* context) {
   // Adjusts label height to fit width.
   if (adjusts_label_height_to_fit_width_ && text_box_height > kLabelHeight) {
     if (text_vertical_alignment_ == Label::Alignment::kMiddle) {
-      SetY(Widget::Alignment::kTop, Widget::Unit::kPixel,
+      SetY(Widget::Alignment::kTop, Widget::Unit::kPoint,
            GetY() - (text_box_height - kLabelHeight) / 2);
     } else if (text_vertical_alignment_ == Label::Alignment::kBottom) {
-      SetY(Widget::Alignment::kTop, Widget::Unit::kPixel,
+      SetY(Widget::Alignment::kTop, Widget::Unit::kPoint,
            GetY() - (text_box_height - kLabelHeight));
     }
-    SetHeight(Widget::Unit::kPixel, text_box_height);
+    SetHeight(Widget::Unit::kPoint, text_box_height);
   }
 }
 

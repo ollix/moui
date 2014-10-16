@@ -27,52 +27,26 @@
 
 namespace {
 
-// Returns the height of the widget or zero if the widget is nullptr.
-int GetHeightOrZero(const moui::Widget* widget) {
-  if (widget == nullptr)
-    return 0;
-  return widget->GetHeight();
-}
-
-// Returns the pixels of height.
-float GetHeightPixels(const moui::Widget* parent, const moui::Widget::Unit unit,
-                      const int value) {
-  float pixels;
+// Returns the actual length in points of the specified value and unit.
+float CalculatePoints(const moui::Widget::Unit unit, const float value,
+                      const int parent_length) {
+  float points;
   switch (unit) {
     case moui::Widget::Unit::kPercent:
-      pixels = value / 100.0 * GetHeightOrZero(parent);
+      points = value / 100.0 * parent_length;
       break;
-    case moui::Widget::Unit::kPixel:
-      pixels = value;
+    case moui::Widget::Unit::kPoint:
+      points = value;
       break;
     default:
       assert(false);
   }
-  return pixels;
+  return points;
 }
 
-// Returns the width of the widget or zero if the widget is nullptr.
-int GetWidthOrZero(const moui::Widget* widget) {
-  if (widget == nullptr)
-    return 0;
-  return widget->GetWidth();
-}
-
-// Returns the pixels of width.
-float GetWidthPixels(const moui::Widget* parent, const moui::Widget::Unit unit,
-                     const int value) {
-  float pixels;
-  switch (unit) {
-    case moui::Widget::Unit::kPercent:
-      pixels = value / 100.0 * GetWidthOrZero(parent);
-      break;
-    case moui::Widget::Unit::kPixel:
-      pixels = value;
-      break;
-    default:
-      assert(false);
-  }
-  return pixels;
+// Returns the integral value that is nearest to x.
+int RoundToInteger(float value) {
+  return value > 0 ? value + 0.5 : value - 0.5;
 }
 
 }  // namespace
@@ -85,12 +59,12 @@ Widget::Widget() : Widget(true) {
 Widget::Widget(const bool caches_rendering)
     : animation_count_(0), caches_rendering_(caches_rendering),
       context_(nullptr), default_framebuffer_(nullptr),
-      default_framebuffer_mutex_(nullptr), height_unit_(Unit::kPixel),
+      default_framebuffer_mutex_(nullptr), height_unit_(Unit::kPoint),
       height_value_(0), hidden_(false), is_opaque_(true), parent_(nullptr),
       should_redraw_default_framebuffer_(true), widget_view_(nullptr),
-      width_unit_(Unit::kPixel), width_value_(0),
-      x_alignment_(Alignment::kLeft), x_unit_(Unit::kPixel), x_value_(0),
-      y_alignment_(Alignment::kTop), y_unit_(Unit::kPixel), y_value_(0) {
+      width_unit_(Unit::kPoint), width_value_(0),
+      x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
+      y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
   if (caches_rendering)
     default_framebuffer_mutex_ = new std::mutex;
 
@@ -100,12 +74,19 @@ Widget::Widget(const bool caches_rendering)
 
 Widget::~Widget() {
   UpdateContext(nullptr);
+
+  if (caches_rendering_)
+    delete default_framebuffer_mutex_;
+
+  // Resets children's parent.
+  for (Widget* child : children())
+    child->set_parent(nullptr);
 }
 
 void Widget::AddChild(Widget* child) {
-  children_.push_back(child);
   child->set_parent(this);
   UpdateChildrenRecursively(child);
+  children_.push_back(child);
   if (!child->IsHidden())
     Redraw();
 }
@@ -146,49 +127,56 @@ void Widget::EndRenderbufferUpdates() {
 }
 
 int Widget::GetHeight() const {
-  return GetHeightPixels(parent_, height_unit_, height_value_) + 0.5;
+  const int kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
+  const float kHeight = CalculatePoints(height_unit_, height_value_,
+                                        kParentHeight);
+  return RoundToInteger(kHeight);
 }
 
 int Widget::GetWidth() const {
-  return GetWidthPixels(parent_, width_unit_, width_value_) + 0.5;
+  const int kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
+  const float kWidth = CalculatePoints(width_unit_, width_value_, kParentWidth);
+  return RoundToInteger(kWidth);
 }
 
 int Widget::GetX() const {
+  const int kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
+  const float kOffset = CalculatePoints(x_unit_, x_value_, kParentWidth);
   float x;
-  float offset = GetWidthPixels(parent_, x_unit_, x_value_);
   switch (x_alignment_) {
     case Alignment::kLeft:
-      x = offset;
+      x = kOffset;
       break;
     case Alignment::kCenter:
-      x = (parent_->GetWidth() - GetWidth()) / 2 + offset;
+      x = (kParentWidth - GetWidth()) / 2 + kOffset;
       break;
     case Alignment::kRight:
-      x = parent_->GetWidth() - GetWidth() - offset;
+      x = kParentWidth - GetWidth() - kOffset;
       break;
     default:
       assert(false);
   }
-  return x + 0.5;
+  return RoundToInteger(x);
 }
 
 int Widget::GetY() const {
+  const int kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
+  const float kOffset = CalculatePoints(y_unit_, y_value_, kParentHeight);
   float y;
-  float offset = GetHeightPixels(parent_, y_unit_, y_value_);
   switch (y_alignment_) {
     case Alignment::kTop:
-      y = offset;
+      y = kOffset;
       break;
     case Alignment::kMiddle:
-      y = (parent_->GetHeight() - GetHeight()) / 2 + offset;
+      y = (kParentHeight - GetHeight()) / 2 + kOffset;
       break;
     case Alignment::kBottom:
-      y = parent_->GetHeight() - GetHeight() - offset;
+      y = kParentHeight - GetHeight() - kOffset;
       break;
     default:
       assert(false);
   }
-  return y + 0.5;
+  return RoundToInteger(y);
 }
 
 bool Widget::IsAnimating() const {
@@ -262,10 +250,10 @@ void Widget::RenderOnDemand(NVGcontext* context) {
 
 void Widget::SetBounds(const int x, const int y, const int width,
                        const int height) {
-  SetX(Alignment::kLeft, Unit::kPixel, x);
-  SetY(Alignment::kTop, Unit::kPixel, y);
-  SetWidth(Unit::kPixel, width);
-  SetHeight(Unit::kPixel, height);
+  SetX(Alignment::kLeft, Unit::kPoint, x);
+  SetY(Alignment::kTop, Unit::kPoint, y);
+  SetWidth(Unit::kPoint, width);
+  SetHeight(Unit::kPoint, height);
 }
 
 void Widget::SetHeight(const Unit unit, const float height) {
