@@ -22,6 +22,8 @@
 #include "moui/widgets/label.h"
 #include "moui/widgets/page_control.h"
 #include "moui/widgets/progress_view.h"
+#include "moui/widgets/scroll_view.h"
+#include "moui/widgets/scroller.h"
 #include "moui/widgets/widget.h"
 #include "moui/widgets/widget_view.h"
 
