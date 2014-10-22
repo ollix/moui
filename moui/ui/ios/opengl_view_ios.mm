@@ -29,12 +29,26 @@
 
 @interface MOOpenGLView (PrivateDelegateHandling)
 
+- (void)applicationDidBecomeActive;
+- (void)applicationWillResignActive;
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
 - (void)setupFrameBuffer;
 
 @end
 
 @implementation MOOpenGLView (PrivateDelegateHandling)
+
+// Resumes view updates.
+- (void)applicationDidBecomeActive {
+  if (!_stopsUpdatingView)
+    [self startUpdatingView];
+}
+
+// Unregisters the display link to stops updating the view.
+- (void)applicationWillResignActive {
+  [_display_link invalidate];
+  _display_link = nil;
+}
 
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type {
   auto mouiEvent = new moui::Event(type);
@@ -103,6 +117,15 @@
 
     // Makes sure the rendering resolution is matched to the screen.
     self.contentScaleFactor = [UIScreen mainScreen].scale;
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(applicationDidBecomeActive)
+        name:UIApplicationDidBecomeActiveNotification
+        object:[UIApplication sharedApplication]];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(applicationWillResignActive)
+        name:UIApplicationWillResignActiveNotification
+        object:[UIApplication sharedApplication]];
   }
   return self;
 }
@@ -170,7 +193,12 @@
 - (void)startUpdatingView {
   @synchronized(self) {
     _stopsUpdatingView = NO;
-    if (_display_link != nil)
+
+    // Registers the display link only if the app is active. Or the display
+    // link will be registered automatically when the app becomes active again.
+    UIApplication* application = [UIApplication sharedApplication];
+    if ([application applicationState] != UIApplicationStateActive ||
+        _display_link != nil)
       return;
 
     _display_link = [CADisplayLink displayLinkWithTarget:self
