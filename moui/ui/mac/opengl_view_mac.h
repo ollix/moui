@@ -28,11 +28,10 @@ class View;
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
   NSOpenGLContext* _openGLContext;
-  NSOpenGLPixelFormat* _pixelFormat;
   BOOL _stopsUpdatingView;
 }
 
-- (id)initWithMouiView:(moui::View*)mouiView;
+- (id)initWithMouiView:(moui::View *)mouiView;
 
 // Sets up the OpenGL context and asks corresponded moui view to render.
 // This method should never be called directly. Instead, calling

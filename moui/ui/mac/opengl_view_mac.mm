@@ -67,19 +67,31 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 }
 
 - (NSOpenGLContext *)openGLContext {
-  if (_openGLContext != nil)
-    return _openGLContext;
+  if (_openGLContext == nil) {
+    const NSOpenGLPixelFormatAttribute attributes[] =  {
+        NSOpenGLPFAAccelerated,
+        NSOpenGLPFAAlphaSize, 8,
+        NSOpenGLPFAColorSize, 32,
+        NSOpenGLPFADepthSize, 24,
+        NSOpenGLPFADoubleBuffer,
+        NSOpenGLPFANoRecovery,
+        NSOpenGLPFAStencilSize, 8,
+        (NSOpenGLPixelFormatAttribute)0};
+    NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc]
+        initWithAttributes:attributes] autorelease];
 
-  _openGLContext = [[NSOpenGLContext alloc] initWithFormat:_pixelFormat
-                                              shareContext:nil];
-  [_openGLContext setView:self];
+    _openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
+                                                shareContext:nil];
+    [_openGLContext setView:self];
 
-  // Sets synch to VBL to eliminate tearing
-  GLint vblSync = 1;
-  [_openGLContext setValues:&vblSync forParameter:NSOpenGLCPSwapInterval];
-  // Allows for transparent background.
-  GLint opaque = 0;
-  [_openGLContext setValues:&opaque forParameter:NSOpenGLCPSurfaceOpacity];
+    // Sets sync to VBL to eliminate tearing.
+    GLint vblSync = 1;
+    [_openGLContext setValues:&vblSync forParameter:NSOpenGLCPSwapInterval];
+    // Allows for transparent background.
+    GLint opaque = 0;
+    [_openGLContext setValues:&opaque forParameter:NSOpenGLCPSurfaceOpacity];
+  }
+  return _openGLContext;
 }
 
 @end
@@ -92,18 +104,7 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
     _needsRedraw = NO;
     _stopsUpdatingView = YES;
 
-    const NSOpenGLPixelFormatAttribute attributes[] =  {
-        NSOpenGLPFAAccelerated,
-        NSOpenGLPFAAlphaSize, 8,
-        NSOpenGLPFAColorSize, 32,
-        NSOpenGLPFADepthSize, 24,
-        NSOpenGLPFADoubleBuffer,
-        NSOpenGLPFANoRecovery,
-        NSOpenGLPFAStencilSize, 8,
-        NSOpenGLPFAWindow,
-        (NSOpenGLPixelFormatAttribute)nil};
-    _pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
-
+    // Initializes the display link.
     if (CVDisplayLinkCreateWithCGDisplay(CGMainDisplayID(), &_displayLink) == \
         kCVReturnSuccess) {
       CVDisplayLinkSetOutputCallback(_displayLink, renderCallback,
@@ -114,7 +115,6 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)dealloc {
-  [_pixelFormat dealloc];
   if (_openGLContext != nil)
     [_openGLContext dealloc];
   [super dealloc];
@@ -130,11 +130,6 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
                                     static_cast<float>(point.y)}))
     return self;
   return nil;  // passes to the next responder
-}
-
-- (void)lockFocus {
-  [super lockFocus];
-  [[self openGLContext] makeCurrentContext];
 }
 
 - (void)mouseDown:(NSEvent *)event {
