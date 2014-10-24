@@ -295,7 +295,7 @@ void Control::UnbindRenderFunction(const ControlState state) {
 // state. However, the current state may not be the actual state to render.
 // For example, if the current state is selected but there is no render
 // function binded. The normal state will be rendered instead.
-void Control::WidgetWillRender(NVGcontext* context) {
+void Control::WidgetViewWillRender(NVGcontext* context) {
   // Determines what state to render and which framebuffer to render to.
   NVGLUframebuffer** framebuffer;
   ControlState state = ControlState::kNormal;

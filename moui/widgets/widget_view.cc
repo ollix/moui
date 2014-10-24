@@ -18,6 +18,7 @@
 #include "moui/widgets/widget_view.h"
 
 #include <cassert>
+#include <stack>
 #include <vector>
 
 #include "moui/core/device.h"
@@ -31,15 +32,19 @@
 namespace moui {
 
 WidgetView::WidgetView() : View(), context_(nullptr), event_responder_(nullptr),
-                           widget_(new Widget) {
-  widget_->set_widget_view(this);
+                           is_opaque_(true), root_widget_(new Widget) {
+  root_widget_->set_widget_view(this);
 }
 
 WidgetView::~WidgetView() {
   if (context_ != nullptr) {
     nvgDeleteGL(context_);
   }
-  delete widget_;
+  delete root_widget_;
+}
+
+void WidgetView::AddWidget(Widget* widget) {
+  root_widget_->AddChild(widget);
 }
 
 void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
@@ -56,11 +61,25 @@ void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
   event_responder_->HandleEvent(event.get());
 }
 
+void WidgetView::PopAndFinalizeWidgetItems(const int level,
+                                           WidgetItemStack* stack) {
+  while (!stack->empty()) {
+    WidgetItem* top_item = stack->top();
+    if (top_item->level < level)
+      break;
+
+    stack->pop();
+    top_item->widget->WidgetDidRender(context_);
+    delete top_item;
+    nvgRestore(context_);
+  }
+}
+
 // If the passed widget is visible on screen. Creates a WidgetItem object for
 // the widget and adds it to the `widget_list`. Then repeats this process for
 // its child widgets.
-void WidgetView::PopulateWidgetList(WidgetList* widget_list, Widget* widget,
-                                    WidgetItem* parent_item) {
+void WidgetView::PopulateWidgetList(const int level, WidgetList* widget_list,
+                                    Widget* widget, WidgetItem* parent_item) {
   if (widget->IsHidden()) return;
   const int kWidgetWidth = widget->GetWidth();
   if (kWidgetWidth <= 0) return;
@@ -109,30 +128,31 @@ void WidgetView::PopulateWidgetList(WidgetList* widget_list, Widget* widget,
   }
 
   // The widget is visible. Adds it to the widget list and checks its children.
-  auto item = new WidgetItem{widget, parent_item, translate_origin,
-                             scissor_origin, scissor_width, scissor_height};;
+  Point origin = {static_cast<float>(widget->GetX()),
+                  static_cast<float>(widget->GetY())};
+  auto item = new WidgetItem{widget, origin, kWidgetWidth, kWidgetHeight,
+                             level, parent_item, translate_origin,
+                             scissor_origin, scissor_width, scissor_height};
   widget_list->push_back(item);
   for (Widget* child : widget->children())
-    PopulateWidgetList(widget_list, child, item);
+    PopulateWidgetList(level + 1, widget_list, child, item);
 }
 
 void WidgetView::Render() {
   if (context_ == nullptr) {
     context_ = nvgCreateGL(NVG_ANTIALIAS);
-    widget_->UpdateContext(context_);
+    root_widget_->UpdateContext(context_);
     ContextDidCreate(context_);
   }
 
   // Determines widgets to render in order and filters invisible onces.
+  WidgetViewWillRender(root_widget_);
   WidgetList widget_list;
-  PopulateWidgetList(&widget_list, widget_, nullptr);
+  PopulateWidgetList(0, &widget_list, root_widget_, nullptr);
 
-  // Notifies valid widgets that the rendering on screen will occur and
-  // provides an opportunity to do offscreen rendering.
-  for (WidgetItem* item : widget_list) {
-    item->widget->WidgetWillRender(context_);
+  // Renders offscreen stuff here so it won't interfere the onscreen rendering.
+  for (WidgetItem* item : widget_list)
     item->widget->RenderDefaultFramebuffer(context_);
-  }
 
   // Renders visible widgets on screen.
   const int kWidth = GetWidth();
@@ -143,34 +163,35 @@ void WidgetView::Render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
   nvgBeginFrame(context_, kWidth, kHeight, kScreenScaleFactor);
+  WidgetItemStack rendering_stack;
   for (WidgetItem* item : widget_list) {
+    PopAndFinalizeWidgetItems(item->level, &rendering_stack);
+    rendering_stack.push(item);
     nvgSave(context_);
-    nvgScissor(context_, item->scissor_origin.x, item->scissor_origin.y,
-               item->scissor_width, item->scissor_height);
-    nvgTranslate(context_, item->translate_origin.x,
-                 item->translate_origin.y);
+    nvgTranslate(context_, item->origin.x, item->origin.y);
+    nvgIntersectScissor(context_, 0, 0, item->width, item->height);
+    item->widget->WidgetWillRender(context_);
+    nvgSave(context_);
     item->widget->RenderOnDemand(context_);
     nvgRestore(context_);
   }
+  PopAndFinalizeWidgetItems(0, &rendering_stack);
   nvgEndFrame(context_);
 
-  // Notifies widgets that the rendering process is done and releases memory.
-  for (WidgetItem* item : widget_list) {
-    item->widget->WidgetDidRender(context_);
-    delete item;
-  }
+  // Notifies all attached widgets that the rendering process is done.
+  WidgetViewDidRender(root_widget_);
 }
 
 void WidgetView::SetBounds(const int x, const int y, const int width,
                            const int height) {
   NativeView::SetBounds(x, y, width, height);
-  widget_->SetWidth(Widget::Unit::kPoint, width);
-  widget_->SetHeight(Widget::Unit::kPoint, height);
+  root_widget_->SetWidth(Widget::Unit::kPoint, width);
+  root_widget_->SetHeight(Widget::Unit::kPoint, height);
 }
 
-// Starts with widget_ to find the event responder recursively.
+// Starts with root_widget_ to find the event responder recursively.
 bool WidgetView::ShouldHandleEvent(const Point location) {
-  return ShouldHandleEvent(location, widget_);
+  return ShouldHandleEvent(location, root_widget_);
 }
 
 // Iterates children widgets of the specified widget in reversed order to find
@@ -187,6 +208,33 @@ bool WidgetView::ShouldHandleEvent(const Point location, Widget* widget) {
     }
   }
   return false;
+}
+
+void WidgetView::WidgetViewDidRender(Widget* widget) {
+  nvgSave(context_);
+  if (widget == root_widget_)
+    ViewDidRender(context_);
+  else
+    widget->WidgetViewDidRender(context_);
+  nvgRestore(context_);
+  for (Widget* child : widget->children())
+    WidgetViewDidRender(child);
+}
+
+void WidgetView::WidgetViewWillRender(Widget* widget) {
+  nvgSave(context_);
+  if (widget == root_widget_)
+    ViewWillRender(context_);
+  else
+    widget->WidgetViewWillRender(context_);
+  nvgRestore(context_);
+  for (Widget* child : widget->children())
+    WidgetViewWillRender(child);
+}
+
+void WidgetView::set_is_opaque(const bool is_opaque) {
+  is_opaque_ = is_opaque;
+  root_widget_->set_is_opaque(is_opaque);
 }
 
 }  // namespace moui

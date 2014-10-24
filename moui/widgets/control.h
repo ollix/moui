@@ -222,7 +222,7 @@ class Control : public Widget {
 
   // Inherited from Widget class. Renders the current state to corresonded
   // framebuffer offscreen.
-  virtual void WidgetWillRender(NVGcontext* context) override final;
+  virtual void WidgetViewWillRender(NVGcontext* context) override final;
 
   // Holds a list of all binded actions. HandleControlEvents() will iterate
   // the list to fire callbacks with matched control events.

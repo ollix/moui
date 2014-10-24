@@ -185,15 +185,24 @@ class Widget {
   // Updates the internal context_.
   void UpdateContext(NVGcontext* context);
 
-  // This method gets called when the corresponded widget view finished
-  // rendering all visible widgets in a rendering cycle. Note that this method
-  // only get called if the widget is also visible on screen. or the widget is
-  // not rendered at all.
+  // This method gets called when the widget itself and all of its child
+  // widgets did finish rendering in a refresh cycle. It's a good place to
+  // restore the context state if changed in `WidgetWillRender()`. However,
+  // this method is not called if the widget is not visible on screen in a
+  // refresh cycle.
   virtual void WidgetDidRender(NVGcontext* context) {};
 
-  // This method gets called when the corresponded widget view is ready to
-  // render widgets. However, if the widget is not visible on screen in a
-  // rendering cycle. This method will be skipped.
+  // This method gets called when the corresponded widget view finished
+  // rendering all visible widgets in a refresh cycle. This method is always
+  // called as long as the widget is attached to a widget view. Because this
+  // method is called after all necessary widgets are rendered, which makes
+  // it a good place to take snapshot of the rendered stuff.
+  virtual void WidgetViewDidRender(NVGcontext* context) {};
+
+  // This method gets called when the corresponded widget view is about to
+  // render widgets but has not started the rendering process yet. It's a good
+  // place to change the widget's position and dimenstion. This method is
+  // always called as long as the widget is attached to a widget view.
   //
   // This method also provides an opportunity for offscreen rendering.
   // A typical use is to create a framebuffer and rendering there. Once done,
@@ -206,6 +215,13 @@ class Widget {
   //    ...
   //    nvgEndFrame(context);
   //    EndRenderbufferUpdates();
+  virtual void WidgetViewWillRender(NVGcontext* context) {}
+
+  // This method gets called right before the corresponded widget view calling
+  // the render() method. Transformation made in this method not only applies
+  // to the widget itself but also applies to its child widgets. However, this
+  // method is not called if the widget is not visible on screen in a refresh
+  // cycle.
   virtual void WidgetWillRender(NVGcontext* context) {};
 
   //  Sets the parent.

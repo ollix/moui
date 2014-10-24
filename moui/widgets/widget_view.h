@@ -18,6 +18,7 @@
 #ifndef MOUI_WIDGETS_WIDGET_VIEW_H_
 #define MOUI_WIDGETS_WIDGET_VIEW_H_
 
+#include <stack>
 #include <vector>
 
 #include "moui/base.h"
@@ -38,12 +39,16 @@ class WidgetView : public View {
   WidgetView();
   ~WidgetView();
 
+  // Attaches a widget to the widget view for rendering.
+  void AddWidget(Widget* widget);
+
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width,
                  const int height);
 
-  // Accessor.
-  Widget* widget() { return widget_; }
+  // Accessors and setters.
+  bool is_opaque() const { return is_opaque_; }
+  void set_is_opaque(const bool is_opaque);
 
  private:
   // A widget item is a wrapper for a widget object and keeps some information
@@ -51,6 +56,14 @@ class WidgetView : public View {
   struct WidgetItem {
     // The pointer to the widget to render.
     Widget* widget;
+    // The origin of the widget that related to its parent widget.
+    Point origin;
+    // The widget's width in points.
+    int width;
+    // The widget's height in points.
+    int height;
+    // The hierarchy level of the widget. 0 indicates the toppest level.
+    int level;
     // The pointer to the widget item that corresponds to the current widget's
     // parent widget.
     WidgetItem* parent_item;
@@ -68,7 +81,10 @@ class WidgetView : public View {
     float scissor_height;
   };
 
-  // Keeps a list of widget items.
+  // Keeps a stack of widget items in the rendering hierarchy.
+  typedef std::stack<WidgetItem*> WidgetItemStack;
+
+  // Keeps a list of widget items to render in order.
   typedef std::vector<WidgetItem*> WidgetList;
 
   // This method gets called right after `context_` is created in Rneder().
@@ -77,10 +93,14 @@ class WidgetView : public View {
   // Inherited from BaseView class.
   virtual void HandleEvent(std::unique_ptr<Event> event) override final;
 
+  // Pops widget items from the stack and finalizes each popped widget until
+  // reaching the passed level.
+  void PopAndFinalizeWidgetItems(const int level, WidgetItemStack* stack);
+
   // Populates a list of widgets to render on screen in order. This method
   // itertates all children widgets and filters invisible onces.
-  void PopulateWidgetList(WidgetList* widget_list, Widget* widget,
-                          WidgetItem* parent_item);
+  void PopulateWidgetList(const int level, WidgetList* widget_list,
+                          Widget* widget, WidgetItem* parent_item);
 
   // Inherited from BaseView class. Renders belonged widgets recursively.
   virtual void Render() override final;
@@ -92,6 +112,23 @@ class WidgetView : public View {
   // coming events.
   bool ShouldHandleEvent(const Point location, Widget* widget);
 
+  // This method gets called when the view did finish rendering all visible
+  // widgets.
+  virtual void ViewDidRender(NVGcontext* context) {}
+
+  // This method gets called before the view started rendering widgets.
+  virtual void ViewWillRender(NVGcontext* context) {}
+
+  // Calls the `Widget::WidgetViewDidRender()` method of the passed widget
+  // and all of its children recursively. If the passed widget is the
+  // `root_widget_`, `WidgetView::ViewDidRender()` is called instead.
+  void WidgetViewDidRender(Widget* widget);
+
+  // Calls the `Widget::WidgetViewWillRender()` method of the passed widget
+  // and all of its children recursively. If the passed widget is the
+  // `root_widget_`, `WidgetView::ViewWillRender()` is called instead.
+  void WidgetViewWillRender(Widget* widget);
+
   // The nanovg context for drawing.
   NVGcontext* context_;
 
@@ -100,8 +137,11 @@ class WidgetView : public View {
   // method.
   Widget* event_responder_;
 
+  // Indicates whether the view is opaque.
+  bool is_opaque_;
+
   // The root widget for rendering. All its children will be rendered as well.
-  Widget* widget_;
+  Widget* root_widget_;
 
   DISALLOW_COPY_AND_ASSIGN(WidgetView);
 };
