@@ -47,9 +47,12 @@ void nvgluBindFramebuffer(NVGLUframebuffer* fb);
 // Additonal APIs for nanovg.
 namespace moui {
 
-// Returns the image identifier of the screenshot or 0 on failure.
-int nvgCreateImageScreenshot(NVGcontext* context, const int x, const int y,
-                             const int width, const int height);
+// Returns the image identifier of the current snapshot of the passed context
+// or 0 on failure. The returned image needs to be freed manually through
+// nvgDeleteImage().
+int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
+                           const int width, const int height,
+                           const float scale_factor);
 
 }  // namespace moui
 

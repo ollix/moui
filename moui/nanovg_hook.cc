@@ -55,10 +55,10 @@ void ImageFlipVertical(unsigned char* image, int width, int height) {
   }
 }
 
-// Returns the data of image screenshot or NULL on failure. The returned data
-// should be freed manually when no longer needed.
-unsigned char* ImageScreenshot(const int x, const int y, const int width,
-                               const int height) {
+// Returns the data of image snapshot or NULL on failure. The returned image
+// data should be freed manually when no longer needed.
+unsigned char* ImageSnapshot(const int x, const int y, const int width,
+                             const int height) {
   unsigned char* image = \
       reinterpret_cast<unsigned char*>(std::malloc(width * height * 4));
   if (image == NULL)
@@ -145,13 +145,18 @@ void ImageUnpremultiplyAlpha(unsigned char* image, int width, int height) {
 
 namespace moui {
 
-int nvgCreateImageScreenshot(NVGcontext* context, const int x, const int y,
-                             const int width, const int height) {
-  unsigned char* image = ImageScreenshot(x, y, width, height);
+int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
+                           const int width, const int height,
+                           const float scale_factor) {
+  const int kScaledWidth = width * scale_factor;
+  const int kScaledHeight = height * scale_factor;
+  unsigned char* image = ImageSnapshot(x * scale_factor, y * scale_factor,
+                                       kScaledWidth, kScaledHeight);
   if (image == NULL)
-    return -1;
+    return 0;
 
-  const int kIdentifier = nvgCreateImageRGBA(context, width, height,
+  const int kIdentifier = nvgCreateImageRGBA(context, kScaledWidth,
+                                             kScaledHeight,
                                              NVG_IMAGE_PREMULTIPLIED, image);
   delete image;
   return kIdentifier;
