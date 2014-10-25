@@ -54,9 +54,15 @@ class Widget {
   // Adds child widget.
   void AddChild(Widget* child);
 
-  // Returns true if the point is within the region of widget bounding box
-  // plus paddings.
+  // Returns true if the passed point is within the region of the widget's
+  // bounding box plus the passed padding at every direction.
   bool CollidePoint(const Point point, const int padding) const;
+
+  // Returns true if the passed point is within the region of the widget's
+  // bounding box plus the paddings at various direction.
+  bool CollidePoint(const Point point, const int top_padding,
+                    const int right_padding, const int bottom_padding,
+                    const int left_padding) const;
 
   // Returns the height in points.
   int GetHeight() const;
