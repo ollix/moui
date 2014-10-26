@@ -17,7 +17,11 @@
 
 #include "moui/ui/native_view.h"
 
+#include <cstdlib>
+
 #import <Cocoa/Cocoa.h>
+
+#include "moui/core/device.h"
 
 namespace moui {
 
@@ -36,6 +40,30 @@ void NativeView::AddSubview(const NativeView* subview) {
 int NativeView::GetHeight() const {
   NSView* native_view = (__bridge NSView*)native_handle_;
   return native_view.frame.size.height;
+}
+
+unsigned char* NativeView::GetSnapshot() const {
+  const float kScreenScaleFactor = Device::GetScreenScaleFactor();
+  const int kWidth = GetWidth() * kScreenScaleFactor;
+  const int kHeight = GetHeight() * kScreenScaleFactor;
+  const int kBytesPerRow = kWidth * 4;
+  unsigned char* image = \
+      reinterpret_cast<unsigned char*>(std::malloc(kBytesPerRow * kHeight));
+  CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
+  CGContextRef context = CGBitmapContextCreate(
+      image,
+      kWidth,
+      kHeight,
+      8,  // bits per component
+      kBytesPerRow,  // bytes per row
+      color_space,
+      kCGBitmapAlphaInfoMask & kCGImageAlphaPremultipliedLast);
+  CGColorSpaceRelease(color_space);
+  NSView* native_view = (__bridge NSView*)native_handle_;
+  CGContextScaleCTM(context, kScreenScaleFactor, kScreenScaleFactor);
+  [native_view.layer renderInContext:context];
+  CGContextRelease(context);
+  return image;
 }
 
 int NativeView::GetWidth() const {

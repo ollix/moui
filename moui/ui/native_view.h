@@ -37,6 +37,13 @@ class NativeView {
   // Returns the height of the view.
   int GetHeight() const;
 
+#ifdef MOUI_APPLE
+  // Returns the snapshot of the native view. The returned snapshot is a
+  // bitmap data with the width and height matched to the screen sacle,
+  // and each pixel is represented by 4 consective bytes in the RGBA format.
+  unsigned char* GetSnapshot() const;
+#endif
+
   // Returns the width of the view.
   int GetWidth() const;
 
