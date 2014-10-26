@@ -197,12 +197,16 @@ bool WidgetView::ShouldHandleEvent(const Point location) {
 // Iterates children widgets of the specified widget in reversed order to find
 // the event responder recursively.
 bool WidgetView::ShouldHandleEvent(const Point location, Widget* widget) {
+  if (widget->IsHidden())
+    return false;
+
   for (auto it = widget->children().rbegin();
        it != widget->children().rend(); it++) {
     Widget* child = reinterpret_cast<Widget*>(*it);
     if (ShouldHandleEvent(location, child)) {
-      return true;
-    } else if (child->ShouldHandleEvent(location)) {
+      return true;  // responder is set by one of its child
+    }
+    if (child->ShouldHandleEvent(location)) {
       event_responder_ = child;
       return true;
     }

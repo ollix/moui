@@ -94,7 +94,7 @@ class Widget {
   void SetHeight(const Unit unit, const float height);
 
   // Sets whether the widget should be visible.
-  void SetHidden(bool hidden);
+  void SetHidden(const bool hidden);
 
   // Sets the width with the specified unit.
   void SetWidth(const Unit unit, const float width);

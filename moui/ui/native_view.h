@@ -47,9 +47,19 @@ class NativeView {
   // Returns the width of the view.
   int GetWidth() const;
 
+#ifdef MOUI_APPLE
+  // Returns true if the view is hidden.
+  bool IsHidden() const;
+#endif
+
   // Sets the bounds of the view.
   void SetBounds(const int x, const int y, const int width,
                  const int height) const;
+
+#ifdef MOUI_APPLE
+  // Shows or hides the view.
+  bool SetHidden(const bool hidden) const;
+#endif
 
   // Returns the pointer to the platform-specifc native view.
   void* native_handle() const { return native_handle_; }

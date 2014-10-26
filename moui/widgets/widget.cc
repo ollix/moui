@@ -267,7 +267,7 @@ void Widget::SetHeight(const Unit unit, const float height) {
   height_value_ = height;
 }
 
-void Widget::SetHidden(bool hidden) {
+void Widget::SetHidden(const bool hidden) {
   if (hidden != hidden_) {
     hidden_ = hidden;
     Redraw();

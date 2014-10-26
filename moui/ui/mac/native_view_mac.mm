@@ -71,10 +71,20 @@ int NativeView::GetWidth() const {
   return native_view.frame.size.width;
 }
 
+bool NativeView::IsHidden() const {
+  NSView* native_view = (__bridge NSView*)native_handle_;
+  return native_view.hidden;
+}
+
 void NativeView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
   NSView* native_view = (__bridge NSView*)native_handle_;
   native_view.frame = CGRectMake(x, y, width, height);
+}
+
+bool NativeView::SetHidden(const bool hidden) const {
+  NSView* native_view = (__bridge NSView*)native_handle_;
+  native_view.hidden = hidden;
 }
 
 }  // namespace moui
