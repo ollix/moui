@@ -88,11 +88,13 @@ void Control::ExecuteRenderFunction(const ControlState state) {
     return;
   }
 
-  // Fills white background if there is no binded render function .
-  nvgBeginPath(context_);
-  nvgRect(context_, 0, 0, GetWidth(), GetHeight());
-  nvgFillColor(context_, nvgRGBA(255, 255, 255, 255));
-  nvgFill(context_);
+  // Fills configured background color if there is no binded render function.
+  if (is_opaque()) {
+    nvgBeginPath(context_);
+    nvgRect(context_, 0, 0, GetWidth(), GetHeight());
+    nvgFillColor(context_, background_color());
+    nvgFill(context_);
+  }
 }
 
 int Control::GetStateIndex(const ControlState state) const {
