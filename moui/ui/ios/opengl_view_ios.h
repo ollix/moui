@@ -32,6 +32,7 @@ class View;
   GLuint _framebuffer;
   EAGLContext* _eaglContext;
   CAEAGLLayer* _eaglLayer;
+  bool _is_active;  // indicates whether the app is active
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
   GLuint _stencilAndDepthRenderbuffer;

@@ -40,12 +40,14 @@
 
 // Resumes view updates.
 - (void)applicationDidBecomeActive {
+  _is_active = YES;
   if (!_stopsUpdatingView)
     [self startUpdatingView];
 }
 
 // Unregisters the display link to stops updating the view.
 - (void)applicationWillResignActive {
+  _is_active = NO;
   [_display_link invalidate];
   _display_link = nil;
 }
@@ -105,6 +107,7 @@
     _colorRenderbuffer = 0;
     _eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     _framebuffer = 0;
+    _is_active = YES;
     _mouiView = mouiView;
     _needsRedraw = NO;
     _stopsUpdatingView = YES;
@@ -145,7 +148,7 @@
 // guarantees the view will be updated in the next refresh cycle of the display.
 - (void)displayLayer:(CALayer *)layer {
   @synchronized(self) {
-    if (_needsRedraw)
+    if (!_stopsUpdatingView && _needsRedraw)
       return;
 
     _needsRedraw = YES;
@@ -196,9 +199,7 @@
 
     // Registers the display link only if the app is active. Or the display
     // link will be registered automatically when the app becomes active again.
-    UIApplication* application = [UIApplication sharedApplication];
-    if ([application applicationState] != UIApplicationStateActive ||
-        _display_link != nil)
+    if (!_is_active || _display_link != nil)
       return;
 
     _display_link = [CADisplayLink displayLinkWithTarget:self

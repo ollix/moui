@@ -164,7 +164,7 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 
 - (void)setNeedsRedraw {
   @synchronized(self) {
-    if (_needsRedraw)
+    if (!_stopsUpdatingView && _needsRedraw)
       return;
 
     _needsRedraw = YES;
