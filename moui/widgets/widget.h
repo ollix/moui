@@ -56,25 +56,25 @@ class Widget {
 
   // Returns true if the passed point is within the region of the widget's
   // bounding box plus the passed padding at every direction.
-  bool CollidePoint(const Point point, const int padding) const;
+  bool CollidePoint(const Point point, const int padding);
 
   // Returns true if the passed point is within the region of the widget's
   // bounding box plus the paddings at various direction.
   bool CollidePoint(const Point point, const int top_padding,
                     const int right_padding, const int bottom_padding,
-                    const int left_padding) const;
+                    const int left_padding);
 
   // Returns the height in points.
-  int GetHeight() const;
+  float GetHeight() const;
 
   // Returns the width in points.
-  int GetWidth() const;
+  float GetWidth() const;
 
   // Returns the horizontal position in points related to its parent's left.
-  int GetX() const;
+  float GetX() const;
 
   // Returns the vertical position in points related to its parent's top.
-  int GetY() const;
+  float GetY() const;
 
   // Returns true if the widget is animating.
   bool IsAnimating() const;
@@ -127,6 +127,8 @@ class Widget {
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
   Widget* parent() const { return parent_; }
+  float scale() const { return scale_; }
+  void set_scale(const float scale) { scale_ = scale; }
   WidgetView* widget_view() const { return widget_view_; }
 
  protected:
@@ -279,6 +281,10 @@ class Widget {
 
   // The parent widget of the current widget.
   Widget* parent_;
+
+  // The scale of the widget to render. This value should always be positive.
+  // The default value is 1.
+  float scale_;
 
   // Indicates whether the default_framebuffer_ should be drawn.
   bool should_redraw_default_framebuffer_;

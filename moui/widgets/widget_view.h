@@ -59,18 +59,20 @@ class WidgetView : public View {
     // The origin of the widget that related to its parent widget.
     Point origin;
     // The widget's width in points.
-    int width;
+    float width;
     // The widget's height in points.
-    int height;
+    float height;
     // The hierarchy level of the widget. 0 indicates the toppest level.
     int level;
     // The pointer to the widget item that corresponds to the current widget's
     // parent widget.
     WidgetItem* parent_item;
+    // The rendering scale of the widget.
+    float scale;
     // The origin of the widget that related to the current coordinate system.
     // This value is used as the origin for rendering the widget and
     // determining the related position of its child widgets.
-    Point translate_origin;
+    Point translated_origin;
     // The scissor's origin of the widget that related to the current
     // coordinate system. This value and `scissor_width` and `scissor_height`
     // forms the visible area of the widget.
@@ -99,8 +101,9 @@ class WidgetView : public View {
 
   // Populates a list of widgets to render on screen in order. This method
   // itertates all children widgets and filters invisible onces.
-  void PopulateWidgetList(const int level, WidgetList* widget_list,
-                          Widget* widget, WidgetItem* parent_item);
+  void PopulateWidgetList(const int level, const float scale,
+                          WidgetList* widget_list, Widget* widget,
+                          WidgetItem* parent_item);
 
   // Inherited from BaseView class. Renders belonged widgets recursively.
   virtual void Render() override final;

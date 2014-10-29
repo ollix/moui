@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <mutex>
+#include <stack>
 #include <vector>
 
 #include "moui/core/device.h"
@@ -44,11 +45,6 @@ float CalculatePoints(const moui::Widget::Unit unit, const float value,
   return points;
 }
 
-// Returns the integral value that is nearest to x.
-int RoundToInteger(float value) {
-  return value > 0 ? value + 0.5 : value - 0.5;
-}
-
 }  // namespace
 
 namespace moui {
@@ -61,8 +57,8 @@ Widget::Widget(const bool caches_rendering)
       context_(nullptr), default_framebuffer_(nullptr),
       default_framebuffer_mutex_(nullptr), height_unit_(Unit::kPoint),
       height_value_(0), hidden_(false), is_opaque_(true), parent_(nullptr),
-      should_redraw_default_framebuffer_(true), widget_view_(nullptr),
-      width_unit_(Unit::kPoint), width_value_(0),
+      scale_(1), should_redraw_default_framebuffer_(true),
+      widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
       y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
   if (caches_rendering)
@@ -106,47 +102,53 @@ void Widget::BeginRenderbufferUpdates(NVGcontext* context,
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-bool Widget::CollidePoint(const Point point, const int padding) const {
+bool Widget::CollidePoint(const Point point, const int padding) {
   return CollidePoint(point, padding, padding, padding, padding);
 }
 
+// This method compares the passed point to the widget's actual origin and
+// dimenstion related to the corresponded widget view's coordinate system.
 bool Widget::CollidePoint(const Point point, const int top_padding,
                           const int right_padding, const int bottom_padding,
-                          const int left_padding) const {
-  // Determines the widget's origin related to the root widget.
-  int origin_x = GetX();
-  int origin_y = GetY();
-  Widget* parent = this->parent();
+                          const int left_padding) {
+  std::stack<Widget*> widget_chain;
+  widget_chain.push(this);
+  Widget* parent = parent_;
   while (parent != nullptr) {
-    origin_x += parent->GetX();
-    origin_y += parent->GetY();
+    widget_chain.push(parent);
     parent = parent->parent();
   }
-  return (point.x >= (origin_x - left_padding) &&
-          point.y >= (origin_y - top_padding) &&
-          point.x <= (origin_x + GetWidth() + right_padding) &&
-          point.y <= (origin_y + GetHeight() + bottom_padding));
+  float scale = 1;
+  Point origin = {0.0f, 0.0f};
+  while (!widget_chain.empty()) {
+    Widget* widget = widget_chain.top();
+    widget_chain.pop();
+    origin.x += widget->GetX() * scale;
+    origin.y += widget->GetY() * scale;
+    scale *= widget->scale();
+  }
+  return (point.x >= (origin.x - left_padding) &&
+          point.y >= (origin.y - top_padding) &&
+          point.x < (origin.x + (GetWidth() * scale) + right_padding) &&
+          point.y < (origin.y + (GetHeight() * scale) + bottom_padding));
 }
 
 void Widget::EndRenderbufferUpdates() {
   nvgluBindFramebuffer(NULL);
 }
 
-int Widget::GetHeight() const {
-  const int kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
-  const float kHeight = CalculatePoints(height_unit_, height_value_,
-                                        kParentHeight);
-  return RoundToInteger(kHeight);
+float Widget::GetHeight() const {
+  const float kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
+  return CalculatePoints(height_unit_, height_value_, kParentHeight);
 }
 
-int Widget::GetWidth() const {
-  const int kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
-  const float kWidth = CalculatePoints(width_unit_, width_value_, kParentWidth);
-  return RoundToInteger(kWidth);
+float Widget::GetWidth() const {
+  const float kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
+  return CalculatePoints(width_unit_, width_value_, kParentWidth);
 }
 
-int Widget::GetX() const {
-  const int kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
+float Widget::GetX() const {
+  const float kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
   const float kOffset = CalculatePoints(x_unit_, x_value_, kParentWidth);
   float x;
   switch (x_alignment_) {
@@ -154,19 +156,19 @@ int Widget::GetX() const {
       x = kOffset;
       break;
     case Alignment::kCenter:
-      x = (kParentWidth - GetWidth()) / 2 + kOffset;
+      x = (kParentWidth - GetWidth() * scale_) / 2 + kOffset;
       break;
     case Alignment::kRight:
-      x = kParentWidth - GetWidth() - kOffset;
+      x = kParentWidth - GetWidth() * scale_ - kOffset;
       break;
     default:
       assert(false);
   }
-  return RoundToInteger(x);
+  return x;
 }
 
-int Widget::GetY() const {
-  const int kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
+float Widget::GetY() const {
+  const float kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
   const float kOffset = CalculatePoints(y_unit_, y_value_, kParentHeight);
   float y;
   switch (y_alignment_) {
@@ -174,15 +176,15 @@ int Widget::GetY() const {
       y = kOffset;
       break;
     case Alignment::kMiddle:
-      y = (kParentHeight - GetHeight()) / 2 + kOffset;
+      y = (kParentHeight - GetHeight() * scale_) / 2 + kOffset;
       break;
     case Alignment::kBottom:
-      y = kParentHeight - GetHeight() - kOffset;
+      y = kParentHeight - GetHeight() * scale_ - kOffset;
       break;
     default:
       assert(false);
   }
-  return RoundToInteger(y);
+  return y;
 }
 
 bool Widget::IsAnimating() const {
@@ -202,7 +204,8 @@ void Widget::Redraw() {
     should_redraw_default_framebuffer_ = true;
     default_framebuffer_mutex_->unlock();
   }
-  widget_view_->Redraw();
+  if (!IsHidden())
+    widget_view_->Redraw();
 }
 
 void Widget::RenderBackgroundColor(NVGcontext* context) {

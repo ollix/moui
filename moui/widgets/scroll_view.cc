@@ -197,10 +197,10 @@ void ScrollView::GetContentViewOriginLimits(int* minimum_x,
     *minimum_x = GetCurrentPage() * this->GetWidth() * -1;
     *maximum_x = *minimum_x;
   } else {
-    *minimum_x = std::min(0, this->GetWidth() - content_view_->GetWidth());
+    *minimum_x = std::min(0.0f, this->GetWidth() - content_view_->GetWidth());
     *maximum_x = 0;
   }
-  *minimum_y = std::min(0, this->GetHeight() - content_view_->GetHeight());
+  *minimum_y = std::min(0.0f, this->GetHeight() - content_view_->GetHeight());
   *maximum_y = 0;
 }
 
@@ -270,9 +270,8 @@ void ScrollView::HandleEvent(Event* event) {
   if (event->type() == Event::Type::kDown) {
     StopAnimation();
     event_history_.push_back({current_location, kTimestamp});
-    initial_scroll_content_view_origin_ = {
-        static_cast<float>(content_view_->GetX()),
-        static_cast<float>(content_view_->GetY())};
+    initial_scroll_content_view_origin_ = {content_view_->GetX(),
+                                           content_view_->GetY()};
     initial_scroll_page_ = GetCurrentPage();
   } else if (event->type() == Event::Type::kMove) {
     event_history_.push_back({current_location, kTimestamp});
@@ -569,8 +568,7 @@ void ScrollView::WidgetWillRender(NVGcontext* context) {
       kCurrentTimestamp - vertical_animation_state_.initial_timestamp;
 
   // Moves the content view based on the elapsed time.
-  Point origin = {static_cast<float>(content_view_->GetX()),
-                  static_cast<float>(content_view_->GetY())};
+  Point origin = {content_view_->GetX(), content_view_->GetY()};
   if (horizontal_animation_state_.is_animating)
     origin.x = GetCurrentAnimatingLocation(horizontal_animation_state_);
   if (vertical_animation_state_.is_animating)
