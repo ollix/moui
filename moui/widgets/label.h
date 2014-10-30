@@ -52,71 +52,29 @@ class Label : public Widget {
   bool adjusts_font_size_to_fit_width() const {
     return adjusts_font_size_to_fit_width_;
   }
-  void set_adjusts_font_size_to_fit_width(const bool value) {
-    if (adjusts_font_size_to_fit_width_ == value)
-      return;
-    adjusts_font_size_to_fit_width_ = value;
-    should_prepare_for_rendering_ = true;
-  }
+  void set_adjusts_font_size_to_fit_width(const bool value);
   bool adjusts_label_height_to_fit_width() const {
     return adjusts_label_height_to_fit_width_;
   }
-  void set_adjusts_label_height_to_fit_width(const bool value) {
-    if (adjusts_label_height_to_fit_width_ == value)
-      return;
-    adjusts_label_height_to_fit_width_ = value;
-    should_prepare_for_rendering_ = true;
-  }
+  void set_adjusts_label_height_to_fit_width(const bool value);
   std::string font_name() const;
-  void set_font_name(const std::string& name) {
-    if (font_name_ == name)
-      return;
-    font_name_ = name;
-    should_prepare_for_rendering_ = true;
-  }
+  void set_font_name(const std::string& name);
   float font_size() const;
-  void set_font_size(const float size) {
-    if (font_size_ == size)
-      return;
-    font_size_ = size;
-    should_prepare_for_rendering_ = true;
-  }
+  void set_font_size(const float size);
   float minimum_scale_factor() const { return minimum_scale_factor_; }
-  void set_minimum_scale_factor(const float factor) {
-    if (minimum_scale_factor_ == factor)
-      return;
-    minimum_scale_factor_ = factor;
-    should_prepare_for_rendering_ = true;
-  }
+  void set_minimum_scale_factor(const float factor);
   int number_of_lines() const { return number_of_lines_; }
-  void set_number_of_lines(const int number) {
-    if (number_of_lines_ == number)
-      return;
-    number_of_lines_ = number;
-    should_prepare_for_rendering_ = true;
-  }
+  void set_number_of_lines(const int number);
   std::string text() const { return text_; }
-  void set_text(const std::string& text) {
-    text_ = text;
-    should_prepare_for_rendering_ = true;
-  }
+  void set_text(const std::string& text);
   NVGcolor text_color() const { return text_color_; }
-  void set_text_color(const float red, const float green, const float blue,
-                      const float alpha) {
-    text_color_ = nvgRGBA(red, green, blue, alpha);
-  }
+  void set_text_color(const NVGcolor text_color);
   Alignment text_horizontal_alignment() const {
     return text_horizontal_alignment_;
   }
-  void set_text_horizontal_alignment(const Alignment alignment) {
-    text_horizontal_alignment_ = alignment;
-  }
-  Alignment text_vertical_alignment() const {
-    return text_vertical_alignment_;
-  }
-  void set_text_vertical_alignment(const Alignment alignment) {
-    text_vertical_alignment_ = alignment;
-  }
+  void set_text_horizontal_alignment(const Alignment alignment);
+  Alignment text_vertical_alignment() const { return text_vertical_alignment_; }
+  void set_text_vertical_alignment(const Alignment alignment);
 
  private:
   // Configures text attributes through nanovg APIs.

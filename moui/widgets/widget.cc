@@ -83,8 +83,8 @@ void Widget::AddChild(Widget* child) {
   child->set_parent(this);
   UpdateChildrenRecursively(child);
   children_.push_back(child);
-  if (!child->IsHidden())
-    Redraw();
+  if (widget_view_ != nullptr && !child->IsHidden())
+    widget_view_->Redraw();
 }
 
 void Widget::BeginRenderbufferUpdates(NVGcontext* context,
@@ -196,21 +196,18 @@ bool Widget::IsHidden() const {
 }
 
 void Widget::Redraw() {
-  if (widget_view_ == nullptr)
-    return;
-
   if (caches_rendering_) {
     default_framebuffer_mutex_->lock();
     should_redraw_default_framebuffer_ = true;
     default_framebuffer_mutex_->unlock();
   }
-  if (!IsHidden())
+  if (widget_view_ != nullptr && !IsHidden())
     widget_view_->Redraw();
 }
 
 void Widget::RenderBackgroundColor(NVGcontext* context) {
   // Do nothing if the widget is not opaque or the color's alpha value is 0.
-  if (!is_opaque_ || background_color_.rgba[3] == 0)
+  if (!is_opaque_ || background_color_.a == 0)
     return;
 
   nvgBeginPath(context);
@@ -266,8 +263,12 @@ void Widget::SetBounds(const int x, const int y, const int width,
 }
 
 void Widget::SetHeight(const Unit unit, const float height) {
+  if (unit == height_unit_ && height == height_value_)
+    return;
+
   height_unit_ = unit;
   height_value_ = height;
+  Redraw();
 }
 
 void Widget::SetHidden(const bool hidden) {
@@ -278,20 +279,34 @@ void Widget::SetHidden(const bool hidden) {
 }
 
 void Widget::SetWidth(const Unit unit, const float width) {
+  if (unit == width_unit_ && width == width_value_)
+    return;
+
   width_unit_ = unit;
   width_value_ = width;
+  Redraw();
 }
 
 void Widget::SetX(const Alignment alignment, const Unit unit, const float x) {
+  if (alignment == x_alignment_ && unit == x_unit_ && x == x_value_)
+    return;
+
   x_alignment_ = alignment;
   x_unit_ = unit;
   x_value_ = x;
+  if (widget_view_ != nullptr)
+    widget_view_->Redraw();
 }
 
 void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
+  if (alignment == y_alignment_ && unit == y_unit_ && y == y_value_)
+    return;
+
   y_alignment_ = alignment;
   y_unit_ = unit;
   y_value_ = y;
+  if (widget_view_ != nullptr)
+    widget_view_->Redraw();
 }
 
 bool Widget::ShouldHandleEvent(const Point location) {

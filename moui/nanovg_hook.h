@@ -47,6 +47,9 @@ void nvgluBindFramebuffer(NVGLUframebuffer* fb);
 // Additonal APIs for nanovg.
 namespace moui {
 
+// Returns true if passed colors are the same.
+bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2);
+
 // Returns the image identifier of the current snapshot of the passed context
 // or 0 on failure. The returned image needs to be freed manually through
 // nvgDeleteImage().

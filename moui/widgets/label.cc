@@ -33,6 +33,10 @@ const int kMaximumNumberOfLines = 100;
 // The minimum font size guaranteed to render the text.
 const float kMinimumFontSize = 1;
 
+// The offset in points to change the vertical position for rendering text box.
+// This is a workaround to make the rendered position more as expected.
+const float kTextBoxVerticalOffset = 3;
+
 // Default configuration for the label.
 std::string default_font_name;
 float default_font_size = 12;
@@ -48,13 +52,13 @@ Label::Label(const std::string& text) : Label(text, "") {
 }
 
 Label::Label(const std::string& text, const std::string& font_name)
-    : adjusts_font_size_to_fit_width_(false),
+    : Widget(), adjusts_font_size_to_fit_width_(false),
       adjusts_label_height_to_fit_width_(false), font_name_(font_name),
       font_size_(0), minimum_scale_factor_(0), number_of_lines_(1),
       should_prepare_for_rendering_(true), text_(text),
       text_horizontal_alignment_(Alignment::kLeft),
       text_vertical_alignment_(Alignment::kTop) {
-  set_text_color(0, 0, 0, 255);
+  set_text_color(nvgRGBA(0, 0, 0, 255));
 }
 
 Label::~Label() {
@@ -86,10 +90,10 @@ void Label::Render(NVGcontext* context) {
       y = -bounds[1];
       break;
     case Alignment::kMiddle:
-      y = (GetHeight() - bounds[3] - bounds[1]) / 2;
+      y = (GetHeight() - bounds[3] - bounds[1]) / 2 + kTextBoxVerticalOffset;
       break;
     case Alignment::kBottom:
-      y = GetHeight() - bounds[3];
+      y = GetHeight() - bounds[3] + kTextBoxVerticalOffset;
       break;
     default:
       assert(false);
@@ -178,16 +182,93 @@ void Label::WidgetViewWillRender(NVGcontext* context) {
   }
 }
 
+void Label::set_adjusts_font_size_to_fit_width(const bool value) {
+  if (value != adjusts_font_size_to_fit_width_) {
+    adjusts_font_size_to_fit_width_ = value;
+    should_prepare_for_rendering_ = true;
+    Redraw();
+  }
+}
+
+void Label::set_adjusts_label_height_to_fit_width(const bool value) {
+  if (value != adjusts_label_height_to_fit_width_) {
+    adjusts_label_height_to_fit_width_ = value;
+    should_prepare_for_rendering_ = true;
+    Redraw();
+  }
+}
+
 std::string Label::font_name() const {
   if (font_name_.empty())
     return default_font_name;
   return font_name_;
 }
 
+void Label::set_font_name(const std::string& name) {
+  if (font_name_ != name) {
+    font_name_ = name;
+    should_prepare_for_rendering_ = true;
+    Redraw();
+  }
+}
+
 float Label::font_size() const {
   if (font_size_ < 0)
     return default_font_size;
   return font_size_;
+}
+
+void Label::set_font_size(const float size) {
+  if (size != font_size_) {
+    font_size_ = size;
+    should_prepare_for_rendering_ = true;
+    Redraw();
+  }
+}
+
+void Label::set_minimum_scale_factor(const float factor) {
+  if (factor != minimum_scale_factor_) {
+    minimum_scale_factor_ = factor;
+    should_prepare_for_rendering_ = true;
+    Redraw();
+  }
+}
+
+void Label::set_number_of_lines(const int number) {
+  if (number != number_of_lines_) {
+    number_of_lines_ = number;
+    should_prepare_for_rendering_ = true;
+    Redraw();
+  }
+}
+
+void Label::set_text(const std::string& text) {
+  if (text.size() != text_.size() || text != text_) {
+    text_ = text;
+    should_prepare_for_rendering_ = true;
+    Redraw();
+  }
+}
+
+void Label::set_text_color(const NVGcolor text_color) {
+  if (!nvgCompareColor(text_color, text_color_)) {
+    text_color_ = text_color;
+    Redraw();
+  }
+}
+
+void Label::set_text_horizontal_alignment(const Alignment alignment) {
+  if (alignment != text_horizontal_alignment_) {
+    text_horizontal_alignment_ = alignment;
+    Redraw();
+  }
+}
+
+void Label::set_text_vertical_alignment(const Alignment alignment) {
+  if (alignment != text_vertical_alignment_) {
+    text_vertical_alignment_ = alignment;
+    Redraw();
+  }
 }
 
 }  // namespace moui

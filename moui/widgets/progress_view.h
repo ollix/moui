@@ -42,26 +42,13 @@ class ProgressView : public Widget {
 
   // Accessors and setters.
   NVGcolor bar_color() const { return bar_color_; }
-  void set_bar_color(const float red, const float green, const float blue,
-                     const float alpha) {
-    bar_color_ = nvgRGBA(red, green, blue, alpha);
-  }
+  void set_bar_color(const NVGcolor bar_color);
   float progress() const { return progress_; }
-  void set_progress(const float progress) {
-    if (progress_ < 0)
-      progress_ = 0;
-    else if (progress_ > 1)
-      progress_ = 1;
-    else
-      progress_ = progress;
-  }
+  void set_progress(const float progress);
   Style style() const { return style_; }
   void set_style(const Style style) { style_ = style; }
   NVGcolor track_color() const { return track_color_; }
-  void set_track_color(const float red, const float green, const float blue,
-                       const float alpha) {
-    track_color_ = nvgRGBA(red, green, blue, alpha);
-  }
+  void set_track_color(const NVGcolor bar_color);
 
  private:
   // Inherited from Widget class. Renders the progress view according to the

@@ -65,7 +65,6 @@ unsigned char* ImageSnapshot(const int x, const int y, const int width,
     return NULL;
 
   glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image);
-  ImageFlipVertical(image, width, height);
   return image;
 }
 
@@ -145,6 +144,11 @@ void ImageUnpremultiplyAlpha(unsigned char* image, int width, int height) {
 
 namespace moui {
 
+bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2) {
+  return color1.r == color2.r && color1.g == color2.g &&
+         color1.b == color2.b && color1.a == color2.a;
+}
+
 int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
                            const int width, const int height,
                            const float scale_factor) {
@@ -155,9 +159,9 @@ int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
   if (image == NULL)
     return 0;
 
-  const int kIdentifier = nvgCreateImageRGBA(context, kScaledWidth,
-                                             kScaledHeight,
-                                             NVG_IMAGE_PREMULTIPLIED, image);
+  const int kIdentifier = nvgCreateImageRGBA(
+      context, kScaledWidth, kScaledHeight,
+      NVG_IMAGE_FLIPY | NVG_IMAGE_PREMULTIPLIED, image);
   delete image;
   return kIdentifier;
 }

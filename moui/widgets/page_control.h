@@ -34,39 +34,26 @@ class PageControl : public Widget {
 
   // Accessors and setters.
   int current_page() const { return current_page_; }
-  void set_current_page(const int page) { current_page_ = page; }
+  void set_current_page(const int page);
   NVGcolor current_page_indicator_color() const {
     return current_page_indicator_color_;
   }
-  void set_current_page_indicator_color(const float red, const float green,
-                                        const float blue, const float alpha) {
-    current_page_indicator_color_ = nvgRGBA(red, green, blue, alpha);
-  }
+  void set_current_page_indicator_color(const NVGcolor color);
   bool hides_for_single_page() const { return hides_for_single_page_; }
-  void set_hides_for_single_page(const bool hides_for_single_page) {
-    hides_for_single_page_ = hides_for_single_page;
-  }
+  void set_hides_for_single_page(const bool hides_for_single_page);
   int number_of_pages() const { return number_of_pages_; }
-  void set_number_of_pages(const int number) { number_of_pages_ = number; }
+  void set_number_of_pages(const int number_of_pages);
   NVGcolor page_indicator_color() const { return page_indicator_color_; }
-  void set_page_indicator_color(const float red, const float green,
-                                const float blue, const float alpha) {
-    page_indicator_color_ = nvgRGBA(red, green, blue, alpha);
-  }
+  void set_page_indicator_color(const NVGcolor color);
   int page_indicator_dot_diameter() const {
     return page_indicator_dot_diameter_;
   }
-  void set_page_indicator_dot_diameter(const int diameter) {
-    page_indicator_dot_diameter_ = diameter;
-    SetHeight(Widget::Unit::kPoint, diameter);
-  }
+  void set_page_indicator_dot_diameter(const int diameter);
   int page_indicator_dot_padding() const { return page_indicator_dot_padding_; }
-  void set_page_indicator_dot_padding(const int padding) {
-    page_indicator_dot_padding_ = padding;
-  }
+  void set_page_indicator_dot_padding(const int padding);
 
  private:
-  // Inherited from Widget class. Renders the page indicators dots.
+  // Inherited from Widget class. Renders the page indicator dots.
   virtual void Render(NVGcontext* context) override final;
 
   // The current page that causes the corresponded page indicator dot to be

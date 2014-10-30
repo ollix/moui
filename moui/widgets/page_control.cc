@@ -21,12 +21,13 @@
 
 namespace moui {
 
-PageControl::PageControl() : current_page_(0), hides_for_single_page_(false),
+PageControl::PageControl() : Widget(), current_page_(0),
+                             hides_for_single_page_(false),
                              number_of_pages_(0),
-                             page_indicator_dot_diameter_(4),
+                             page_indicator_dot_diameter_(-1),
                              page_indicator_dot_padding_(4) {
-  set_current_page_indicator_color(255, 255, 255, 255);
-  set_page_indicator_color(255, 255, 255, 127.5);
+  set_current_page_indicator_color(nvgRGBA(255, 255, 255, 255));
+  set_page_indicator_color(nvgRGBA(255, 255, 255, 127.5));
   set_page_indicator_dot_diameter(4);
   set_is_opaque(false);
 }
@@ -50,6 +51,56 @@ void PageControl::Render(NVGcontext* context) {
     else
       nvgFillColor(context, page_indicator_color_);
     nvgFill(context);
+  }
+}
+
+void PageControl::set_current_page(const int page) {
+  if (page != current_page_) {
+    current_page_ = page;
+    Redraw();
+  }
+}
+
+void PageControl::set_current_page_indicator_color(const NVGcolor color) {
+  if (!nvgCompareColor(color, current_page_indicator_color_)) {
+    current_page_indicator_color_ = color;
+    Redraw();
+  }
+}
+
+void PageControl::set_hides_for_single_page(const bool hides_for_single_page) {
+  if (hides_for_single_page != hides_for_single_page_) {
+    hides_for_single_page_ = hides_for_single_page;
+    Redraw();
+  }
+}
+
+void PageControl::set_number_of_pages(const int number_of_pages) {
+  if (number_of_pages != number_of_pages_) {
+    number_of_pages_ = number_of_pages;
+    Redraw();
+  }
+}
+
+void PageControl::set_page_indicator_color(const NVGcolor color) {
+  if (!nvgCompareColor(color, page_indicator_color_)) {
+    page_indicator_color_ = color;
+    Redraw();
+  }
+}
+
+void PageControl::set_page_indicator_dot_diameter(const int diameter) {
+  if (diameter != page_indicator_dot_diameter_) {
+    page_indicator_dot_diameter_ = diameter;
+    SetHeight(Widget::Unit::kPoint, diameter);
+    Redraw();
+  }
+}
+
+void PageControl::set_page_indicator_dot_padding(const int padding) {
+  if (padding != page_indicator_dot_padding_) {
+    page_indicator_dot_padding_ = padding;
+    Redraw();
   }
 }
 
