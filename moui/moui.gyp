@@ -43,6 +43,7 @@
         'ui/mac/native_view_mac.mm',
         'ui/mac/view_mac.mm',
         'ui/mac/window_mac.mm',
+        'widgets/button.cc',
         'widgets/control.cc',
         'widgets/label.cc',
         'widgets/page_control.cc',

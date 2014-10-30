@@ -24,90 +24,30 @@
 #include "moui/core/event.h"
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
-#include "moui/widgets/control.h"
-#include "moui/widgets/widget_view.h"
 
 namespace {
 
-// The alpha value for rendering disabled state if there is no binded render
-// function.
-const float kAlphaForDefaultImageInDisabledState = 0.5;
-// The default margins in points expanding widget's bounding box for larger
-// response area on handheld devices.
+// The default margin in points to expand control's bounding box for larger
+// region to toggle the highlighted state on handheld devices.
 const int kHandheldDeviceHighlightedMargin = 48;
-const int kHandheldDeviceTouchDownMargin = 12;
-// The number of ControlStates constants.
-const int kNumberOfControlStates = 4;
 
-// Deletes the passed framebuffer and sets it to nullptr.
-void DeleteFramebuffer(NVGcontext* context, NVGLUframebuffer** framebuffer) {
-  if (*framebuffer != nullptr) {
-    nvgluDeleteFramebuffer(context, *framebuffer);
-    *framebuffer = nullptr;
-  }
-}
+// The default margin in points to expand control's bounding box for larger
+// region to receive the touch down event on handheld devices.
+const int kHandheldDeviceTouchDownMargin = 12;
 
 }  // namespace
 
 namespace moui {
 
-Control::Control()
-    : normal_state_with_highlighted_effect_framebuffer_(nullptr),
-      selected_state_with_highlighted_effect_framebuffer_(nullptr),
-      disabled_state_framebuffer_(nullptr), highlighted_margin_(0),
-      highlighted_state_framebuffer_(nullptr),
-      normal_state_framebuffer_(nullptr), selected_state_framebuffer_(nullptr),
-      state_(ControlState::kNormal), touch_down_margin_(0) {
+Control::Control() : Widget(), highlighted_margin_(0),
+                     state_(ControlState::kNormal), touch_down_margin_(0) {
   if (Device::GetCategory() != Device::Category::kDesktop) {
     highlighted_margin_ = kHandheldDeviceHighlightedMargin;
     touch_down_margin_ = kHandheldDeviceTouchDownMargin;
   }
-
-  for (int i = 0; i < kNumberOfControlStates; ++i)
-    render_functions_.push_back(NULL);
 }
 
 Control::~Control() {
-}
-
-void Control::ContextWillChange(NVGcontext* context) {
-  DeleteFramebuffer(context, &disabled_state_framebuffer_);
-  DeleteFramebuffer(context, &highlighted_state_framebuffer_);
-  DeleteFramebuffer(context, &normal_state_framebuffer_);
-  DeleteFramebuffer(context,
-                    &normal_state_with_highlighted_effect_framebuffer_);
-  DeleteFramebuffer(context, &selected_state_framebuffer_);
-  DeleteFramebuffer(context,
-                    &selected_state_with_highlighted_effect_framebuffer_);
-}
-
-void Control::ExecuteRenderFunction(const ControlState state) {
-  auto render_function = render_functions_[GetStateIndex(state)];
-  if (render_function != NULL) {
-    render_function();
-    return;
-  }
-
-  // Fills configured background color if there is no binded render function.
-  if (is_opaque()) {
-    nvgBeginPath(context_);
-    nvgRect(context_, 0, 0, GetWidth(), GetHeight());
-    nvgFillColor(context_, background_color());
-    nvgFill(context_);
-  }
-}
-
-int Control::GetStateIndex(const ControlState state) const {
-  switch(state) {
-    case ControlState::kNormal:
-      return 0;
-    case ControlState::kHighlighted:
-      return 1;
-    case ControlState::kDisabled:
-      return 2;
-    case ControlState::kSelected:
-      return 3;
-  }
 }
 
 void Control::HandleControlEvents(const ControlEvents events) {
@@ -187,38 +127,6 @@ bool Control::IsSelected() const {
   return (state_ & ControlState::kSelected) != 0;
 }
 
-void Control::Render(NVGcontext* context) {
-  // Determines the renderbuffer to render.
-  NVGLUframebuffer** framebuffer;
-  if (IsDisabled()) {
-    framebuffer = &disabled_state_framebuffer_;
-  } else if (IsHighlighted()) {
-    if (RenderFunctionIsBinded(ControlState::kHighlighted))
-      framebuffer = &highlighted_state_framebuffer_;
-    else if (IsSelected())
-      framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
-    else
-      framebuffer = &normal_state_with_highlighted_effect_framebuffer_;
-  } else if (IsSelected()) {
-    framebuffer = &selected_state_framebuffer_;
-  } else {
-    framebuffer = &normal_state_framebuffer_;
-  }
-
-  const int kWidth = GetWidth();
-  const int kHeight = GetHeight();
-  nvgBeginPath(context);
-  nvgRect(context, 0, 0, kWidth, kHeight);
-  NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
-                                   (*framebuffer)->image, 1);
-  nvgFillPaint(context, paint);
-  nvgFill(context);
-}
-
-bool Control::RenderFunctionIsBinded(const ControlState state) const {
-  return render_functions_[GetStateIndex(state)] != NULL;
-}
-
 void Control::SetDisabled(const bool disabled) {
   if (disabled == IsDisabled())
     return;
@@ -287,78 +195,6 @@ void Control::UnbindActions(const ControlEvents events,
     }
     ++action_iterator;
   }
-}
-
-void Control::UnbindRenderFunction(const ControlState state) {
-  render_functions_[GetStateIndex(state)] = NULL;
-}
-
-// This method renders to the corresponded framebuffer according to the current
-// state. However, the current state may not be the actual state to render.
-// For example, if the current state is selected but there is no render
-// function binded. The normal state will be rendered instead.
-void Control::WidgetViewWillRender(NVGcontext* context) {
-  // Determines what state to render and which framebuffer to render to.
-  NVGLUframebuffer** framebuffer;
-  ControlState state = ControlState::kNormal;
-  bool renders_default_disabled_effect = false;
-  bool renders_default_highlighted_effect = false;
-  if (IsDisabled()) {
-    framebuffer = &disabled_state_framebuffer_;
-    if (RenderFunctionIsBinded(ControlState::kDisabled)) {
-      state = ControlState::kDisabled;
-    } else {
-      renders_default_disabled_effect = true;
-      if (IsSelected() && RenderFunctionIsBinded(ControlState::kSelected))
-        state = ControlState::kSelected;
-    }
-  } else if (IsHighlighted()) {
-    if (RenderFunctionIsBinded(ControlState::kHighlighted)) {
-      framebuffer = &highlighted_state_framebuffer_;
-      state = ControlState::kHighlighted;
-    } else if (IsSelected() &&
-               RenderFunctionIsBinded(ControlState::kSelected)) {
-      framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
-      state = ControlState::kSelected;
-      renders_default_highlighted_effect = true;
-    } else {
-      framebuffer = &normal_state_with_highlighted_effect_framebuffer_;
-      renders_default_highlighted_effect = true;
-    }
-  } else if (IsSelected()) {
-    framebuffer = &selected_state_framebuffer_;
-    if (RenderFunctionIsBinded(ControlState::kSelected))
-      state = ControlState::kSelected;
-  } else {
-    framebuffer = &normal_state_framebuffer_;
-  }
-  // Do nothing if the rendering was done.
-  if (*framebuffer != nullptr)
-    return;
-
-  const int kWidth = GetWidth();
-  const int kHeight = GetHeight();
-  BeginRenderbufferUpdates(context, framebuffer);
-  nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
-  if (renders_default_disabled_effect)
-    nvgGlobalAlpha(context, kAlphaForDefaultImageInDisabledState);
-  ExecuteRenderFunction(state);
-  if (renders_default_disabled_effect)
-    nvgGlobalAlpha(context, 1);
-  nvgEndFrame(context);
-
-  // Blends with transparent black foreground for default highlighted effect.
-  if (renders_default_highlighted_effect) {
-    glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
-    nvgBeginPath(context);
-    nvgRect(context, 0, 0, kWidth, kHeight);
-    nvgFillColor(context, nvgRGBA(0, 0, 0, 50));
-    nvgFill(context);
-    nvgEndFrame(context);
-  }
-
-  EndRenderbufferUpdates();
 }
 
 }  // namespace moui

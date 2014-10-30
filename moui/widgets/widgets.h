@@ -18,6 +18,7 @@
 #ifndef MOUI_WIDGETS_WIDGETS_H_
 #define MOUI_WIDGETS_WIDGETS_H_
 
+#include "moui/widgets/button.h"
 #include "moui/widgets/control.h"
 #include "moui/widgets/label.h"
 #include "moui/widgets/page_control.h"
