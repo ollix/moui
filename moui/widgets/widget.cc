@@ -111,26 +111,13 @@ bool Widget::CollidePoint(const Point point, const int padding) {
 bool Widget::CollidePoint(const Point point, const int top_padding,
                           const int right_padding, const int bottom_padding,
                           const int left_padding) {
-  std::stack<Widget*> widget_chain;
-  widget_chain.push(this);
-  Widget* parent = parent_;
-  while (parent != nullptr) {
-    widget_chain.push(parent);
-    parent = parent->parent();
-  }
-  float scale = 1;
-  Point origin = {0.0f, 0.0f};
-  while (!widget_chain.empty()) {
-    Widget* widget = widget_chain.top();
-    widget_chain.pop();
-    origin.x += widget->GetX() * scale;
-    origin.y += widget->GetY() * scale;
-    scale *= widget->scale();
-  }
+  Point origin;
+  Size size;
+  GetMeasuredBounds(&origin, &size);
   return (point.x >= (origin.x - left_padding) &&
           point.y >= (origin.y - top_padding) &&
-          point.x < (origin.x + (GetWidth() * scale) + right_padding) &&
-          point.y < (origin.y + (GetHeight() * scale) + bottom_padding));
+          point.x < (origin.x + size.width + right_padding) &&
+          point.y < (origin.y + size.height + bottom_padding));
 }
 
 void Widget::EndRenderbufferUpdates() {
@@ -140,6 +127,35 @@ void Widget::EndRenderbufferUpdates() {
 float Widget::GetHeight() const {
   const float kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
   return CalculatePoints(height_unit_, height_value_, kParentHeight);
+}
+
+void Widget::GetMeasuredBounds(Point* origin, Size* size) {
+  if (origin == nullptr && size == nullptr)
+    return;
+
+  std::stack<Widget*> widget_chain;
+  widget_chain.push(this);
+  Widget* parent = parent_;
+  while (parent != nullptr) {
+    widget_chain.push(parent);
+    parent = parent->parent();
+  }
+  float scale = 1;
+  if (origin != nullptr)
+    *origin = {0.0f, 0.0f};
+  while (!widget_chain.empty()) {
+    Widget* widget = widget_chain.top();
+    widget_chain.pop();
+    if (origin != nullptr) {
+      origin->x += widget->GetX() * scale;
+      origin->y += widget->GetY() * scale;
+    }
+    scale *= widget->scale();
+  }
+  if (size != nullptr) {
+    size->width = GetWidth() * scale;
+    size->height = GetHeight() * scale;
+  }
 }
 
 float Widget::GetWidth() const {

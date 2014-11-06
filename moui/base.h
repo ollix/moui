@@ -26,6 +26,12 @@ struct Point {
   float y;
 };
 
+// Indicates a specific size.
+struct Size {
+  float width;
+  float height;
+};
+
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \

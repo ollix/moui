@@ -68,6 +68,10 @@ class ScrollView : public Widget {
   }
   bool bounces() const { return bounces_; }
   void set_bounces(const bool value) { bounces_ = value; }
+  std::vector<Widget*>& children() {
+    Widget* content_view = reinterpret_cast<Widget*>(content_view_);
+    return content_view->children();
+  }
   bool enables_paging() const { return enables_paging_; }
   void set_enables_paging(const bool value) { enables_paging_ = value; }
   bool enables_scroll() const { return enables_scroll_; }
@@ -161,7 +165,7 @@ class ScrollView : public Widget {
                          double* vertical_velocity);
 
   // Inherited from Widget class. Controls the scroll behavior.
-  virtual void HandleEvent(Event* event) override final;
+  virtual bool HandleEvent(Event* event) override final;
 
   // Moves the content view based on the expected origin. The actual origin
   // the content view moves to may be changed when reaching the boundary of

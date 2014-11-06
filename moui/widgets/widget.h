@@ -67,6 +67,11 @@ class Widget {
   // Returns the height in points.
   float GetHeight() const;
 
+  // Determines the widget's origin and size that related to the corresponded
+  // widget view's coordinate system. `nullptr` could be passed as parameter
+  // if it doesn't matter.
+  void GetMeasuredBounds(Point* origin, Size* size);
+
   // Returns the width in points.
   float GetWidth() const;
 
@@ -156,11 +161,12 @@ class Widget {
   // This method gets called when the widget received an event. In order to
   // receive an event, the ShouldHandleEvent() method must return true.
   // The actual implmentation should be done in subclass and the passed event
-  // object will be deallocated automatically.
+  // object will be deallocated automatically. If the returned value is false,
+  // the event stops propagating to the next resonder.
   //
   // Note that this method should only be called in the
   // WidgetView::HandleEvent() method.
-  virtual void HandleEvent(Event* event) {}
+  virtual bool HandleEvent(Event* event) { return false; }
 
   // Implements the logic for rendering the widget. The actual implementation
   // should be done in subclass.

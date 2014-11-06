@@ -111,9 +111,11 @@ class WidgetView : public View {
   // Inherited from BaseView class.
   virtual bool ShouldHandleEvent(const Point location) override final;
 
-  // Returns true if the passed widget of any of its children should handle
-  // coming events.
-  bool ShouldHandleEvent(const Point location, Widget* widget);
+  // Updates the `event_responders_` instance variable based on the passed
+  // location. This is a recursive method, both the returned value and
+  // the `widget` parameter are reserved for the recursion purpose.
+  // When calling this method, specify `nullptr` for the `widget` parameter.
+  bool UpdateEventResponders(const Point location, Widget* widget);
 
   // This method gets called when the view did finish rendering all visible
   // widgets.
@@ -135,10 +137,9 @@ class WidgetView : public View {
   // The nanovg context for drawing.
   NVGcontext* context_;
 
-  // The widget that is responsible to respond events passed to the
-  // HandleEvent() method. The value is updated in the ShouldHandleEvent()
-  // method.
-  Widget* event_responder_;
+  // Keeps a list of widgets to handle events passed to the `HandleEvent()`
+  // method. The list could be updated by `UpdateEventResponders()`.
+  std::vector<Widget*> event_responders_;
 
   // Indicates whether the view is opaque.
   bool is_opaque_;

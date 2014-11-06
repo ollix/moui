@@ -263,7 +263,7 @@ void ScrollView::GetScrollVelocity(double* horizontal_velocity,
   }
 }
 
-void ScrollView::HandleEvent(Event* event) {
+bool ScrollView::HandleEvent(Event* event) {
   const double kTimestamp = Clock::GetTimestamp();
   Point current_location = event->locations()->at(0);
 
@@ -297,6 +297,7 @@ void ScrollView::HandleEvent(Event* event) {
     if (!vertical_animation_state_.is_animating)
       vertical_scroller_->HideInAnimation();
   }
+  return false;
 }
 
 bool ScrollView::IsScrolling() const {

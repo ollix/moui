@@ -171,7 +171,7 @@ class Control : public Widget {
   void HandleControlEvents(const ControlEvents events);
 
   // Inherited from Widget class.
-  virtual void HandleEvent(Event* event) override final;
+  virtual bool HandleEvent(Event* event) override final;
 
   // Inherited from Widget class.
   virtual bool ShouldHandleEvent(const Point location) override final;
@@ -183,6 +183,14 @@ class Control : public Widget {
   // The margin in points expanding the widget's bounding box as highlighted
   // area.
   int highlighted_margin_;
+
+  // Indicates whether all coming events should be ignored. This value is
+  // set to false by default and controlled in the `HandleEvent()` method.
+  bool ignores_events_;
+
+  // Records the control's position that related to the corresponded widget
+  // view's coordinate system when receiving the `Event::Type::kDown` event.
+  Point initial_position_;
 
   // A bitmask value that indicates the state of a control. A control can have
   // more than one state at a time.

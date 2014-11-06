@@ -31,20 +31,14 @@ namespace {
 // region to toggle the highlighted state on handheld devices.
 const int kHandheldDeviceHighlightedMargin = 48;
 
-// The default margin in points to expand control's bounding box for larger
-// region to receive the touch down event on handheld devices.
-const int kHandheldDeviceTouchDownMargin = 12;
-
 }  // namespace
 
 namespace moui {
 
-Control::Control() : Widget(), highlighted_margin_(0),
+Control::Control() : Widget(), highlighted_margin_(0), ignores_events_(false),
                      state_(ControlState::kNormal), touch_down_margin_(0) {
-  if (Device::GetCategory() != Device::Category::kDesktop) {
+  if (Device::GetCategory() != Device::Category::kDesktop)
     highlighted_margin_ = kHandheldDeviceHighlightedMargin;
-    touch_down_margin_ = kHandheldDeviceTouchDownMargin;
-  }
 }
 
 Control::~Control() {
@@ -72,15 +66,29 @@ void Control::HandleControlEvents(const ControlEvents events) {
 }
 
 // Handles corresponded control events converted from the passed event.
-void Control::HandleEvent(Event* event) {
-  if (state_ & ControlState::kDisabled)
-    return;
+bool Control::HandleEvent(Event* event) {
+  if (IsDisabled() ||
+      (ignores_events_ && event->type() != Event::Type::kDown)) {
+    return true;
+  }
+
+  // Determines the control's current position related to the corresponded
+  // widget view's coordinate system.
+  Point position;
+  GetMeasuredBounds(&position, nullptr);
 
   int control_events = 0;
   // Down.
   if (event->type() == Event::Type::kDown) {
     control_events |= ControlEvents::kTouchDown;
+    ignores_events_ = false;
+    initial_position_ = position;
   // Move.
+  } else if (event->type() == Event::Type::kMove &&
+             (position.x != initial_position_.x ||
+              position.y != initial_position_.y)) {
+    ignores_events_ = true;
+    control_events |= ControlEvents::kTouchCancel;
   } else if (event->type() == Event::Type::kMove) {
     const bool kTouchOutside = !CollidePoint(
         static_cast<Point>(event->locations()->front()),  // location
@@ -113,6 +121,7 @@ void Control::HandleEvent(Event* event) {
   }
   // Handles the populated control event.
   HandleControlEvents(static_cast<ControlEvents>(control_events));
+  return true;
 }
 
 bool Control::IsDisabled() const {

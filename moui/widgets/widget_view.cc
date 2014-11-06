@@ -31,8 +31,8 @@
 
 namespace moui {
 
-WidgetView::WidgetView() : View(), context_(nullptr), event_responder_(nullptr),
-                           is_opaque_(true), root_widget_(new Widget) {
+WidgetView::WidgetView() : View(), context_(nullptr), is_opaque_(true),
+                           root_widget_(new Widget) {
   root_widget_->set_widget_view(this);
 }
 
@@ -48,17 +48,14 @@ void WidgetView::AddWidget(Widget* widget) {
 }
 
 void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
-  if (event_responder_ == nullptr)
-    return;
-  // Resets the event responder if the widget view of the current responder
-  // widget is not this widget view object. This may happen when the responder
-  // widget is deattached from this widget view.
-  if (event_responder_->widget_view() != this) {
-    event_responder_ = nullptr;
-    return;
+  for (Widget* responder : event_responders_) {
+    // Skips responder that already deattached from this widget view.
+    if (responder->widget_view() != this)
+      continue;
+    // Breaks the responder chain if `false` is returned.
+    if (!responder->HandleEvent(event.get()))
+      break;
   }
-  // Asks the current responder widget to handle the event.
-  event_responder_->HandleEvent(event.get());
 }
 
 void WidgetView::PopAndFinalizeWidgetItems(const int level,
@@ -196,25 +193,32 @@ void WidgetView::SetBounds(const int x, const int y, const int width,
   root_widget_->SetHeight(Widget::Unit::kPoint, height);
 }
 
-// Starts with root_widget_ to find the event responder recursively.
 bool WidgetView::ShouldHandleEvent(const Point location) {
-  return ShouldHandleEvent(location, root_widget_);
+  UpdateEventResponders(location, nullptr);
+  return !event_responders_.empty();
 }
 
 // Iterates children widgets of the specified widget in reversed order to find
 // the event responder recursively.
-bool WidgetView::ShouldHandleEvent(const Point location, Widget* widget) {
-  if (widget->IsHidden())
+bool WidgetView::UpdateEventResponders(const Point location, Widget* widget) {
+  if (widget == nullptr) {
+    widget = root_widget_;
+    event_responders_.clear();
+  } else if (widget->IsHidden()) {
     return false;
+  }
 
   for (auto it = widget->children().rbegin();
        it != widget->children().rend(); it++) {
     Widget* child = reinterpret_cast<Widget*>(*it);
-    if (ShouldHandleEvent(location, child)) {
-      return true;  // responder is set by one of its child
+    if (UpdateEventResponders(location, child)) {
+      if (!widget->ShouldHandleEvent(location))
+        return false;
+      event_responders_.push_back(widget);
+      return true;
     }
     if (child->ShouldHandleEvent(location)) {
-      event_responder_ = child;
+      event_responders_.push_back(child);
       return true;
     }
   }
