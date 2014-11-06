@@ -79,10 +79,10 @@ class Scroller : public Widget {
                   const double length) const;
 
   // Inherited from Widget class.
-  virtual void WidgetDidRender(NVGcontext* context) override final;
+  virtual void WidgetViewDidRender(NVGcontext* context) override final;
 
   // Inherited from Widget class.
-  virtual void WidgetWillRender(NVGcontext* context) override final;
+  virtual void WidgetViewWillRender(NVGcontext* context) override final;
 
   // Keeps the timestamp when starting animation.
   double animation_initial_timestamp_;

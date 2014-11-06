@@ -40,7 +40,8 @@ const int kTrackPadding = 3;
 namespace moui {
 
 Scroller::Scroller(const Direction direction)
-    : direction_(direction), shows_scrollers_on_both_directions_(false) {
+    : Widget(), animation_progress_(-1), direction_(direction),
+      shows_scrollers_on_both_directions_(false) {
   set_is_opaque(false);
   SetX(Widget::Alignment::kRight, Widget::Unit::kPoint, 0);
   SetY(Widget::Alignment::kBottom, Widget::Unit::kPoint, 0);
@@ -120,7 +121,7 @@ void Scroller::RenderKnob(NVGcontext* context, const double position,
 }
 
 // Stops animation if reaching the animation duration.
-void Scroller::WidgetDidRender(NVGcontext* context) {
+void Scroller::WidgetViewDidRender(NVGcontext* context) {
   if (animation_progress_ < 1)
     return;
   StopAnimation();
@@ -129,10 +130,11 @@ void Scroller::WidgetDidRender(NVGcontext* context) {
     SetHidden(true);
     hiding_in_animation_ = false;
   }
+  animation_progress_ = -1;
 }
 
 // Calculates the animation progress.
-void Scroller::WidgetWillRender(NVGcontext* context) {
+void Scroller::WidgetViewWillRender(NVGcontext* context) {
   if (!IsAnimating())
     return;
 
