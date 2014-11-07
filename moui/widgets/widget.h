@@ -153,6 +153,7 @@ class Widget {
   NVGcontext* context_;
 
  private:
+  friend class ScrollView;
   friend class WidgetView;
 
   // This method will get called when context_ is about to change. Subclasses
@@ -239,7 +240,7 @@ class Widget {
   // cycle.
   virtual void WidgetWillRender(NVGcontext* context) {};
 
-  //  Sets the parent.
+  // Sets the parent.
   void set_parent(Widget* parent) { parent_ = parent; }
 
   // This setter should only be called by the WidgetView firend class.

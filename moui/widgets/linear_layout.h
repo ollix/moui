@@ -15,19 +15,29 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_WIDGETS_WIDGETS_H_
-#define MOUI_WIDGETS_WIDGETS_H_
+#ifndef MOUI_WIDGETS_LINEAR_LAYOUT_H_
+#define MOUI_WIDGETS_LINEAR_LAYOUT_H_
 
-#include "moui/widgets/button.h"
-#include "moui/widgets/control.h"
-#include "moui/widgets/label.h"
+#include "moui/base.h"
 #include "moui/widgets/layout.h"
-#include "moui/widgets/linear_layout.h"
-#include "moui/widgets/page_control.h"
-#include "moui/widgets/progress_view.h"
-#include "moui/widgets/scroll_view.h"
-#include "moui/widgets/scroller.h"
-#include "moui/widgets/widget.h"
-#include "moui/widgets/widget_view.h"
 
-#endif  // MOUI_WIDGETS_WIDGETS_H_
+namespace moui {
+
+class LinearLayout : public Layout {
+ public:
+  explicit LinearLayout(const Orientation orientation);
+  ~LinearLayout();
+
+ private:
+  // Inherited from Layout class.
+  virtual void ArrangeChildren() override final;
+
+  // The direction to arrange the child widgets.
+  Orientation orientation_;
+
+  DISALLOW_COPY_AND_ASSIGN(LinearLayout);
+};
+
+}  // namespace moui
+
+#endif  // MOUI_WIDGETS_LINEAR_LAYOUT_H_

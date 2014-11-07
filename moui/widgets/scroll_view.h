@@ -41,6 +41,9 @@ class ScrollView : public Widget {
   // Adds a child widget to the scroll view.
   void AddChild(Widget* child);
 
+  // Returns the size of the content view.
+  Size GetContentViewSize() const;
+
   // Returns the number of the current page. The page number starts with 0.
   int GetCurrentPage() const;
 

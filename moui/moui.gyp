@@ -46,6 +46,8 @@
         'widgets/button.cc',
         'widgets/control.cc',
         'widgets/label.cc',
+        'widgets/layout.cc',
+        'widgets/linear_layout.cc',
         'widgets/page_control.cc',
         'widgets/progress_view.cc',
         'widgets/scroll_view.cc',

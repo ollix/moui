@@ -102,9 +102,11 @@ ScrollView::~ScrollView() {
   delete vertical_scroller_;
 }
 
-// Adds the passed child to the internal `content_view_` actually.
+// Adds the passed child to the internal `content_view_` actually and sets the
+// child's parent to this scroll view.
 void ScrollView::AddChild(Widget* child) {
   content_view_->AddChild(child);
+  child->set_parent(this);
 }
 
 void ScrollView::AnimateContentViewHorizontally(const float origin_x,
@@ -202,6 +204,10 @@ void ScrollView::GetContentViewOriginLimits(int* minimum_x,
   }
   *minimum_y = std::min(0.0f, this->GetHeight() - content_view_->GetHeight());
   *maximum_y = 0;
+}
+
+Size ScrollView::GetContentViewSize() const {
+  return {content_view_->GetWidth(), content_view_->GetHeight()};
 }
 
 int ScrollView::GetCurrentAnimatingLocation(AnimationState& state) const {
@@ -456,14 +462,12 @@ void ScrollView::SetContentViewOffset(const float x, const float y) {
 }
 
 void ScrollView::SetContentViewSize(const float width, const float height) {
-  const float kWidth = std::round(width);
-  const float kHeight = std::round(height);
-  if (kWidth == content_view_->GetWidth() &&
-      kHeight == content_view_->GetHeight())
+  if (width == content_view_->GetWidth() &&
+      height == content_view_->GetHeight())
     return;
 
-  content_view_->SetWidth(Widget::Unit::kPoint, kWidth);
-  content_view_->SetHeight(Widget::Unit::kPoint, kHeight);
+  content_view_->SetWidth(Widget::Unit::kPoint, width);
+  content_view_->SetHeight(Widget::Unit::kPoint, height);
   Redraw();
 }
 
