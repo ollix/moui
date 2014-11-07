@@ -41,9 +41,6 @@
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-// Workaround to fix the missing prototype in nanovg.
-void nvgluBindFramebuffer(NVGLUframebuffer* fb);
-
 // Additonal APIs for nanovg.
 namespace moui {
 

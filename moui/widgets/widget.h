@@ -138,13 +138,14 @@ class Widget {
 
  protected:
   // Initializes the environemnt for rendering in the passed framebuffer.
-  // A new framebuffer will be created automatically if *framebuffer is nullptr.
-  // EndRenderbufferUpdates() should be called when updates finished.
-  void BeginRenderbufferUpdates(NVGcontext* context,
+  // Returns false on failure. If successful, a new framebuffer will be created
+  // automatically if `*framebuffer` is `nullptr`, and
+  // `EndRenderbufferUpdates()` should be called when finished rendering.
+  bool BeginRenderbufferUpdates(NVGcontext* context,
                                 NVGLUframebuffer** framebuffer);
 
   // Ends the framebuffer environment previously created by
-  // BeginRenderbufferUpdates()
+  // `BeginRenderbufferUpdates()`.
   void EndRenderbufferUpdates();
 
   // The weak reference to nanovg context that will be updated by WidgetView

@@ -87,19 +87,25 @@ void Widget::AddChild(Widget* child) {
     widget_view_->Redraw();
 }
 
-void Widget::BeginRenderbufferUpdates(NVGcontext* context,
+bool Widget::BeginRenderbufferUpdates(NVGcontext* context,
                                       NVGLUframebuffer** framebuffer) {
-  const int kScreenScaleFactor = Device::GetScreenScaleFactor();
-  const int kWidth = GetWidth() * kScreenScaleFactor;
-  const int kHeight = GetHeight() * kScreenScaleFactor;
-
+  const float kScreenScaleFactor = Device::GetScreenScaleFactor();
+  const float kWidth = GetWidth() * kScreenScaleFactor;
+  const float kHeight = GetHeight() * kScreenScaleFactor;
+  if (kWidth <= 0 || kHeight <= 0)
+    return false;
   if (*framebuffer == nullptr)
     *framebuffer = nvgluCreateFramebuffer(context, kWidth, kHeight, 0);
+  if (*framebuffer == NULL) {
+    *framebuffer = nullptr;
+    return false;
+  }
   nvgluBindFramebuffer(*framebuffer);
   glViewport(0, 0, kWidth, kHeight);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  return true;
 }
 
 bool Widget::CollidePoint(const Point point, const int padding) {
@@ -246,15 +252,18 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
   const int kWidth = GetWidth();
   const int kHeight = GetHeight();
 
-  BeginRenderbufferUpdates(context, &default_framebuffer_);
-  nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
-  RenderBackgroundColor(context);
-  Render(context);
-  nvgEndFrame(context);
-  EndRenderbufferUpdates();
+  if (BeginRenderbufferUpdates(context, &default_framebuffer_)) {
+    nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
+    RenderBackgroundColor(context);
+    Render(context);
+    nvgEndFrame(context);
+    EndRenderbufferUpdates();
 
-  default_framebuffer_paint_ = nvgImagePattern(
-      context, 0, kHeight, kWidth, kHeight, 0, default_framebuffer_->image, 1);
+    default_framebuffer_paint_ = nvgImagePattern(context, 0, kHeight, kWidth,
+                                                 kHeight, 0,
+                                                 default_framebuffer_->image,
+                                                 1);
+  }
   default_framebuffer_mutex_->unlock();
 }
 

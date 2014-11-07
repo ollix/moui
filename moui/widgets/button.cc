@@ -186,6 +186,8 @@ void Button::Render(NVGcontext* context) {
   } else {
     framebuffer = &normal_state_framebuffer_;
   }
+  if (*framebuffer == nullptr)
+    return;
 
   const int kWidth = GetWidth();
   const int kHeight = GetHeight();
@@ -235,9 +237,11 @@ void Button::UpdateFramebuffer(const ControlState state,
                                const bool renders_default_highlighted_effect,
                                NVGcontext* context,
                                NVGLUframebuffer** framebuffer) {
-  const int kWidth = GetWidth();
-  const int kHeight = GetHeight();
-  BeginRenderbufferUpdates(context, framebuffer);
+  if (!BeginRenderbufferUpdates(context, framebuffer))
+    return;
+
+  const float kWidth = GetWidth();
+  const float kHeight = GetHeight();
   nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
   if (renders_default_disabled_effect)
     nvgGlobalAlpha(context, kDefaultDisabledStateAlpha);
