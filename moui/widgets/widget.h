@@ -54,6 +54,26 @@ class Widget {
   // Adds child widget.
   void AddChild(Widget* child);
 
+  // Binds a function or class method for rendering the widget. Calling this
+  // method repeatedly will replace the previous binded one.
+  //
+  // Examples:
+  // BindRenderFunction(state, Function)  // function
+  // BindRenderFunction(state, &Class::Method)  // class method
+  template<class Callback>
+  void BindRenderFunction(Callback&& callback) {
+    render_function_ = std::bind(callback, std::ref(context_));
+  }
+
+  // Binds an instance method for rendering the widget. Calling this method
+  // repeatedly will replace the previous binded one.
+  //
+  // Example: BindRenderFunction(state, &Class::Method, instance)
+  template<class Callback, class TargetType>
+  void BindRenderFunction(Callback&& callback, TargetType&& target) {
+    render_function_ = std::bind(callback, target, std::ref(context_));
+  }
+
   // Returns true if the passed point is within the region of the widget's
   // bounding box plus the passed padding at every direction.
   bool CollidePoint(const Point point, const int padding);
@@ -92,6 +112,9 @@ class Widget {
   // If the current widget doesn't belong to any widget view, nothing happened.
   void Redraw();
 
+  // Returns true if the render function is binded.
+  bool RenderFunctionIsBinded() const;
+
   // Sets the bounds of the view in points.
   void SetBounds(const int x, const int y, const int width, const int height);
 
@@ -122,16 +145,18 @@ class Widget {
   // to a WidgetView object, nothing happened.
   void StopAnimation();
 
+  // Unbinds the render function.
+  void UnbindRenderFunction();
+
   // Setters and accessors.
   NVGcolor background_color() const { return background_color_; }
-  void set_background_color(const float red, const float green,
-                            const float blue, const float alpha) {
-    background_color_ = nvgRGBA(red, green, blue, alpha);
-  }
+  void set_background_color(const NVGcolor background_color);
   std::vector<Widget*>& children() { return children_; }
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
   Widget* parent() const { return parent_; }
+  Point rendering_offset() const { return rendering_offset_; }
+  void set_rendering_offset(const Point offset);
   float scale() const { return scale_; }
   void set_scale(const float scale) { scale_ = scale; }
   WidgetView* widget_view() const { return widget_view_; }
@@ -160,6 +185,11 @@ class Widget {
   // can implmenet this method to free nanovg objects binded to it.
   virtual void ContextWillChange(NVGcontext* context) {};
 
+  // Executes either the binded `render_function_` or `Render()` if no render
+  // function is binded. This method respects the `rendering_offset_` and it
+  // also fills the background color if the widget is opaque.
+  void ExecuteRenderFunction(NVGcontext* context);
+
   // This method gets called when the widget received an event. In order to
   // receive an event, the ShouldHandleEvent() method must return true.
   // The actual implmentation should be done in subclass and the passed event
@@ -176,10 +206,6 @@ class Widget {
   // Note that this method should only be called in the
   // WidgetView::RenderWidget() method.
   virtual void Render(NVGcontext* context) {}
-
-  // Renders the background color before executing Render() if the widget
-  // is opaque.
-  void RenderBackgroundColor(NVGcontext* context);
 
   // Renders Render() in default_framebuffer_ if caches_rendering_ is true.
   void RenderDefaultFramebuffer(NVGcontext* context);
@@ -289,6 +315,13 @@ class Widget {
 
   // The parent widget of the current widget.
   Widget* parent_;
+
+  // The render function that binded to replace the Render() call.
+  std::function<void()> render_function_;
+
+  // The offset related to the widget's origin as the real origin for rendering
+  // the binded render function or the `Render() method.
+  Point rendering_offset_;
 
   // The scale of the widget to render. This value should always be positive.
   // The default value is 1.

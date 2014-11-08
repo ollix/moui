@@ -111,8 +111,6 @@ class Button : public Control {
     return default_highlighted_style_;
   }
   void set_default_highlighted_style(const HighlightedStyle style);
-  Point rendering_offset() const { return rendering_offset_; }
-  void set_rendering_offset(const Point offset);
   EdgeInsets title_edge_insets() const { return title_edge_insets_; }
   void set_title_edge_insets(const EdgeInsets edge_insets);
   Label* title_label() const { return title_label_; }
@@ -176,10 +174,6 @@ class Button : public Control {
   // determined by `GetControlStateIndex()`. Each element could be NULL to
   // represent no binded render function.
   std::vector<std::function<void()>> render_functions_;
-
-  // The offset related to the button's origin as the real origin for rendering
-  // every binded render functions.
-  Point rendering_offset_;
 
   // The framebuffer for rendering the button in selected state.
   NVGLUframebuffer* selected_state_framebuffer_;

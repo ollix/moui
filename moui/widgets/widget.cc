@@ -53,19 +53,18 @@ Widget::Widget() : Widget(true) {
 }
 
 Widget::Widget(const bool caches_rendering)
-    : animation_count_(0), caches_rendering_(caches_rendering),
-      context_(nullptr), default_framebuffer_(nullptr),
-      default_framebuffer_mutex_(nullptr), height_unit_(Unit::kPoint),
-      height_value_(0), hidden_(false), is_opaque_(true), parent_(nullptr),
-      scale_(1), should_redraw_default_framebuffer_(true),
-      widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
+    : animation_count_(0), background_color_(nvgRGBA(255, 255, 255, 255)),
+      caches_rendering_(caches_rendering), context_(nullptr),
+      default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
+      height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
+      is_opaque_(true), parent_(nullptr), render_function_(NULL),
+      rendering_offset_({0, 0}), scale_(1),
+      should_redraw_default_framebuffer_(true), widget_view_(nullptr),
+      width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
       y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
   if (caches_rendering)
     default_framebuffer_mutex_ = new std::mutex;
-
-  // Sets white as default background color.
-  set_background_color(255, 255, 255, 255);
 }
 
 Widget::~Widget() {
@@ -128,6 +127,23 @@ bool Widget::CollidePoint(const Point point, const int top_padding,
 
 void Widget::EndRenderbufferUpdates() {
   nvgluBindFramebuffer(NULL);
+}
+
+void Widget::ExecuteRenderFunction(NVGcontext* context) {
+  // Fills the background color if the widget is not opaque and the color's
+  // alpha value is not 0.
+  if (is_opaque_ && background_color_.a > 0) {
+    nvgBeginPath(context);
+    nvgRect(context, 0, 0, GetWidth(), GetHeight());
+    nvgFillColor(context, background_color_);
+    nvgFill(context);
+  }
+
+  nvgTranslate(context, rendering_offset_.x, rendering_offset_.y);
+  if (render_function_ == NULL)
+    Render(context);
+  else
+    render_function_();
 }
 
 float Widget::GetHeight() const {
@@ -227,17 +243,6 @@ void Widget::Redraw() {
     widget_view_->Redraw();
 }
 
-void Widget::RenderBackgroundColor(NVGcontext* context) {
-  // Do nothing if the widget is not opaque or the color's alpha value is 0.
-  if (!is_opaque_ || background_color_.a == 0)
-    return;
-
-  nvgBeginPath(context);
-  nvgRect(context, 0, 0, GetWidth(), GetHeight());
-  nvgFillColor(context, background_color_);
-  nvgFill(context);
-}
-
 void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
   if (!caches_rendering_)
     return;
@@ -254,17 +259,19 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
 
   if (BeginRenderbufferUpdates(context, &default_framebuffer_)) {
     nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
-    RenderBackgroundColor(context);
-    Render(context);
+    ExecuteRenderFunction(context);
     nvgEndFrame(context);
     EndRenderbufferUpdates();
-
     default_framebuffer_paint_ = nvgImagePattern(context, 0, kHeight, kWidth,
                                                  kHeight, 0,
                                                  default_framebuffer_->image,
                                                  1);
   }
   default_framebuffer_mutex_->unlock();
+}
+
+bool Widget::RenderFunctionIsBinded() const {
+  return render_function_ != NULL;
 }
 
 void Widget::RenderOnDemand(NVGcontext* context) {
@@ -274,8 +281,7 @@ void Widget::RenderOnDemand(NVGcontext* context) {
     nvgFillPaint(context, default_framebuffer_paint_);
     nvgFill(context);
   } else {
-    RenderBackgroundColor(context);
-    Render(context);
+    ExecuteRenderFunction(context);
   }
 }
 
@@ -352,6 +358,10 @@ void Widget::StopAnimation() {
   widget_view_->StopAnimation();
 }
 
+void Widget::UnbindRenderFunction() {
+  render_function_ = NULL;
+}
+
 void Widget::UpdateChildrenRecursively(Widget* widget) {
   widget->set_widget_view(widget_view_);
   widget->UpdateContext(context_);
@@ -374,6 +384,22 @@ void Widget::UpdateContext(NVGcontext* context) {
   ContextWillChange(context_);
   context_ = context;
   UpdateChildrenRecursively(this);
+}
+
+void Widget::set_background_color(const NVGcolor background_color) {
+  if (!nvgCompareColor(background_color, background_color_)) {
+    background_color_ = background_color;
+    Redraw();
+  }
+}
+
+void Widget::set_rendering_offset(const Point offset) {
+  if (offset.x == rendering_offset_.x && offset.y == rendering_offset_.y)
+    return;
+
+  rendering_offset_ = offset;
+  if (render_function_ != NULL)
+    Redraw();
 }
 
 }  // namespace moui

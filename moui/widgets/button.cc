@@ -62,7 +62,7 @@ Button::Button()
       highlighted_state_framebuffer_(nullptr),
       normal_state_framebuffer_(nullptr),
       normal_state_with_highlighted_effect_framebuffer_(nullptr),
-      rendering_offset_({0.0f, 0.0f}), selected_state_framebuffer_(nullptr),
+      selected_state_framebuffer_(nullptr),
       selected_state_with_highlighted_effect_framebuffer_(nullptr),
       title_edge_insets_({0, 0, 0, 0}), title_label_(new Label) {
   SetHeight(Widget::Unit::kPoint, 44);
@@ -191,7 +191,6 @@ void Button::Render(NVGcontext* context) {
 
   const int kWidth = GetWidth();
   const int kHeight = GetHeight();
-  nvgTranslate(context, rendering_offset_.x, rendering_offset_.y);
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
   NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
@@ -339,14 +338,6 @@ void Button::set_default_highlighted_style(const HighlightedStyle style) {
                       &selected_state_with_highlighted_effect_framebuffer_);
   }
   default_highlighted_style_ = style;
-}
-
-void Button::set_rendering_offset(const Point offset) {
-  if (offset.x == rendering_offset_.x && offset.y == rendering_offset_.y)
-    return;
-
-  rendering_offset_ = offset;
-  Redraw();
 }
 
 void Button::set_title_edge_insets(const EdgeInsets edge_insets) {
