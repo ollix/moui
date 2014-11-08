@@ -249,14 +249,17 @@ void Button::UpdateFramebuffer(const ControlState state,
   ExecuteRenderFunction(state);
   nvgEndFrame(context);
 
-  // Blends with translucent black foreground for default highlighted effect.
+  // Blends with translucent foreground for default highlighted effect.
   if (renders_default_highlighted_effect &&
-      default_highlighted_style_ == HighlightedStyle::kTranslucentBlack) {
+      default_highlighted_style_ != HighlightedStyle::kSemiTransparent) {
     glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
     nvgBeginPath(context);
     nvgRect(context, 0, 0, kWidth, kHeight);
-    nvgFillColor(context, nvgRGBA(0, 0, 0, 50));
+    if (default_highlighted_style_ == HighlightedStyle::kTranslucentBlack)
+      nvgFillColor(context, nvgRGBA(0, 0, 0, 50));
+    else if (default_highlighted_style_ == HighlightedStyle::kTranslucentWhite)
+      nvgFillColor(context, nvgRGBA(255, 255, 255, 50));
     nvgFill(context);
     nvgEndFrame(context);
   }

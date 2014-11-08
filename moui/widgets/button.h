@@ -53,6 +53,8 @@ class Button : public Control {
     kSemiTransparent,
     // Renders the state with blended translucent black foreground.
     kTranslucentBlack,
+    // Renders the state with blended translucent white foreground.
+    kTranslucentWhite,
   };
 
   Button();
