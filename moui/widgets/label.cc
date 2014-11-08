@@ -123,8 +123,8 @@ void Label::WidgetViewWillRender(NVGcontext* context) {
   const int kExpectedNumberOfLines = number_of_lines_ == 0 ?
                                      kMaximumNumberOfLines : number_of_lines_;
   const char* kExpectedLastCharToRender = text_.c_str() + text_.size();
-  const int kLabelWidth = GetWidth();
-  const int kLabelHeight = GetHeight();
+  const float kLabelWidth = GetWidth();
+  const float kLabelHeight = GetHeight();
   const float kMinimumAcceptableFontSize = \
       minimum_scale_factor_ > 0 ?
       font_size_to_render_ * minimum_scale_factor_ : kMinimumFontSize;

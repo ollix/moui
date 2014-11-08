@@ -83,7 +83,6 @@ Button::Button()
   title_label_->set_text_horizontal_alignment(Label::Alignment::kCenter);
   title_label_->set_text_vertical_alignment(Label::Alignment::kMiddle);
   AddChild(title_label_);
-
 }
 
 Button::~Button() {
@@ -189,8 +188,8 @@ void Button::Render(NVGcontext* context) {
   if (*framebuffer == nullptr)
     return;
 
-  const int kWidth = GetWidth();
-  const int kHeight = GetHeight();
+  const float kWidth = GetWidth();
+  const float kHeight = GetHeight();
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
   NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,

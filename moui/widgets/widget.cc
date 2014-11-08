@@ -253,9 +253,11 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
     return;
   }
   should_redraw_default_framebuffer_ = false;
+  nvgluDeleteFramebuffer(context_, default_framebuffer_);
+  default_framebuffer_ = nullptr;
 
-  const int kWidth = GetWidth();
-  const int kHeight = GetHeight();
+  const float kWidth = GetWidth();
+  const float kHeight = GetHeight();
 
   if (BeginRenderbufferUpdates(context, &default_framebuffer_)) {
     nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
@@ -275,7 +277,7 @@ bool Widget::RenderFunctionIsBinded() const {
 }
 
 void Widget::RenderOnDemand(NVGcontext* context) {
-  if (caches_rendering_) {
+  if (caches_rendering_ && default_framebuffer_ != nullptr) {
     nvgBeginPath(context);
     nvgRect(context, 0, 0, GetWidth(), GetHeight());
     nvgFillPaint(context, default_framebuffer_paint_);
