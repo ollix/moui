@@ -45,6 +45,7 @@
         'ui/mac/window_mac.mm',
         'widgets/button.cc',
         'widgets/control.cc',
+        'widgets/grid_layout.cc',
         'widgets/label.cc',
         'widgets/layout.cc',
         'widgets/linear_layout.cc',

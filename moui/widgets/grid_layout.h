@@ -15,20 +15,33 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_WIDGETS_WIDGETS_H_
-#define MOUI_WIDGETS_WIDGETS_H_
+#ifndef MOUI_WIDGETS_GRID_LAYOUT_H_
+#define MOUI_WIDGETS_GRID_LAYOUT_H_
 
-#include "moui/widgets/button.h"
-#include "moui/widgets/control.h"
-#include "moui/widgets/grid_layout.h"
-#include "moui/widgets/label.h"
+#include "moui/base.h"
 #include "moui/widgets/layout.h"
-#include "moui/widgets/linear_layout.h"
-#include "moui/widgets/page_control.h"
-#include "moui/widgets/progress_view.h"
-#include "moui/widgets/scroll_view.h"
-#include "moui/widgets/scroller.h"
-#include "moui/widgets/widget.h"
-#include "moui/widgets/widget_view.h"
 
-#endif  // MOUI_WIDGETS_WIDGETS_H_
+namespace moui {
+
+class GridLayout : public Layout {
+ public:
+  explicit GridLayout(const int number_of_columns);
+  ~GridLayout();
+
+  // Accessors and setters.
+  int number_of_columns() const { return number_of_columns_; }
+  void set_number_of_columns(const int number_of_columns);
+
+ private:
+  // Inherited from Layout class.
+  virtual void ArrangeChildren() override final;
+
+  // Indicates the number of columns to arrange child widgets.
+  int number_of_columns_;
+
+  DISALLOW_COPY_AND_ASSIGN(GridLayout);
+};
+
+}  // namespace moui
+
+#endif  // MOUI_WIDGETS_GRID_LAYOUT_H_
