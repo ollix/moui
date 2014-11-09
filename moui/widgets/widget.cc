@@ -18,6 +18,7 @@
 #include "moui/widgets/widget.h"
 
 #include <cassert>
+#include <cmath>
 #include <mutex>
 #include <stack>
 #include <vector>
@@ -59,7 +60,8 @@ Widget::Widget(const bool caches_rendering)
       height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
       is_opaque_(true), parent_(nullptr), render_function_(NULL),
       rendering_offset_({0, 0}), scale_(1),
-      should_redraw_default_framebuffer_(true), widget_view_(nullptr),
+      should_redraw_default_framebuffer_(true),
+      uses_integer_for_dimensions_(false), widget_view_(nullptr),
       width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
       y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
@@ -148,7 +150,9 @@ void Widget::ExecuteRenderFunction(NVGcontext* context) {
 
 float Widget::GetHeight() const {
   const float kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
-  return CalculatePoints(height_unit_, height_value_, kParentHeight);
+  const float kHeight = CalculatePoints(height_unit_, height_value_,
+                                        kParentHeight);
+  return uses_integer_for_dimensions_ ? std::ceil(kHeight) : kHeight;
 }
 
 void Widget::GetMeasuredBounds(Point* origin, Size* size) {
@@ -182,7 +186,8 @@ void Widget::GetMeasuredBounds(Point* origin, Size* size) {
 
 float Widget::GetWidth() const {
   const float kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
-  return CalculatePoints(width_unit_, width_value_, kParentWidth);
+  const float kWidth = CalculatePoints(width_unit_, width_value_, kParentWidth);
+  return uses_integer_for_dimensions_ ? std::ceil(kWidth) : kWidth;
 }
 
 float Widget::GetX() const {
@@ -306,7 +311,8 @@ void Widget::SetHeight(const Unit unit, const float height) {
 void Widget::SetHidden(const bool hidden) {
   if (hidden != hidden_) {
     hidden_ = hidden;
-    Redraw();
+    if (widget_view_ != nullptr)
+      widget_view_->Redraw();
   }
 }
 
@@ -400,6 +406,22 @@ void Widget::set_rendering_offset(const Point offset) {
   rendering_offset_ = offset;
   if (render_function_ != NULL)
     Redraw();
+}
+
+void Widget::set_scale(const float scale) {
+  if (scale == scale_)
+    return;
+
+  scale_ = scale;
+  if (widget_view_ != nullptr)
+    widget_view_->Redraw();
+}
+
+void Widget::set_uses_integer_for_dimensions(const bool value) {
+  if (value != uses_integer_for_dimensions_) {
+    uses_integer_for_dimensions_ = value;
+    Redraw();
+  }
 }
 
 }  // namespace moui
