@@ -253,8 +253,7 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
     return;
   }
   should_redraw_default_framebuffer_ = false;
-  nvgluDeleteFramebuffer(context_, default_framebuffer_);
-  default_framebuffer_ = nullptr;
+  nvgDeleteFramebuffer(context_, &default_framebuffer_);
 
   const float kWidth = GetWidth();
   const float kHeight = GetHeight();
@@ -378,8 +377,7 @@ void Widget::UpdateContext(NVGcontext* context) {
   // Resets the default framebuffer if caches_rendering_ is true.
   if (context_ != nullptr && default_framebuffer_ != nullptr) {
     default_framebuffer_mutex_->lock();
-    nvgluDeleteFramebuffer(context_, default_framebuffer_);
-    default_framebuffer_ = nullptr;
+    nvgDeleteFramebuffer(context_, &default_framebuffer_);
     default_framebuffer_mutex_->unlock();
   }
 

@@ -54,6 +54,9 @@ int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
                            const int width, const int height,
                            const float scale_factor);
 
+// Deletes the passed framebuffer and resets the pointer.
+void nvgDeleteFramebuffer(NVGcontext* context, NVGLUframebuffer** framebuffer);
+
 }  // namespace moui
 
 #endif  // MOUI_NANOVG_HOOK_H_

@@ -109,6 +109,10 @@ class Button : public Control {
   void UnbindRenderFunction(const ControlState state);
 
   // Accessors and setters.
+  bool adjusts_button_height_to_fit_title_label() const {
+    return adjusts_button_height_to_fit_title_label_;
+  }
+  void set_adjusts_button_height_to_fit_title_label(const bool value);
   HighlightedStyle default_highlighted_style() const {
     return default_highlighted_style_;
   }
@@ -137,6 +141,9 @@ class Button : public Control {
   // Returns true if a render function is binded to the passed control state.
   bool RenderFunctionIsBinded(const ControlState state) const;
 
+  // Resets all framebuffers.
+  void ResetFramebuffers(NVGcontext* context);
+
   // Updates the passed framebuffer offscreen according to passed parameters.
   void UpdateFramebuffer(const ControlState state,
                          const bool renders_default_disabled_effect,
@@ -144,12 +151,18 @@ class Button : public Control {
                          NVGcontext* context, NVGLUframebuffer** framebuffer);
 
   // Updates the title label's attribute based on the button's current state.
-  void UpdateTitleLabel();
+  void UpdateTitleLabel(NVGcontext* context);
 
   // Inherited from Widget class. Updates the title label's attributes to
   // adapt the button's control state and renders the current state to
   // corresonded framebuffer offscreen.
   virtual void WidgetViewWillRender(NVGcontext* context) override final;
+
+  // Indicates whether the height of the button should be increased
+  // automatically in order to fit the title label's vertical size.
+  // The adjustment not only respects button's height but also vertical values
+  // defined in `title_edge_insets_`. The default value is false.
+  bool adjusts_button_height_to_fit_title_label_;
 
   // The style used to render default highlighted state when no corresponded
   // render function is binded. The default style is kTranslucentBlack. Note

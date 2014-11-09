@@ -166,4 +166,11 @@ int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
   return kIdentifier;
 }
 
+void nvgDeleteFramebuffer(NVGcontext* context, NVGLUframebuffer** framebuffer) {
+  if (*framebuffer == nullptr)
+    return;
+  nvgluDeleteFramebuffer(context, *framebuffer);
+  *framebuffer = nullptr;
+}
+
 }  // namespace moui
