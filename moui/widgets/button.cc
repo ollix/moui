@@ -232,12 +232,13 @@ void Button::UpdateFramebuffer(const ControlState state,
                                const bool renders_default_highlighted_effect,
                                NVGcontext* context,
                                NVGLUframebuffer** framebuffer) {
-  if (!BeginRenderbufferUpdates(context, framebuffer))
+  float scale_factor;
+  if (!BeginRenderbufferUpdates(context, framebuffer, &scale_factor))
     return;
 
   const float kWidth = GetWidth();
   const float kHeight = GetHeight();
-  nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
+  nvgBeginFrame(context, kWidth, kHeight, scale_factor);
   if (renders_default_disabled_effect)
     nvgGlobalAlpha(context, kDefaultDisabledStateAlpha);
   if (renders_default_highlighted_effect &&
@@ -250,7 +251,7 @@ void Button::UpdateFramebuffer(const ControlState state,
   if (renders_default_highlighted_effect &&
       default_highlighted_style_ != HighlightedStyle::kSemiTransparent) {
     glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
+    nvgBeginFrame(context, kWidth, kHeight, scale_factor);
     nvgBeginPath(context);
     nvgRect(context, 0, 0, kWidth, kHeight);
     if (default_highlighted_style_ == HighlightedStyle::kTranslucentBlack)

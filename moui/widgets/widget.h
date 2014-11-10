@@ -96,6 +96,10 @@ class Widget {
   // if it doesn't matter.
   void GetMeasuredBounds(Point* origin, Size* size);
 
+  // Returns the widget's scale that related to the corresponded widget view's
+  // coordinate system.
+  float GetMeasureScale();
+
   // Returns the width in points.
   float GetWidth() const;
 
@@ -184,8 +188,16 @@ class Widget {
   // Returns false on failure. If successful, a new framebuffer will be created
   // automatically if `*framebuffer` is `nullptr`, and
   // `EndRenderbufferUpdates()` should be called when finished rendering.
+  //
+  // This method returns the `scale_factor` that used to create the framebufer.
+  // It is calculated based on the screen's scale factor and the widget's
+  // current scale that related to the corresponded widget view's coordinate
+  // system. Passing this value to the `nvgBeginFrame()` function can
+  // generate the best quality. If this value doesn't matter, `nullptr` can
+  // be passed as the `scale_factor` parameter as well.
   bool BeginRenderbufferUpdates(NVGcontext* context,
-                                NVGLUframebuffer** framebuffer);
+                                NVGLUframebuffer** framebuffer,
+                                float* scale_factor);
 
   // Ends the framebuffer environment previously created by
   // `BeginRenderbufferUpdates()`.
@@ -236,6 +248,14 @@ class Widget {
   // Either renders Render() directly or renders default_framebuffer_ if
   // caches_rendering_ is true.
   void RenderOnDemand(NVGcontext* context);
+
+  // Resets the `measured_scale_` property so the value will be re-calculated
+  // the next time calling `GetMeasureScale()`.
+  void ResetMeasuredScale();
+
+  // Resets the measured scale for the passed widget and all of its descendants
+  // recursively.
+  void ResetMeasuredScaleRecursively(Widget* widget);
 
   // This method gets called when an event is about to occur. The returned
   // boolean indicates whether the widget should handle the event. By default
@@ -339,6 +359,12 @@ class Widget {
   // Indicates whether the widget is opaque. If true, the background color
   // will be filled to the entire bounding rectangle. The default value is true.
   bool is_opaque_;
+
+  // Keeps the calculated scale related to the corresponded widget view's
+  // coordinate system. This property should never be accessed directly.
+  // Instead, calling the `GetMeasureScale()` method to retrieve this value
+  // and calling `ResetMeasuredScale()` to reset this value.
+  float measured_scale_;
 
   // The parent widget of the current widget.
   Widget* parent_;

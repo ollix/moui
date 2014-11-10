@@ -68,9 +68,9 @@ Widget::Widget(const bool caches_rendering)
       caches_rendering_(caches_rendering), context_(nullptr),
       default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
       frees_descendants_on_destruction_(false), height_unit_(Unit::kPoint),
-      height_value_(0), hidden_(false), is_opaque_(true), parent_(nullptr),
-      render_function_(NULL), rendering_offset_({0, 0}), scale_(1),
-      should_redraw_default_framebuffer_(true),
+      height_value_(0), hidden_(false), is_opaque_(true), measured_scale_(-1),
+      parent_(nullptr), render_function_(NULL), rendering_offset_({0, 0}),
+      scale_(1), should_redraw_default_framebuffer_(true),
       uses_integer_for_dimensions_(false), widget_view_(nullptr),
       width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
@@ -98,10 +98,11 @@ void Widget::AddChild(Widget* child) {
 }
 
 bool Widget::BeginRenderbufferUpdates(NVGcontext* context,
-                                      NVGLUframebuffer** framebuffer) {
-  const float kScreenScaleFactor = Device::GetScreenScaleFactor();
-  const float kWidth = GetWidth() * kScreenScaleFactor;
-  const float kHeight = GetHeight() * kScreenScaleFactor;
+                                      NVGLUframebuffer** framebuffer,
+                                      float* scale_factor) {
+  const float kScaleFactor = Device::GetScreenScaleFactor() * GetMeasureScale();
+  const float kWidth = GetWidth() * kScaleFactor;
+  const float kHeight = GetHeight() * kScaleFactor;
   if (kWidth <= 0 || kHeight <= 0)
     return false;
   if (*framebuffer == nullptr)
@@ -110,6 +111,8 @@ bool Widget::BeginRenderbufferUpdates(NVGcontext* context,
     *framebuffer = nullptr;
     return false;
   }
+  if (scale_factor != nullptr)
+    *scale_factor = kScaleFactor;
   nvgluBindFramebuffer(*framebuffer);
   glViewport(0, 0, kWidth, kHeight);
   glClearColor(0, 0, 0, 0);
@@ -200,6 +203,18 @@ void Widget::GetMeasuredBounds(Point* origin, Size* size) {
     size->width = GetWidth() * scale;
     size->height = GetHeight() * scale;
   }
+}
+
+float Widget::GetMeasureScale() {
+  if (measured_scale_ < 0) {
+    measured_scale_ = scale_;
+    Widget* parent = parent_;
+    while (parent != nullptr) {
+      measured_scale_ *= parent->scale();
+      parent = parent->parent();
+    }
+  }
+  return measured_scale_;
 }
 
 float Widget::GetWidth() const {
@@ -296,11 +311,11 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
   should_redraw_default_framebuffer_ = false;
   nvgDeleteFramebuffer(context_, &default_framebuffer_);
 
-  const float kWidth = GetWidth();
-  const float kHeight = GetHeight();
-
-  if (BeginRenderbufferUpdates(context, &default_framebuffer_)) {
-    nvgBeginFrame(context, kWidth, kHeight, Device::GetScreenScaleFactor());
+  float scale_factor;
+  if (BeginRenderbufferUpdates(context, &default_framebuffer_, &scale_factor)) {
+    const float kWidth = GetWidth();
+    const float kHeight = GetHeight();
+    nvgBeginFrame(context, kWidth, kHeight, scale_factor);
     ExecuteRenderFunction(context);
     nvgEndFrame(context);
     EndRenderbufferUpdates();
@@ -325,6 +340,16 @@ void Widget::RenderOnDemand(NVGcontext* context) {
   } else {
     ExecuteRenderFunction(context);
   }
+}
+
+void Widget::ResetMeasuredScale() {
+  measured_scale_ = -1;
+}
+
+void Widget::ResetMeasuredScaleRecursively(Widget* widget) {
+  widget->ResetMeasuredScale();
+  for (Widget* child : widget->children())
+    ResetMeasuredScaleRecursively(child);
 }
 
 void Widget::SetBounds(const int x, const int y, const int width,
@@ -449,8 +474,8 @@ void Widget::set_scale(const float scale) {
     return;
 
   scale_ = scale;
-  if (widget_view_ != nullptr)
-    widget_view_->Redraw();
+  ResetMeasuredScaleRecursively(this);
+  Redraw();
 }
 
 void Widget::set_uses_integer_for_dimensions(const bool value) {
