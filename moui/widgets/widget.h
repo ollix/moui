@@ -74,6 +74,10 @@ class Widget {
     render_function_ = std::bind(callback, target, std::ref(context_));
   }
 
+  // Moves the specified child widget so that it appears on top of its siblings.
+  // Returns false if the specified child is not one of its children.
+  bool BringChildToFront(Widget* child);
+
   // Returns true if the passed point is within the region of the widget's
   // bounding box plus the passed padding at every direction.
   bool CollidePoint(const Point point, const int padding);
@@ -111,6 +115,10 @@ class Widget {
   // belonged to the same widget view will be drawn by calling this method.
   // If the current widget doesn't belong to any widget view, nothing happened.
   void Redraw();
+
+  // Unlinks the widget from its parent, and removes it from the responder
+  // chain. Returns false on failure.
+  bool RemoveFromParent();
 
   // Returns true if the render function is binded.
   bool RenderFunctionIsBinded() const;
@@ -152,6 +160,12 @@ class Widget {
   NVGcolor background_color() const { return background_color_; }
   void set_background_color(const NVGcolor background_color);
   std::vector<Widget*>& children() { return children_; }
+  bool frees_descendants_on_destruction() const {
+    return frees_descendants_on_destruction_;
+  }
+  void set_frees_descendants_on_destruction(const bool value) {
+    frees_descendants_on_destruction_ = value;
+  }
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
   Widget* parent() const { return parent_; }
@@ -203,6 +217,11 @@ class Widget {
   // Note that this method should only be called in the
   // WidgetView::HandleEvent() method.
   virtual bool HandleEvent(Event* event) { return false; }
+
+  // Returns true if the passed widget is removed from children. This method
+  // is designed for internal use. To remove a child from a parent widget.
+  // Calls the child widget's `RemoveFromParent()` method directly.
+  bool RemoveChild(Widget* child);
 
   // Implements the logic for rendering the widget. The actual implementation
   // should be done in subclass.
@@ -303,6 +322,10 @@ class Widget {
 
   // The NVGpaint object corresonded to the default_framebuffer_.
   NVGpaint default_framebuffer_paint_;
+
+  // Indicates whether all the widget's descendants should be freed when
+  // executing the widget's destructor. The default value is false.
+  bool frees_descendants_on_destruction_;
 
   // The unit of the height_value_.
   Unit height_unit_;

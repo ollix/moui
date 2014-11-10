@@ -46,6 +46,16 @@ float CalculatePoints(const moui::Widget::Unit unit, const float value,
   return points;
 }
 
+// Frees all descendant widgets of the passed widget recursively. This
+// function is created for the widget's destructor. Note that the passed
+// root widget itself is not freed.
+void FreeDescendantsRecursively(moui::Widget* widget) {
+  for (moui::Widget* child : widget->children()) {
+    FreeDescendantsRecursively(child);
+    delete child;
+  }
+}
+
 }  // namespace
 
 namespace moui {
@@ -57,9 +67,9 @@ Widget::Widget(const bool caches_rendering)
     : animation_count_(0), background_color_(nvgRGBA(255, 255, 255, 255)),
       caches_rendering_(caches_rendering), context_(nullptr),
       default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
-      height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
-      is_opaque_(true), parent_(nullptr), render_function_(NULL),
-      rendering_offset_({0, 0}), scale_(1),
+      frees_descendants_on_destruction_(false), height_unit_(Unit::kPoint),
+      height_value_(0), hidden_(false), is_opaque_(true), parent_(nullptr),
+      render_function_(NULL), rendering_offset_({0, 0}), scale_(1),
       should_redraw_default_framebuffer_(true),
       uses_integer_for_dimensions_(false), widget_view_(nullptr),
       width_unit_(Unit::kPoint), width_value_(0),
@@ -75,9 +85,8 @@ Widget::~Widget() {
   if (caches_rendering_)
     delete default_framebuffer_mutex_;
 
-  // Resets children's parent.
-  for (Widget* child : children())
-    child->set_parent(nullptr);
+  if (frees_descendants_on_destruction_)
+    FreeDescendantsRecursively(this);
 }
 
 void Widget::AddChild(Widget* child) {
@@ -106,6 +115,15 @@ bool Widget::BeginRenderbufferUpdates(NVGcontext* context,
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  return true;
+}
+
+bool Widget::BringChildToFront(Widget* child) {
+  auto iterator = std::find(children_.begin(), children_.end(), child);
+  if (iterator == children_.end())
+    return false;
+  children_.erase(iterator);
+  children_.push_back(child);
   return true;
 }
 
@@ -246,6 +264,24 @@ void Widget::Redraw() {
   }
   if (widget_view_ != nullptr && !IsHidden())
     widget_view_->Redraw();
+}
+
+bool Widget::RemoveChild(Widget* child) {
+  auto iterator = std::find(children_.begin(), children_.end(), child);
+  if (iterator == children_.end())
+    return false;
+  children_.erase(iterator);
+  return true;
+}
+
+bool Widget::RemoveFromParent() {
+  if (parent_ == nullptr || !parent_->RemoveChild(this))
+    return false;
+
+  widget_view_ = nullptr;
+  UpdateContext(nullptr);
+  UpdateChildrenRecursively(this);
+  return true;
 }
 
 void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
