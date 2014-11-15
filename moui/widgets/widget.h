@@ -286,8 +286,15 @@ class Widget {
 
   // This method gets called when the corresponded widget view is about to
   // render widgets but has not started the rendering process yet. It's a good
-  // place to change the widget's position and dimenstion. This method is
-  // always called as long as the widget is attached to a widget view.
+  // place to change the widget's position and dimensions. This method is
+  // always called as long as the widget is attached to a widget view and is
+  // not hidden.
+  //
+  // This method requires a boolean value to be returned. The returned value
+  // indicates whether the widget is ready to render. If `false`, the
+  // corresponded widget view will iterate all of this widget's children
+  // to call their `WidgetViewWillRender()` method repeatedly until this
+  // widget returns `true`.
   //
   // This method also provides an opportunity for offscreen rendering.
   // A typical use is to create a framebuffer and rendering there. Once done,
@@ -300,7 +307,7 @@ class Widget {
   //    ...
   //    nvgEndFrame(context);
   //    EndRenderbufferUpdates();
-  virtual void WidgetViewWillRender(NVGcontext* context) {}
+  virtual bool WidgetViewWillRender(NVGcontext* context) { return true; }
 
   // This method gets called right before the corresponded widget view calling
   // the render() method. Transformation made in this method not only applies

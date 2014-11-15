@@ -57,14 +57,9 @@ bool Layout::ShouldArrangeChildren() {
   return false;
 }
 
-void Layout::WidgetViewDidRender(NVGcontext* context) {
-  if (ShouldArrangeChildren())
-    Redraw();
-}
-
-void Layout::WidgetViewWillRender(NVGcontext* context) {
+bool Layout::WidgetViewWillRender(NVGcontext* context) {
   if (!ShouldArrangeChildren())
-    return;
+    return true;
   should_arrange_children_ = false;
   ArrangeChildren();
 
@@ -75,6 +70,7 @@ void Layout::WidgetViewWillRender(NVGcontext* context) {
                                 {child->GetWidth(), child->GetHeight()},
                                 child});
   }
+  return false;
 }
 
 }  // namespace moui

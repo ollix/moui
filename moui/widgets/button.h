@@ -156,7 +156,7 @@ class Button : public Control {
   // Inherited from Widget class. Updates the title label's attributes to
   // adapt the button's control state and renders the current state to
   // corresonded framebuffer offscreen.
-  virtual void WidgetViewWillRender(NVGcontext* context) override final;
+  virtual bool WidgetViewWillRender(NVGcontext* context) override final;
 
   // Indicates whether the height of the button should be increased
   // automatically in order to fit the title label's vertical size.

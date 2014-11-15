@@ -134,9 +134,9 @@ void Scroller::WidgetViewDidRender(NVGcontext* context) {
 }
 
 // Calculates the animation progress.
-void Scroller::WidgetViewWillRender(NVGcontext* context) {
+bool Scroller::WidgetViewWillRender(NVGcontext* context) {
   if (!IsAnimating())
-    return;
+    return true;
 
   const double kElapsedTime = \
       Clock::GetTimestamp() - animation_initial_timestamp_;
@@ -145,6 +145,7 @@ void Scroller::WidgetViewWillRender(NVGcontext* context) {
     animation_progress_ = kElapsedTime / kAnimatingHideDuration;
 
   animation_progress_ = std::min(1.0f, animation_progress_);
+  return true;
 }
 
 }  // namespace moui

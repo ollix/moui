@@ -31,7 +31,7 @@ class View : public BaseView {
   ~View();
 
   // Inherited from BaseView class.
-  virtual void Redraw() override final;
+  virtual void Redraw() override;
 
  private:
   // Inherited from BaseView class.

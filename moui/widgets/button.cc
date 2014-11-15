@@ -303,7 +303,7 @@ void Button::UpdateTitleLabel(NVGcontext* context) {
 // the current state may not be the actual state to render. For example, if the
 // current state is selected but there is no render function binded. The normal
 // state will be rendered instead.
-void Button::WidgetViewWillRender(NVGcontext* context) {
+bool Button::WidgetViewWillRender(NVGcontext* context) {
   UpdateTitleLabel(context);
 
   // Determines what state to render and which framebuffer to render to.
@@ -344,6 +344,7 @@ void Button::WidgetViewWillRender(NVGcontext* context) {
     UpdateFramebuffer(state, renders_default_disabled_effect,
                       renders_default_highlighted_effect, context, framebuffer);
   }
+  return true;
 }
 
 void Button::set_adjusts_button_height_to_fit_title_label(const bool value) {

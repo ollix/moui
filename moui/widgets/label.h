@@ -85,7 +85,7 @@ class Label : public Widget {
 
   // Inherited from Widget class. The implementation prepares the rendering
   // environemnt according various configurations to render expected results.
-  void WidgetViewWillRender(NVGcontext* context) override final;
+  virtual bool WidgetViewWillRender(NVGcontext* context) override final;
 
   // Indicates whether the font size should be reduced in order to fit the text
   // into the label's bounding rectangle. The default value is no.

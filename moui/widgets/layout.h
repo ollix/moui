@@ -55,10 +55,7 @@ class Layout : public ScrollView {
   bool ShouldArrangeChildren();
 
   // Inherited from Widget class.
-  virtual void WidgetViewDidRender(NVGcontext* context) override final;
-
-  // Inherited from Widget class.
-  virtual void WidgetViewWillRender(NVGcontext* context) override final;
+  virtual bool WidgetViewWillRender(NVGcontext* context) override final;
 
   // Keeps the states of currently managed widgets.
   std::vector<ManagedWidget> managed_widgets_;

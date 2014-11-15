@@ -42,6 +42,9 @@ class WidgetView : public View {
   // Attaches a widget to the widget view for rendering.
   void AddWidget(Widget* widget);
 
+  // Inherited from View class.
+  virtual void Redraw() override final;
+
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width,
                  const int height);
@@ -121,8 +124,10 @@ class WidgetView : public View {
   // widgets.
   virtual void ViewDidRender(NVGcontext* context) {}
 
-  // This method gets called before the view started rendering widgets.
-  virtual void ViewWillRender(NVGcontext* context) {}
+  // This method gets called before the view started rendering widgets. This
+  // method accepts a boolean value to be returned. If `false`, the view will
+  // iterate its attached widgets repeatly until it returns `true`.
+  virtual bool ViewWillRender(NVGcontext* context) { return true; }
 
   // Calls the `Widget::WidgetViewDidRender()` method of the passed widget
   // and all of its children recursively. If the passed widget is the
@@ -146,6 +151,16 @@ class WidgetView : public View {
 
   // The root widget for rendering. All its children will be rendered as well.
   Widget* root_widget_;
+
+  // Indicating whether the widget view is preparing for rendering in the
+  // `Render()` method.
+  bool preparing_for_rendering_;
+
+  // Indicates whether receiving the redraw request while preparing for
+  // rendering. The value is updated in the `Redraw()`. If this value and
+  // `preparing_for_rendering_` are both true in the `Render()` method.
+  // It won't start another round of the rendering process.
+  bool requests_redraw_;
 
   DISALLOW_COPY_AND_ASSIGN(WidgetView);
 };

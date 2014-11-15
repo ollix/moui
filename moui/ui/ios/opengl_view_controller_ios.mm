@@ -40,7 +40,7 @@
 - (void)viewWillAppear:(BOOL)animated {
   [super viewWillAppear:animated];
   MOOpenGLView* openGLView = (MOOpenGLView *)self.view;
-  [[openGLView layer] setNeedsDisplay];
+  [openGLView render];
 }
 
 @end

@@ -32,7 +32,8 @@
 namespace moui {
 
 WidgetView::WidgetView() : View(), context_(nullptr), is_opaque_(true),
-                           root_widget_(new Widget) {
+                           preparing_for_rendering_(false),
+                           requests_redraw_(false), root_widget_(new Widget) {
   root_widget_->set_widget_view(this);
 }
 
@@ -141,7 +142,16 @@ void WidgetView::PopulateWidgetList(const int level, const float scale,
     PopulateWidgetList(level + 1, kChildWidgetScale, widget_list, child, item);
 }
 
+void WidgetView::Redraw() {
+  if (!IsAnimating() && preparing_for_rendering_) {
+    requests_redraw_ = true;
+  } else {
+    View::Redraw();
+  }
+}
+
 void WidgetView::Render() {
+  preparing_for_rendering_ = true;
   if (context_ == nullptr) {
     context_ = nvgCreateGL(NVG_ANTIALIAS);
     root_widget_->UpdateContext(context_);
@@ -149,7 +159,12 @@ void WidgetView::Render() {
   }
 
   // Determines widgets to render in order and filters invisible onces.
-  WidgetViewWillRender(root_widget_);
+  requests_redraw_ = true;
+  while (requests_redraw_) {
+    requests_redraw_ = false;
+    WidgetViewWillRender(root_widget_);
+  }
+  preparing_for_rendering_ = false;
   WidgetList widget_list;
   PopulateWidgetList(0, 1, &widget_list, root_widget_, nullptr);
 
@@ -237,14 +252,21 @@ void WidgetView::WidgetViewDidRender(Widget* widget) {
 }
 
 void WidgetView::WidgetViewWillRender(Widget* widget) {
-  nvgSave(context_);
-  if (widget == root_widget_)
-    ViewWillRender(context_);
-  else
-    widget->WidgetViewWillRender(context_);
-  nvgRestore(context_);
-  for (Widget* child : widget->children())
-    WidgetViewWillRender(child);
+  if (widget->IsHidden())
+    return;
+
+  bool result = false;
+  while (!result) {
+    nvgSave(context_);
+    if (widget == root_widget_)
+      result = ViewWillRender(context_);
+    else
+      result = widget->WidgetViewWillRender(context_);
+    nvgRestore(context_);
+
+    for (Widget* child : widget->children())
+      WidgetViewWillRender(child);
+  }
 }
 
 void WidgetView::set_is_opaque(const bool is_opaque) {

@@ -114,9 +114,9 @@ void Label::SetDefaultFontSize(const float size) {
 // `number_of_lines_`. It also calculates the required height to render the
 // desired result, and increases the label's height or adjusts the label's
 // position accordingly if `adjusts_label_height_to_fit_width_` is set to true.
-void Label::WidgetViewWillRender(NVGcontext* context) {
+bool Label::WidgetViewWillRender(NVGcontext* context) {
   if (!should_prepare_for_rendering_)
-    return;
+    return true;
   should_prepare_for_rendering_ = false;
   font_size_to_render_ = font_size_ > 0 ? font_size_ : default_font_size;
 
@@ -180,6 +180,7 @@ void Label::WidgetViewWillRender(NVGcontext* context) {
     }
     SetHeight(Widget::Unit::kPoint, text_box_height);
   }
+  return true;
 }
 
 void Label::set_adjusts_font_size_to_fit_width(const bool value) {
