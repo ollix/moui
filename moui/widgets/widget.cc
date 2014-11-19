@@ -31,7 +31,7 @@ namespace {
 
 // Returns the actual length in points of the specified value and unit.
 float CalculatePoints(const moui::Widget::Unit unit, const float value,
-                      const int parent_length) {
+                      const float parent_length) {
   float points;
   switch (unit) {
     case moui::Widget::Unit::kPercent:
@@ -130,15 +130,15 @@ bool Widget::BringChildToFront(Widget* child) {
   return true;
 }
 
-bool Widget::CollidePoint(const Point point, const int padding) {
+bool Widget::CollidePoint(const Point point, const float padding) {
   return CollidePoint(point, padding, padding, padding, padding);
 }
 
 // This method compares the passed point to the widget's actual origin and
 // dimenstion related to the corresponded widget view's coordinate system.
-bool Widget::CollidePoint(const Point point, const int top_padding,
-                          const int right_padding, const int bottom_padding,
-                          const int left_padding) {
+bool Widget::CollidePoint(const Point point, const float top_padding,
+                          const float right_padding, const float bottom_padding,
+                          const float left_padding) {
   Point origin;
   Size size;
   GetMeasuredBounds(&origin, &size);
@@ -352,8 +352,8 @@ void Widget::ResetMeasuredScaleRecursively(Widget* widget) {
     ResetMeasuredScaleRecursively(child);
 }
 
-void Widget::SetBounds(const int x, const int y, const int width,
-                       const int height) {
+void Widget::SetBounds(const float x, const float y, const float width,
+                       const float height) {
   SetX(Alignment::kLeft, Unit::kPoint, x);
   SetY(Alignment::kTop, Unit::kPoint, y);
   SetWidth(Unit::kPoint, width);

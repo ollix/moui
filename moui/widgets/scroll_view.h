@@ -96,13 +96,13 @@ class ScrollView : public Widget {
   // The animation state for either horizontal or vertical direction.
   struct AnimationState {
     // The destination location of the content view.
-    int destination_location;
+    float destination_location;
     // The animation duration measured in seconds.
     double duration;
     // Records the elapsed time of the current animation.
     double elapsed_time;
     // The initial location of the content view.
-    int initial_location;
+    float initial_location;
     // Records the timestamp when starting the animation.
     double initial_timestamp;
     // The initial velocity for animating the content view.
@@ -156,12 +156,12 @@ class ScrollView : public Widget {
 
   // Returns the valid range of the content view's origin that guarantees the
   // scroll view is fully covered by the content view.
-  void GetContentViewOriginLimits(int* minimum_x, int* minimum_y,
-                                  int* maximum_x, int* maximum_y) const;
+  void GetContentViewOriginLimits(float* minimum_x, float* minimum_y,
+                                  float* maximum_x, float* maximum_y) const;
 
   // Returns the current location of the animating content view based on the
   // passed animation state.
-  int GetCurrentAnimatingLocation(AnimationState& state) const;
+  float GetCurrentAnimatingLocation(AnimationState& state) const;
 
   // Gets the current velocity of the scroll.
   void GetScrollVelocity(double* horizontal_velocity,
@@ -180,9 +180,9 @@ class ScrollView : public Widget {
   void ReachesContentViewBoundary(bool* horizontal, bool* vertical) const;
 
   // Redraws the scroller for a specific direction.
-  void RedrawScroller(const int scroll_view_length,
-                      const int content_view_offset,
-                      const int content_view_length,
+  void RedrawScroller(const float scroll_view_length,
+                      const float content_view_offset,
+                      const float content_view_length,
                       const bool shows_scrollers_on_both_directions,
                       Scroller* scroller);
 
@@ -192,10 +192,10 @@ class ScrollView : public Widget {
   // Resolves the passed origin location either in horizontal or vertical
   // direction. This method is created for MoveContentView() to calculate
   // a suitable location for showing the content view in various scenarios.
-  int ResolveContentViewOrigin(const int expected_location,
-                               const int scroll_view_length,
-                               const int content_view_length,
-                               const bool bounces) const;
+  float ResolveContentViewOrigin(const float expected_location,
+                                 const float scroll_view_length,
+                                 const float content_view_length,
+                                 const bool bounces) const;
 
   // Inherited from Widget class.
   virtual bool ShouldHandleEvent(const Point location) override final;

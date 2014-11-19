@@ -80,13 +80,13 @@ class Widget {
 
   // Returns true if the passed point is within the region of the widget's
   // bounding box plus the passed padding at every direction.
-  bool CollidePoint(const Point point, const int padding);
+  bool CollidePoint(const Point point, const float padding);
 
   // Returns true if the passed point is within the region of the widget's
   // bounding box plus the paddings at various direction.
-  bool CollidePoint(const Point point, const int top_padding,
-                    const int right_padding, const int bottom_padding,
-                    const int left_padding);
+  bool CollidePoint(const Point point, const float top_padding,
+                    const float right_padding, const float bottom_padding,
+                    const float left_padding);
 
   // Returns the height in points.
   float GetHeight() const;
@@ -128,7 +128,8 @@ class Widget {
   bool RenderFunctionIsBinded() const;
 
   // Sets the bounds of the view in points.
-  void SetBounds(const int x, const int y, const int width, const int height);
+  void SetBounds(const float x, const float y, const float width,
+                 const float height);
 
   // Sets the height with the specified unit.
   void SetHeight(const Unit unit, const float height);

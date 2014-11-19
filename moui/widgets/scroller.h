@@ -75,8 +75,8 @@ class Scroller : public Widget {
   virtual void Render(NVGcontext* context) override final;
 
   // Renders the knob.
-  void RenderKnob(NVGcontext* context, const double position,
-                  const double length) const;
+  void RenderKnob(NVGcontext* context, const float position,
+                  const float length) const;
 
   // Inherited from Widget class.
   virtual void WidgetViewDidRender(NVGcontext* context) override final;

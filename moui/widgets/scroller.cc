@@ -30,17 +30,17 @@ namespace {
 const float kAnimatingHideDuration = 0.2;
 
 // The default width of the scroller's knob.
-const int kKnobWidth = 5;
+const float kKnobWidth = 5;
 
 // The default padding on both sides of the scroller's track .
-const int kTrackPadding = 3;
+const float kTrackPadding = 3;
 
 }  // namespace
 
 namespace moui {
 
 Scroller::Scroller(const Direction direction)
-    : Widget(), animation_progress_(-1), direction_(direction),
+    : Widget(false), animation_progress_(-1), direction_(direction),
       shows_scrollers_on_both_directions_(false) {
   set_is_opaque(false);
   SetX(Widget::Alignment::kRight, Widget::Unit::kPoint, 0);
@@ -77,14 +77,14 @@ void Scroller::Render(NVGcontext* context) {
 
   const int kWidgetLength = direction_ == Direction::kHorizontal ?
                             GetWidth() : GetHeight();
-  const double kTrackLength = \
+  const float kTrackLength = \
       kWidgetLength - kTrackPadding * 2 - \
       (shows_scrollers_on_both_directions_ ? kKnobWidth : 0);
-  const double kKnobLength = std::max(static_cast<double>(kKnobWidth),
-                                      kTrackLength * knob_proportion_);
-  const double kKnobPosition = std::min(
+  const float kKnobLength = std::max(
+      kKnobWidth, static_cast<float>(kTrackLength * knob_proportion_));
+  const float kKnobPosition = std::min(
       kWidgetLength - kTrackPadding - kKnobLength,
-      kTrackPadding + kTrackLength * knob_position_);
+      static_cast<float>(kTrackPadding + kTrackLength * knob_position_));
   RenderKnob(context, kKnobPosition, kKnobLength);
 }
 
@@ -97,15 +97,15 @@ void Scroller::Redraw() {
   Widget::Redraw();
 }
 
-void Scroller::RenderKnob(NVGcontext* context, const double position,
-                          const double length) const {
+void Scroller::RenderKnob(NVGcontext* context, const float position,
+                          const float length) const {
   const float kKnobDotRadius = kKnobWidth / 2;
-  const double kKnobOffset = position + kKnobDotRadius;
+  const float kKnobOffset = position + kKnobDotRadius;
   const int kWidgetWidth = direction_ == Direction::kHorizontal ?
                            GetHeight() : GetWidth();
-  const double kKnobSideOffset = kWidgetWidth - kTrackPadding - kKnobDotRadius;
+  const float kKnobSideOffset = kWidgetWidth - kTrackPadding - kKnobDotRadius;
   // The minimum knob length of 0.1 makes the knob looks like a circle.
-  const double kKnobLength = std::max(0.1, length - kKnobWidth);
+  const float kKnobLength = std::max(0.1f, length - kKnobWidth);
 
   nvgBeginPath(context);
   if (direction_ == Direction::kHorizontal) {
