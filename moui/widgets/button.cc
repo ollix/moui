@@ -233,7 +233,7 @@ void Button::UpdateFramebuffer(const ControlState state,
                                NVGcontext* context,
                                NVGLUframebuffer** framebuffer) {
   float scale_factor;
-  if (!BeginRenderbufferUpdates(context, framebuffer, &scale_factor))
+  if (!BeginFramebufferUpdates(context, framebuffer, &scale_factor))
     return;
 
   const float kWidth = GetWidth();
@@ -262,7 +262,7 @@ void Button::UpdateFramebuffer(const ControlState state,
     nvgEndFrame(context);
   }
 
-  EndRenderbufferUpdates();
+  EndFramebufferUpdates();
 }
 
 void Button::UpdateTitleLabel(NVGcontext* context) {

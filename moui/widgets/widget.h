@@ -98,7 +98,7 @@ class Widget {
 
   // Returns the widget's scale that related to the corresponded widget view's
   // coordinate system.
-  float GetMeasureScale();
+  float GetMeasuredScale();
 
   // Returns the width in points.
   float GetWidth() const;
@@ -188,7 +188,7 @@ class Widget {
   // Initializes the environemnt for rendering in the passed framebuffer.
   // Returns false on failure. If successful, a new framebuffer will be created
   // automatically if `*framebuffer` is `nullptr`, and
-  // `EndRenderbufferUpdates()` should be called when finished rendering.
+  // `EndFramebufferUpdates()` should be called when finished rendering.
   //
   // This method returns the `scale_factor` that used to create the framebufer.
   // It is calculated based on the screen's scale factor and the widget's
@@ -196,13 +196,13 @@ class Widget {
   // system. Passing this value to the `nvgBeginFrame()` function can
   // generate the best quality. If this value doesn't matter, `nullptr` can
   // be passed as the `scale_factor` parameter as well.
-  bool BeginRenderbufferUpdates(NVGcontext* context,
-                                NVGLUframebuffer** framebuffer,
-                                float* scale_factor);
+  bool BeginFramebufferUpdates(NVGcontext* context,
+                               NVGLUframebuffer** framebuffer,
+                               float* scale_factor);
 
   // Ends the framebuffer environment previously created by
-  // `BeginRenderbufferUpdates()`.
-  void EndRenderbufferUpdates();
+  // `BeginFramebufferUpdates()`.
+  void EndFramebufferUpdates();
 
   // The weak reference to nanovg context that will be updated by WidgetView
   // and is guaranteed to be available in all render method variants.
@@ -251,7 +251,7 @@ class Widget {
   void RenderOnDemand(NVGcontext* context);
 
   // Resets the `measured_scale_` property so the value will be re-calculated
-  // the next time calling `GetMeasureScale()`.
+  // the next time calling `GetMeasuredScale()`.
   void ResetMeasuredScale();
 
   // Resets the measured scale for the passed widget and all of its descendants
@@ -303,11 +303,11 @@ class Widget {
   //
   // An example to implement this method for offscreen rendering:
   //    NVGLUframebuffer* framebuffer;  // usually defined as a class member
-  //    BeginRenderbufferUpdates(context, &framebuffer);
+  //    BeginFramebufferUpdates(context, &framebuffer);
   //    nvgBeginFrame(context, GetWidth(), GetHeight(), ScreenScaleFactor);
   //    ...
   //    nvgEndFrame(context);
-  //    EndRenderbufferUpdates();
+  //    EndFramebufferUpdates();
   virtual bool WidgetViewWillRender(NVGcontext* context) { return true; }
 
   // This method gets called right before the corresponded widget view calling
@@ -370,7 +370,7 @@ class Widget {
 
   // Keeps the calculated scale related to the corresponded widget view's
   // coordinate system. This property should never be accessed directly.
-  // Instead, calling the `GetMeasureScale()` method to retrieve this value
+  // Instead, calling the `GetMeasuredScale()` method to retrieve this value
   // and calling `ResetMeasuredScale()` to reset this value.
   float measured_scale_;
 

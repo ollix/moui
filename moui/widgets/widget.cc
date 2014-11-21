@@ -97,10 +97,11 @@ void Widget::AddChild(Widget* child) {
     widget_view_->Redraw();
 }
 
-bool Widget::BeginRenderbufferUpdates(NVGcontext* context,
-                                      NVGLUframebuffer** framebuffer,
-                                      float* scale_factor) {
-  const float kScaleFactor = Device::GetScreenScaleFactor() * GetMeasureScale();
+bool Widget::BeginFramebufferUpdates(NVGcontext* context,
+                                     NVGLUframebuffer** framebuffer,
+                                     float* scale_factor) {
+  const float kScaleFactor = \
+      Device::GetScreenScaleFactor() * GetMeasuredScale();
   const float kWidth = GetWidth() * kScaleFactor;
   const float kHeight = GetHeight() * kScaleFactor;
   if (kWidth <= 0 || kHeight <= 0)
@@ -148,7 +149,7 @@ bool Widget::CollidePoint(const Point point, const float top_padding,
           point.y < (origin.y + size.height + bottom_padding));
 }
 
-void Widget::EndRenderbufferUpdates() {
+void Widget::EndFramebufferUpdates() {
   nvgluBindFramebuffer(NULL);
 }
 
@@ -205,7 +206,7 @@ void Widget::GetMeasuredBounds(Point* origin, Size* size) {
   }
 }
 
-float Widget::GetMeasureScale() {
+float Widget::GetMeasuredScale() {
   if (measured_scale_ < 0) {
     measured_scale_ = scale_;
     Widget* parent = parent_;
@@ -312,13 +313,13 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
   nvgDeleteFramebuffer(context_, &default_framebuffer_);
 
   float scale_factor;
-  if (BeginRenderbufferUpdates(context, &default_framebuffer_, &scale_factor)) {
+  if (BeginFramebufferUpdates(context, &default_framebuffer_, &scale_factor)) {
     const float kWidth = GetWidth();
     const float kHeight = GetHeight();
     nvgBeginFrame(context, kWidth, kHeight, scale_factor);
     ExecuteRenderFunction(context);
     nvgEndFrame(context);
-    EndRenderbufferUpdates();
+    EndFramebufferUpdates();
     default_framebuffer_paint_ = nvgImagePattern(context, 0, kHeight, kWidth,
                                                  kHeight, 0,
                                                  default_framebuffer_->image,
