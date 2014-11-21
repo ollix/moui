@@ -32,7 +32,7 @@
 - (void)applicationDidBecomeActive;
 - (void)applicationWillResignActive;
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
-- (void)setupFrameBuffer;
+- (void)setupFramebuffer;
 
 @end
 
@@ -63,23 +63,13 @@
   _mouiView->HandleEvent(std::unique_ptr<moui::Event>(mouiEvent));
 }
 
-- (void)setupFrameBuffer {
-  // Creates frame buffer.
+- (void)setupFramebuffer {
+  if (_framebuffer != 0)
+    return;
+
   if (_framebuffer == 0)
     glGenFramebuffers(1, &_framebuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-
-  // Creates both stencil and depth render buffers.
-  if (_stencilAndDepthRenderbuffer == 0)
-    glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES,
-                        self.frame.size.width * self.contentScaleFactor,
-                        self.frame.size.height * self.contentScaleFactor);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
 
   // Creates the color render buffer.
   if (_colorRenderbuffer == 0)
@@ -87,7 +77,6 @@
   glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                             GL_RENDERBUFFER, _colorRenderbuffer);
-
   [_eaglContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
 }
 
@@ -172,7 +161,7 @@
     return;
 
   [EAGLContext setCurrentContext:_eaglContext];
-  [self setupFrameBuffer];
+  [self setupFramebuffer];
   _mouiView->Render();
   [_eaglContext presentRenderbuffer:GL_RENDERBUFFER];
   [EAGLContext setCurrentContext:nil];
