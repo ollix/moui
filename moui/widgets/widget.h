@@ -317,7 +317,7 @@ class Widget {
   // cycle.
   virtual void WidgetWillRender(NVGcontext* context) {};
 
-  // Sets the parent.
+  // Sets the logical parent widget.
   void set_parent(Widget* parent) { parent_ = parent; }
 
   // This setter should only be called by the WidgetView firend class.
@@ -374,8 +374,15 @@ class Widget {
   // and calling `ResetMeasuredScale()` to reset this value.
   float measured_scale_;
 
-  // The parent widget of the current widget.
+  // Keeps the pointer to the logical parent widget of the current widget. The
+  // logical parent can be changed through `set_parent()` in inherited widgets
+  // whenever needed.
   Widget* parent_;
+
+  // Keeps the real parent widget of the current widget. Unlike the logical
+  // `parent_` property. This value is always pointing to the real parent
+  // widget and cannot be changed manually.
+  Widget* real_parent_;
 
   // The render function that binded to replace the Render() call.
   std::function<void()> render_function_;

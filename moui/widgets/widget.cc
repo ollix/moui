@@ -69,8 +69,9 @@ Widget::Widget(const bool caches_rendering)
       default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
       frees_descendants_on_destruction_(false), height_unit_(Unit::kPoint),
       height_value_(0), hidden_(false), is_opaque_(true), measured_scale_(-1),
-      parent_(nullptr), render_function_(NULL), rendering_offset_({0, 0}),
-      scale_(1), should_redraw_default_framebuffer_(true),
+      parent_(nullptr), real_parent_(nullptr), render_function_(NULL),
+      rendering_offset_({0, 0}), scale_(1),
+      should_redraw_default_framebuffer_(true),
       uses_integer_for_dimensions_(false), widget_view_(nullptr),
       width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
@@ -90,6 +91,7 @@ Widget::~Widget() {
 }
 
 void Widget::AddChild(Widget* child) {
+  child->real_parent_ = this;
   child->set_parent(this);
   UpdateChildrenRecursively(child);
   children_.push_back(child);
@@ -183,10 +185,10 @@ void Widget::GetMeasuredBounds(Point* origin, Size* size) {
 
   std::stack<Widget*> widget_chain;
   widget_chain.push(this);
-  Widget* parent = parent_;
+  Widget* parent = real_parent_;
   while (parent != nullptr) {
     widget_chain.push(parent);
-    parent = parent->parent();
+    parent = parent->real_parent_;
   }
   float scale = 1;
   if (origin != nullptr)
@@ -294,6 +296,8 @@ bool Widget::RemoveFromParent() {
   if (parent_ == nullptr || !parent_->RemoveChild(this))
     return false;
 
+  parent_ = nullptr;
+  real_parent_ = nullptr;
   widget_view_ = nullptr;
   UpdateContext(nullptr);
   UpdateChildrenRecursively(this);
