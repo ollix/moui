@@ -36,15 +36,18 @@ const double kAnimatingBounceDuration = 0.2;
 // The duration to animate the content view to the next page.
 const double kAnimatingNextPageDuration = 0.1;
 
-// The default acceleration measured in points per second to animate the
-// content view.
-const double kDefaultAnimatingAcceleration = -250;
+// The default acceleration measured in points per second to stop the content
+// view gradually.
+const double kDefaultAnimatingAcceleration = -500;
 
 // The maximum initial velocity to scroll the content view.
 const double kMaximumScrollInitialVelocity = 1000;
 
 // The maximum duration to animate the content view beyond boundary limits.
 const double kReachingBoundaryDuration = 0.05;
+
+// The factor used to calculate the scroll velocity.
+const double kScrollVelocityFactor = 0.7;
 
 // The velocity threshold that treats the current sequence of events as scroll.
 const int kScrollVelocityThreshold = 50;
@@ -71,13 +74,10 @@ double CalculateInitialVelocity(const float displacement,
 
 namespace moui {
 
-ScrollView::ScrollView() : ScrollView(kDefaultAnimatingAcceleration) {
-}
-
-ScrollView::ScrollView(const double animating_acceleration)
+ScrollView::ScrollView()
     : Widget(false), always_bounce_horizontal_(false),
       always_bounce_vertical_(false), always_scroll_to_next_page_(true),
-      animating_acceleration_(animating_acceleration), bounces_(true),
+      animating_acceleration_(kDefaultAnimatingAcceleration), bounces_(true),
       content_view_(new Widget(false)), enables_paging_(false),
       enables_scroll_(true), page_width_(0),
       shows_horizontal_scroll_indicator_(true),
@@ -277,12 +277,14 @@ void ScrollView::GetScrollVelocity(double* horizontal_velocity,
   }  else {
     *horizontal_velocity = \
         (last_event.location.x - initial_event.location.x) / elapsed_time;
-    *horizontal_velocity = std::min(kMaximumScrollInitialVelocity,
-                                    *horizontal_velocity * 0.3);
+    *horizontal_velocity = std::min(
+        kMaximumScrollInitialVelocity,
+        *horizontal_velocity * kScrollVelocityFactor);
     *vertical_velocity = \
         (last_event.location.y - initial_event.location.y) / elapsed_time;
-    *vertical_velocity = std::min(kMaximumScrollInitialVelocity,
-                                  *vertical_velocity * 0.3);
+    *vertical_velocity = std::min(
+        kMaximumScrollInitialVelocity,
+        *vertical_velocity * kScrollVelocityFactor);
   }
 }
 

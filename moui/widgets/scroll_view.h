@@ -35,7 +35,6 @@ class Scroller;
 class ScrollView : public Widget {
  public:
   ScrollView();
-  explicit ScrollView(const double animating_acceleration);
   ~ScrollView();
 
   // Adds a child widget to the scroll view.
@@ -62,6 +61,10 @@ class ScrollView : public Widget {
 
   // Accessors and setters.
   bool always_bounce_horizontal() const { return always_bounce_horizontal_; }
+  double animating_acceleration() const { return animating_acceleration_; }
+  void set_animating_acceleration(const double value) {
+    animating_acceleration_ = value;
+  }
   void set_always_bounce_horizontal(const bool value) {
     always_bounce_horizontal_ = value;
   }
