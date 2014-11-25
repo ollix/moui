@@ -69,6 +69,12 @@ class ScrollView : public Widget {
   void set_always_bounce_vertical(const bool value) {
     always_bounce_vertical_ = value;
   }
+  bool always_scroll_to_next_page() const {
+    return always_scroll_to_next_page_;
+  }
+  void set_always_scroll_to_next_page(const bool value) {
+    always_scroll_to_next_page_ = value;
+  }
   bool bounces() const { return bounces_; }
   void set_bounces(const bool value) { bounces_ = value; }
   std::vector<Widget*>& children() {
@@ -79,6 +85,11 @@ class ScrollView : public Widget {
   void set_enables_paging(const bool value) { enables_paging_ = value; }
   bool enables_scroll() const { return enables_scroll_; }
   void set_enables_scroll(const bool value) { enables_scroll_ = value; }
+  float page_width() const {
+    return !enables_paging_ || page_width_ <= 0 || page_width_ > GetWidth() ?
+           GetWidth() : page_width_;
+  }
+  void set_page_width(const float page_width) { page_width_ = page_width; };
   bool shows_horizontal_scroll_indicator() const {
     return shows_horizontal_scroll_indicator_;
   }
@@ -91,6 +102,11 @@ class ScrollView : public Widget {
   void set_shows_vertical_scroll_indicator(const bool value) {
     shows_vertical_scroll_indicator_ = value;
   }
+
+ protected:
+  // Inherited from Widget class. Moves the content view and updates animation
+  // states accordingly.
+  virtual bool WidgetViewWillRender(NVGcontext* context) override;
 
  private:
   // The animation state for either horizontal or vertical direction.
@@ -147,12 +163,14 @@ class ScrollView : public Widget {
                                     const double duration);
 
   // Moves the content view to not reach its horizontal boundaries. If pageing
-  // is enabled, it aligns the current page's origin to the scroll view's.
-  void BounceContentViewHorizontally();
+  // is enabled, it moves the current page to the center of the scroll view.
+                                    void BounceContentViewHorizontally();
 
-  // Moves the content view to not reach its vertical boundaries. If pageing
-  // is enabled, it aligns the current page's origin to the scroll view's.
+  // Moves the content view to not reach its vertical boundaries.
   void BounceContentViewVertically();
+
+  // Returns the content view's horizontal offset for the current page.
+  float GetContentViewOffsetForCurrentPage() const;
 
   // Returns the valid range of the content view's origin that guarantees the
   // scroll view is fully covered by the content view.
@@ -183,6 +201,7 @@ class ScrollView : public Widget {
   void RedrawScroller(const float scroll_view_length,
                       const float content_view_offset,
                       const float content_view_length,
+                      const float content_view_padding,
                       const bool shows_scrollers_on_both_directions,
                       Scroller* scroller);
 
@@ -195,6 +214,7 @@ class ScrollView : public Widget {
   float ResolveContentViewOrigin(const float expected_location,
                                  const float scroll_view_length,
                                  const float content_view_length,
+                                 const float content_view_padding,
                                  const bool bounces) const;
 
   // Inherited from Widget class.
@@ -214,10 +234,6 @@ class ScrollView : public Widget {
   void UpdateAnimationState(const bool reaches_boundary, Scroller* scroller,
                             AnimationState* state);
 
-  // Inherited from Widget class. Moves the content view and updates animation
-  // states accordingly.
-  virtual void WidgetWillRender(NVGcontext* context) override final;
-
   // The acceleration that controls the feel of how the content view moves
   // in animation. This value is measured in points per second and must be
   // a negative number.
@@ -234,6 +250,12 @@ class ScrollView : public Widget {
   // even if the content is smaller than the bounds of the scroll view. The
   // default value is false.
   bool always_bounce_vertical_;
+
+  // Indicates whether a scroll action should always move the scroll view to
+  // the next page. If this value is set to false, the scroll view will stop
+  // gradually as usual and then move the current page to the center of which.
+  // The default value is true.
+  bool always_scroll_to_next_page_;
 
   // Indicates whether the scroll view bounces past the edge of content back
   // again. If the value is true, the scroll view bounces when it encounters
@@ -269,6 +291,11 @@ class ScrollView : public Widget {
 
   // Records the current page when received the first scroll event.
   int initial_scroll_page_;
+
+  // Indicates the width of every page. The value should always be greater than
+  // 0 and lesser than the scroll view's width, or `page_width()` will return
+  // the scroll view's width instead of the actual value.
+  float page_width_;
 
   // Indicates whether the horizontal scroll indicator is visible.
   bool shows_horizontal_scroll_indicator_;

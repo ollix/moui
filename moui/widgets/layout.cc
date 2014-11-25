@@ -58,8 +58,9 @@ bool Layout::ShouldArrangeChildren() {
 }
 
 bool Layout::WidgetViewWillRender(NVGcontext* context) {
-  if (!ShouldArrangeChildren())
-    return true;
+  if (!ShouldArrangeChildren()) {
+    return ScrollView::WidgetViewWillRender(context);
+  }
   should_arrange_children_ = false;
   ArrangeChildren();
 

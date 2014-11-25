@@ -82,9 +82,7 @@ void Scroller::Render(NVGcontext* context) {
       (shows_scrollers_on_both_directions_ ? kKnobWidth : 0);
   const float kKnobLength = std::max(
       kKnobWidth, static_cast<float>(kTrackLength * knob_proportion_));
-  const float kKnobPosition = std::min(
-      kWidgetLength - kTrackPadding - kKnobLength,
-      static_cast<float>(kTrackPadding + kTrackLength * knob_position_));
+  const float kKnobPosition = kTrackPadding + kTrackLength * knob_position_;
   RenderKnob(context, kKnobPosition, kKnobLength);
 }
 

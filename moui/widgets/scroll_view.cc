@@ -76,10 +76,11 @@ ScrollView::ScrollView() : ScrollView(kDefaultAnimatingAcceleration) {
 
 ScrollView::ScrollView(const double animating_acceleration)
     : Widget(false), always_bounce_horizontal_(false),
-      always_bounce_vertical_(false),
+      always_bounce_vertical_(false), always_scroll_to_next_page_(true),
       animating_acceleration_(animating_acceleration), bounces_(true),
       content_view_(new Widget(false)), enables_paging_(false),
-      enables_scroll_(true), shows_horizontal_scroll_indicator_(true),
+      enables_scroll_(true), page_width_(0),
+      shows_horizontal_scroll_indicator_(true),
       shows_vertical_scroll_indicator_(true) {
   // Initializes content view.
   content_view_->set_is_opaque(false);
@@ -164,7 +165,12 @@ void ScrollView::AnimateContentViewVertically(const float origin_y,
 
 void ScrollView::BounceContentViewHorizontally() {
   float minimum_x, minimum_y, maximum_x, maximum_y;
-  GetContentViewOriginLimits(&minimum_x, &minimum_y, &maximum_x, &maximum_y);
+  if (enables_paging_) {
+    minimum_x = GetContentViewOffsetForCurrentPage();
+    maximum_x = minimum_x;
+  } else {
+    GetContentViewOriginLimits(&minimum_x, &minimum_y, &maximum_x, &maximum_y);
+  }
   float x = content_view_->GetX();
   if (x < minimum_x)
     x = minimum_x;
@@ -186,22 +192,33 @@ void ScrollView::BounceContentViewVertically() {
     y = maximum_y;
   else
     return;
-
   vertical_animation_state_.is_bouncing = true;
   AnimateContentViewVertically(y, kAnimatingBounceDuration);
+}
+
+float ScrollView::GetContentViewOffsetForCurrentPage() const {
+  const float kPageWidth = page_width();
+  const float kHorizontalPadding = (GetWidth() - kPageWidth) / 2;
+  return GetCurrentPage() * -kPageWidth + kHorizontalPadding;
 }
 
 void ScrollView::GetContentViewOriginLimits(float* minimum_x,
                                             float* minimum_y,
                                             float* maximum_x,
                                             float* maximum_y) const {
-  if (enables_paging_) {
-    *minimum_x = GetCurrentPage() * this->GetWidth() * -1;
+  // Determines horizontal limits.
+  if (enables_paging_ && always_scroll_to_next_page_) {
+    *minimum_x = GetContentViewOffsetForCurrentPage();
     *maximum_x = *minimum_x;
   } else {
-    *minimum_x = std::min(0.0f, this->GetWidth() - content_view_->GetWidth());
-    *maximum_x = 0;
+    const float kScrollViewWidth = GetWidth();
+    const float kHorizontalPadding = (kScrollViewWidth - page_width()) / 2;
+    *minimum_x = std::min(
+        0.0f,
+        kScrollViewWidth - content_view_->GetWidth() - kHorizontalPadding);
+    *maximum_x = kHorizontalPadding;
   }
+  // Determines vertical limits.
   *minimum_y = std::min(0.0f, this->GetHeight() - content_view_->GetHeight());
   *maximum_y = 0;
 }
@@ -219,11 +236,11 @@ float ScrollView::GetCurrentAnimatingLocation(AnimationState& state) const {
 }
 
 int ScrollView::GetCurrentPage() const {
-  const int kPageWidth = this->GetWidth();
+  const float kPageWidth = page_width();
   if (content_view_->GetWidth() < kPageWidth)
     return 0;
 
-  const int kPage = (kPageWidth / 2 - content_view_->GetX()) / kPageWidth;
+  const int kPage = (GetWidth() / 2 - content_view_->GetX()) / kPageWidth;
   if (kPage < 0)
     return 0;
 
@@ -235,7 +252,7 @@ int ScrollView::GetCurrentPage() const {
 }
 
 int ScrollView::GetMaximumPage() const {
-  return content_view_->GetWidth() / this->GetWidth() - 1;
+  return content_view_->GetWidth() / page_width() - 1;
 }
 
 void ScrollView::GetScrollVelocity(double* horizontal_velocity,
@@ -315,11 +332,12 @@ void ScrollView::MoveContentView(const Point& expected_origin) {
   resolved_origin.x = ResolveContentViewOrigin(expected_origin.x,
                                                this->GetWidth(),
                                                content_view_->GetWidth(),
+                                               (GetWidth() - page_width()) / 2,
                                                always_bounce_horizontal_);
   resolved_origin.y = ResolveContentViewOrigin(expected_origin.y,
                                                this->GetHeight(),
                                                content_view_->GetHeight(),
-                                               always_bounce_vertical_);
+                                               0, always_bounce_vertical_);
   SetContentViewOffset(resolved_origin.x, resolved_origin.y);
   RedrawScrollers() ;
 }
@@ -352,22 +370,28 @@ void ScrollView::ReachesContentViewBoundary(bool* horizontal,
 void ScrollView::RedrawScroller(const float scroll_view_length,
                                 const float content_view_offset,
                                 const float content_view_length,
+                                const float content_view_padding,
                                 const bool shows_scrollers_on_both_directions,
                                 Scroller* scroller) {
-  float content_view_visible_length;
-  if (content_view_length < scroll_view_length)
-    content_view_visible_length = scroll_view_length;
-  else if (content_view_offset > 0)
-    content_view_visible_length = scroll_view_length - content_view_offset;
-  else if ((content_view_offset + content_view_length) < scroll_view_length)
-    content_view_visible_length = content_view_offset + content_view_length;
-  else
-    content_view_visible_length = scroll_view_length;
+  const float kContentViewOffset = content_view_offset - content_view_padding;
+  const float kContentViewLength = \
+      content_view_length + content_view_padding * 2;
 
-  const double kKnobPosition = \
-      std::max(0.0f, (0 - content_view_offset)) * 1.0 / content_view_length;
+  float content_view_visible_length;
+  if (kContentViewLength < scroll_view_length) {
+    content_view_visible_length = scroll_view_length;
+  } else if (kContentViewOffset > 0) {
+    content_view_visible_length = scroll_view_length - kContentViewOffset;
+  } else if ((kContentViewOffset + kContentViewLength) < scroll_view_length) {
+    content_view_visible_length = kContentViewOffset + kContentViewLength;
+  } else {
+    content_view_visible_length = scroll_view_length;
+  }
+
   const double kKnobProportion = \
-      content_view_visible_length / content_view_length;
+      content_view_visible_length / kContentViewLength;
+  const double kKnobPosition = \
+      -kContentViewOffset / content_view_visible_length * kKnobProportion;
 
   scroller->set_knob_position(kKnobPosition);
   scroller->set_knob_proportion(kKnobProportion);
@@ -385,7 +409,7 @@ void ScrollView::RedrawScrollers() {
   const bool kShowsHorizontalScroller = \
       shows_horizontal_scroll_indicator_ &&
       (IsScrolling() || horizontal_animation_state_.is_animating) &&
-      kContentViewWidth > kScrollViewWidth;
+      kContentViewWidth - page_width() > 0;
   const bool kShowsVerticalScroller = \
       shows_vertical_scroll_indicator_ &&
       (IsScrolling() || vertical_animation_state_.is_animating) &&
@@ -395,14 +419,15 @@ void ScrollView::RedrawScrollers() {
 
   if (kShowsHorizontalScroller) {
     RedrawScroller(kScrollViewWidth, content_view_->GetX(),
-                   kContentViewWidth, kShowsScrollersOnBothDirections,
+                   kContentViewWidth, (kScrollViewWidth - page_width()) / 2,
+                   kShowsScrollersOnBothDirections,
                    horizontal_scroller_);
     horizontal_scroller_->SetHidden(false);
   }
 
   if (kShowsVerticalScroller) {
     RedrawScroller(kScrollViewHeight, content_view_->GetY(),
-                   kContentViewHeight, kShowsScrollersOnBothDirections,
+                   kContentViewHeight, 0, kShowsScrollersOnBothDirections,
                    vertical_scroller_);
     vertical_scroller_->SetHidden(false);
   }
@@ -411,6 +436,7 @@ void ScrollView::RedrawScrollers() {
 float ScrollView::ResolveContentViewOrigin(const float expected_origin,
                                            const float scroll_view_length,
                                            const float content_view_length,
+                                           const float content_view_padding,
                                            const bool bounces) const {
   // Stops immediately at content view's boundary if bounce is disabled. This
   // applies no matter whether the content view is animating or not.
@@ -430,11 +456,13 @@ float ScrollView::ResolveContentViewOrigin(const float expected_origin,
   // covered by the content view. It also guarantees at least half of the
   // scroll view is covered by the content view.
   float overflowed_offset;
-  if (expected_origin > 0 || content_view_length < scroll_view_length) {
-    overflowed_offset = std::abs(expected_origin);
-  } else if ((expected_origin + content_view_length) < scroll_view_length) {
-    overflowed_offset = \
-        scroll_view_length - (expected_origin + content_view_length);
+  if (expected_origin > content_view_padding ||
+      content_view_length < scroll_view_length) {
+    overflowed_offset = std::abs(content_view_padding - expected_origin);
+  } else if ((expected_origin + content_view_length + content_view_padding) <
+               scroll_view_length) {
+    overflowed_offset = scroll_view_length - content_view_padding - \
+                        (expected_origin + content_view_length);
   } else {
     return expected_origin;  // scroll view is fully covered by content view
   }
@@ -442,12 +470,13 @@ float ScrollView::ResolveContentViewOrigin(const float expected_origin,
       std::min(1.0f, (overflowed_offset / 2) / scroll_view_length);
   const float kMaximumOffset = scroll_view_length * 0.5;
   float resolved_offset = std::sin(kProgress / 2 * M_PI) * kMaximumOffset;
-  if (expected_origin > 0)  // offset is overflowed on the left side
-    return resolved_offset;
+  if (expected_origin > content_view_padding)  // overflowed on the left side
+    return resolved_offset + content_view_padding;
   if (content_view_length < scroll_view_length)  // content view is smaller
-    return -resolved_offset;
+    return -resolved_offset + content_view_padding;
   // Offset is overflowed on the right side.
-  return scroll_view_length - resolved_offset - content_view_length;
+  return scroll_view_length - content_view_padding - resolved_offset - \
+         content_view_length;
 }
 
 void ScrollView::SetContentViewOffset(const float offset_x,
@@ -505,13 +534,14 @@ bool ScrollView::StopScrollingGradually() {
   AnimateContentViewVertically(content_view_->GetY() + kVerticalDisplacement,
                                vertical_velocity, kVerticalDuration);
 
-  if (enables_paging_) {
+  if (enables_paging_ && always_scroll_to_next_page_) {
     // Determines the next page.
     const int kNextPage = horizontal_velocity < 0 ? initial_scroll_page_ + 1 :
                                                     initial_scroll_page_ - 1;
     if (kNextPage >= 0 && kNextPage <= GetMaximumPage()) {
-      AnimateContentViewHorizontally(kNextPage * -GetWidth(),
-                                     kAnimatingNextPageDuration);
+      const float kPageWidth = page_width();
+      const float kX = kNextPage * -kPageWidth + (GetWidth() - kPageWidth) / 2;
+      AnimateContentViewHorizontally(kX, kAnimatingNextPageDuration);
       return true;
     }
   }
@@ -540,35 +570,49 @@ void ScrollView::UpdateAnimationState(const bool reaches_boundary,
     state->reaches_boundary_timestamp = kCurrentTimestamp;
   }
 
-  // Determines whether the view should bounces in the current diration.
-  const bool kBounces = \
+  // Determines whether the view should bounces in the current direction.
+  const bool kShouldBounce = \
       scroller == horizontal_scroller_ ?
-      always_bounce_horizontal_ || content_view_->GetWidth() > GetWidth():
+      always_bounce_horizontal_ || content_view_->GetWidth() - page_width() > 0:
       always_bounce_vertical_ || content_view_->GetHeight() > GetHeight();
 
   // Stops animating if reaching preset animation duration or reaching content
   // view's boundary without bounce supported.
   if (state->elapsed_time >= state->duration ||
-      ((!bounces_ || !kBounces) && reaches_boundary)) {
+      ((!bounces_ || !kShouldBounce) && reaches_boundary)) {
     state->is_animating = false;
     state->is_bouncing = false;
-    scroller->HideInAnimation();
   }
 
   // Starts bouncing the content view if meets the maximum accepatable duration.
-  if (!state->is_bouncing && reaches_boundary &&
+  const bool kReachesBoundaryDuration = \
       (kCurrentTimestamp - state->reaches_boundary_timestamp) >
-          kReachingBoundaryDuration) {
+      kReachingBoundaryDuration;
+
+  if (!state->is_animating ||
+      (!state->is_bouncing && reaches_boundary && kReachesBoundaryDuration)) {
     if (scroller == horizontal_scroller_)
       BounceContentViewHorizontally();
     else if (scroller == vertical_scroller_)
       BounceContentViewVertically();
   }
+
+  // Hides the scroller if the animation is done.
+  if (!state->is_animating)
+    scroller->HideInAnimation();
 }
 
-void ScrollView::WidgetWillRender(NVGcontext* context) {
+bool ScrollView::WidgetViewWillRender(NVGcontext* context) {
+  // Moves the current page to center if paging is enabled and the scroll view
+  // is not responding to events.
+  if (enables_paging_ && !horizontal_animation_state_.is_animating &&
+      event_history_.empty()) {
+    content_view_->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint,
+                        GetContentViewOffsetForCurrentPage());
+  }
+
   if (!IsAnimating())
-    return;
+    return true;
 
   const double kCurrentTimestamp = Clock::GetTimestamp();
   horizontal_animation_state_.elapsed_time = \
@@ -595,6 +639,7 @@ void ScrollView::WidgetWillRender(NVGcontext* context) {
   if (!horizontal_animation_state_.is_animating &&
       !vertical_animation_state_.is_animating)
     StopAnimation();
+  return true;
 }
 
 }  // namespace moui
