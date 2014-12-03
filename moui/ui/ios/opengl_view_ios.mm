@@ -71,6 +71,18 @@
     glGenFramebuffers(1, &_framebuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
+  // Creates both stencil and depth render buffers.
+  if (_stencilAndDepthRenderbuffer == 0)
+    glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES,
+                        self.frame.size.width * self.contentScaleFactor,
+                        self.frame.size.height * self.contentScaleFactor);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+
   // Creates the color render buffer.
   if (_colorRenderbuffer == 0)
     glGenRenderbuffers(1, &_colorRenderbuffer);
@@ -99,6 +111,7 @@
     _is_active = YES;
     _mouiView = mouiView;
     _needsRedraw = NO;
+    _stencilAndDepthRenderbuffer = 0;
     _stopsUpdatingView = YES;
     _viewController = viewController;
 
