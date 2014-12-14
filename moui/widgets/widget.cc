@@ -420,15 +420,19 @@ bool Widget::ShouldHandleEvent(const Point location) {
 void Widget::StartAnimation() {
   if (widget_view_ == nullptr)
     return;
+
+  if (animation_count_ == 0)
+    widget_view_->StartAnimation();
   ++animation_count_;
-  widget_view_->StartAnimation();
 }
 
 void Widget::StopAnimation() {
   if (widget_view_ == nullptr)
     return;
-  animation_count_ = std::max(0, animation_count_ - 1);
-  widget_view_->StopAnimation();
+
+  if (--animation_count_ == 0)
+    widget_view_->StopAnimation();
+  animation_count_ = std::max(0, animation_count_);
 }
 
 void Widget::UnbindRenderFunction() {

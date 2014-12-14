@@ -82,6 +82,8 @@ ScrollView::ScrollView()
       enables_scroll_(true), page_width_(0),
       shows_horizontal_scroll_indicator_(true),
       shows_vertical_scroll_indicator_(true) {
+  set_responder_chain_identifier("moui::ScrollView");
+
   // Initializes content view.
   content_view_->set_is_opaque(false);
   content_view_->SetWidth(Widget::Unit::kPercent, 100);
@@ -255,6 +257,43 @@ int ScrollView::GetMaximumPage() const {
   return content_view_->GetWidth() / page_width() - 1;
 }
 
+ScrollView::ScrollDirection ScrollView::GetScrollDirection() const {
+  if (event_history_.size() < 2)
+    return ScrollDirection::kUnknown;
+
+  // auto event_history_iterator = event_history_.end();
+  // ScrollEvent latest_event = *(event_history_iterator - 1);
+  // ScrollEvent previous_event = *(event_history_iterator - 2);
+
+  ScrollEvent latest_event = event_history_.back();
+  ScrollEvent previous_event = event_history_.front();
+
+  const float kOffsetX = latest_event.location.x - previous_event.location.x;
+  const float kOffsetY = latest_event.location.y - previous_event.location.y;
+  const float kTheta = std::atan2(kOffsetY, kOffsetX);
+  float angle = (kTheta + M_PI / 2) * 180 / M_PI;
+  if (angle < 0) angle += 360;
+  if (acceptable_scroll_direction_ == ScrollDirection::kBoth) {
+    const float kHalfRange = 360 / 8 / 2;
+    if (angle < kHalfRange || angle > (360 - kHalfRange) ||
+        (angle > (180 - kHalfRange) && angle < (180 + kHalfRange))) {
+      return ScrollDirection::kVertical;
+    }
+    if ((angle > (90 - kHalfRange) && angle < (90 + kHalfRange)) ||
+        (angle > (270 - kHalfRange) && angle < (270 + kHalfRange))) {
+      return ScrollDirection::kHorizontal;
+    }
+    return ScrollDirection::kBoth;
+  }
+  // Acceptable direction is either horizontal or vertical.
+  const float kHalfRange = 360 / 4 / 2;
+  if (angle < kHalfRange || angle > (270 + kHalfRange) ||
+      (angle > (180 - kHalfRange) && angle < (180 + kHalfRange))) {
+    return ScrollDirection::kVertical;
+  }
+  return ScrollDirection::kHorizontal;
+}
+
 void ScrollView::GetScrollVelocity(double* horizontal_velocity,
                                    double* vertical_velocity) {
   if (event_history_.size() < 2) {
@@ -289,28 +328,46 @@ void ScrollView::GetScrollVelocity(double* horizontal_velocity,
 }
 
 bool ScrollView::HandleEvent(Event* event) {
+  if (ignores_upcoming_events_)
+    return true;
+
   const double kTimestamp = Clock::GetTimestamp();
   Point current_location = event->locations()->at(0);
+  event_history_.push_back({current_location, kTimestamp});
 
-  if (event->type() == Event::Type::kDown) {
+  if (locked_scroll_direction_ == ScrollDirection::kUnknown) {
+    locked_scroll_direction_ = GetScrollDirection();
+    if (acceptable_scroll_direction_ != ScrollDirection::kBoth &&
+        locked_scroll_direction_ != ScrollDirection::kUnknown &&
+        locked_scroll_direction_ != acceptable_scroll_direction_)
+      ignores_upcoming_events_ = true;
+  }
+
+  if (locked_scroll_direction_ == ScrollDirection::kUnknown ||
+      event->type() == Event::Type::kDown) {
     StopAnimation();
-    event_history_.push_back({current_location, kTimestamp});
     initial_scroll_content_view_origin_ = {content_view_->GetX(),
                                            content_view_->GetY()};
     initial_scroll_page_ = GetCurrentPage();
-  } else if (event->type() == Event::Type::kMove) {
-    event_history_.push_back({current_location, kTimestamp});
+    return true;
+  }
+
+  if (!ignores_upcoming_events_ && event->type() == Event::Type::kMove) {
     ScrollEvent first_event = event_history_.front();
     const float kOffsetX = current_location.x - first_event.location.x;
     const float kOffsetY = current_location.y - first_event.location.y;
     const float kOriginX = initial_scroll_content_view_origin_.x + kOffsetX;
     const float kOriginY = initial_scroll_content_view_origin_.y + kOffsetY;
     MoveContentView({kOriginX, kOriginY});
-  } else if (event->type() == Event::Type::kUp ||
-             event->type() == Event::Type::kCancel) {
+    return false;
+  }
+
+  if (ignores_upcoming_events_ || event->type() == Event::Type::kUp ||
+      event->type() == Event::Type::kCancel) {
     // Stops the current scroll gradully or bounces the view if the current
     // action is not recognized as scroll at all.
-    if (!StopScrollingGradually()) {
+    if (ignores_upcoming_events_ ||
+        (event_history_.size() > 2 && !StopScrollingGradually())) {
       BounceContentViewHorizontally();
       BounceContentViewVertically();
     }
@@ -321,8 +378,9 @@ bool ScrollView::HandleEvent(Event* event) {
       horizontal_scroller_->HideInAnimation();
     if (!vertical_animation_state_.is_animating)
       vertical_scroller_->HideInAnimation();
+    return true;
   }
-  return false;
+  return ignores_upcoming_events_;
 }
 
 bool ScrollView::IsScrolling() const {
@@ -505,11 +563,26 @@ bool ScrollView::ShouldHandleEvent(const Point location) {
   if (!enables_scroll_ || !CollidePoint(location, 0))
     return false;
 
-  if (bounces_ && (always_bounce_horizontal_ || always_bounce_vertical_))
-    return true;
+  const bool kEnablesHorizontalScroll = \
+      (content_view_->GetWidth() > GetWidth()) ||
+      (bounces_ && always_bounce_horizontal_);
 
-  return content_view_->GetWidth() > GetWidth() ||
-         content_view_->GetHeight() > GetHeight();
+  const bool kEnablesVerticalScroll = \
+      (content_view_->GetHeight() > GetHeight()) ||
+      (bounces_ && always_bounce_vertical_);
+
+  if (kEnablesHorizontalScroll && kEnablesVerticalScroll) {
+    acceptable_scroll_direction_ = ScrollDirection::kBoth;
+  } else if (kEnablesHorizontalScroll) {
+    acceptable_scroll_direction_ = ScrollDirection::kHorizontal;
+  } else if (kEnablesVerticalScroll) {
+    acceptable_scroll_direction_ = ScrollDirection::kVertical;
+  } else {
+    return false;
+  }
+  ignores_upcoming_events_ = false;
+  locked_scroll_direction_ = ScrollDirection::kUnknown;
+  return true;
 }
 
 void ScrollView::StopAnimation() {

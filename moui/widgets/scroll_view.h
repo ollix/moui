@@ -112,6 +112,18 @@ class ScrollView : public Widget {
   virtual bool WidgetViewWillRender(NVGcontext* context) override;
 
  private:
+  // The direction of the scroll action.
+  enum class ScrollDirection {
+    // The scroll is free for both horizontal and vertical directions.
+    kBoth,
+    // The scroll direction is horizontal.
+    kHorizontal,
+    // The scroll direction is vertical.
+    kVertical,
+    // The scroll direction is unknown.
+    kUnknown,
+  };
+
   // The animation state for either horizontal or vertical direction.
   struct AnimationState {
     // The destination location of the content view.
@@ -184,6 +196,10 @@ class ScrollView : public Widget {
   // passed animation state.
   float GetCurrentAnimatingLocation(AnimationState& state) const;
 
+  // Returns the current scroll direction based on the
+  // `acceptable_scroll_direction_` and the latest `event_history_`.
+  ScrollDirection GetScrollDirection() const;
+
   // Gets the current velocity of the scroll.
   void GetScrollVelocity(double* horizontal_velocity,
                          double* vertical_velocity);
@@ -237,6 +253,10 @@ class ScrollView : public Widget {
   void UpdateAnimationState(const bool reaches_boundary, Scroller* scroller,
                             AnimationState* state);
 
+  // Indicates the direction that is acceptable for scrolling. This value is
+  // determined in the `ShouldHandleEvent()` method.
+  ScrollDirection acceptable_scroll_direction_;
+
   // The acceleration that controls the feel of how the content view moves
   // in animation. This value is measured in points per second and must be
   // a negative number.
@@ -289,11 +309,19 @@ class ScrollView : public Widget {
   // the scroll view.
   Scroller* horizontal_scroller_;
 
+  // Indicates whether upcoming events should be ignored by `HandleEvent()`.
+  // This value is reset to false in `ShouldHandleEvent()`.
+  bool ignores_upcoming_events_;
+
   // Records the content view's origin when receiving the first scroll event.
   Point initial_scroll_content_view_origin_;
 
   // Records the current page when received the first scroll event.
   int initial_scroll_page_;
+
+  // Indicates the direction that is available for scrolling. This value is
+  // reset in `ShouldHandleEvent()` and updated in `HandleEvent()`.
+  ScrollDirection locked_scroll_direction_;
 
   // Indicates the width of every page. The value should always be greater than
   // 0 and lesser than the scroll view's width, or `page_width()` will return

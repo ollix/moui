@@ -19,6 +19,7 @@
 #define MOUI_WIDGETS_WIDGET_H_
 
 #include <mutex>
+#include <string>
 #include <vector>
 
 #include "moui/base.h"
@@ -320,6 +321,15 @@ class Widget {
   // Sets the logical parent widget.
   void set_parent(Widget* parent) { parent_ = parent; }
 
+  // Setter and accessor for the responder chain. The accessor is created for
+  // the `WidgetView` class.
+  std::string responder_chain_identifier() const {
+    return responder_chain_identifier_;
+  }
+  void set_responder_chain_identifier(const std::string& identifer) {
+    responder_chain_identifier_ = identifer;
+  }
+
   // This setter should only be called by the WidgetView firend class.
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
 
@@ -390,6 +400,11 @@ class Widget {
   // The offset related to the widget's origin as the real origin for rendering
   // the binded render function or the `Render() method.
   Point rendering_offset_;
+
+  // The identifier that is used to determine which widget in the responder
+  // chain should be the next one to handle the received event. The actual
+  // mechanism is implmeneted in the `WidgetView::HandleEvent()` method.
+  std::string responder_chain_identifier_;
 
   // The scale of the widget to render. This value should always be positive.
   // The default value is 1.

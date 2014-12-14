@@ -49,12 +49,19 @@ void WidgetView::AddWidget(Widget* widget) {
 }
 
 void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
+  std::string valid_identifier = "";
   for (Widget* responder : event_responders_) {
-    // Skips responder that already deattached from this widget view.
-    if (responder->widget_view() != this)
+    std::string current_identifier = responder->responder_chain_identifier();
+
+    // Skips responder that does not match the valid identifier or is already
+    // deattached from this widget view.
+    if (responder->widget_view() != this ||
+        (!valid_identifier.empty() && valid_identifier != current_identifier))
       continue;
-    // Breaks the responder chain if `false` is returned.
-    if (!responder->HandleEvent(event.get()))
+
+    if (responder->HandleEvent(event.get()))
+      valid_identifier = current_identifier;
+    else
       break;
   }
 }
@@ -223,21 +230,21 @@ bool WidgetView::UpdateEventResponders(const Point location, Widget* widget) {
     return false;
   }
 
+  bool result = false;
   for (auto it = widget->children().rbegin();
        it != widget->children().rend(); it++) {
     Widget* child = reinterpret_cast<Widget*>(*it);
     if (UpdateEventResponders(location, child)) {
-      if (!widget->ShouldHandleEvent(location))
-        return false;
-      event_responders_.push_back(widget);
-      return true;
-    }
-    if (child->ShouldHandleEvent(location)) {
-      event_responders_.push_back(child);
-      return true;
+      result = true;
+      break;
     }
   }
-  return false;
+
+  if (widget->ShouldHandleEvent(location)) {
+    event_responders_.push_back(widget);
+    return true;
+  }
+  return result;
 }
 
 void WidgetView::WidgetViewDidRender(Widget* widget) {
