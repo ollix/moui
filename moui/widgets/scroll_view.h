@@ -40,6 +40,12 @@ class ScrollView : public Widget {
   // Adds a child widget to the scroll view.
   void AddChild(Widget* child);
 
+  // Moves the content view to the specified offset in animation.
+  void AnimateContentViewOffset(const Point offset, const float duration);
+
+  // Returns the offset of the content view.
+  Point GetContentViewOffset() const;
+
   // Returns the size of the content view.
   Size GetContentViewSize() const;
 
@@ -52,21 +58,20 @@ class ScrollView : public Widget {
   // Returns true if the content view is scrolling.
   bool IsScrolling() const;
 
-  // Sets the offset from the content view's origin that correspondes to the
-  // scroll view's origin.
-  void SetContentViewOffset(const float offset_x, const float offset_y);
+  // Sets content view's offset that correspondes to the scroll view's origin.
+  void SetContentViewOffset(const Point offset);
 
   // Sets the size of content view in points.
   void SetContentViewSize(const float width, const float height);
 
   // Accessors and setters.
   bool always_bounce_horizontal() const { return always_bounce_horizontal_; }
+  void set_always_bounce_horizontal(const bool value) {
+    always_bounce_horizontal_ = value;
+  }
   double animating_acceleration() const { return animating_acceleration_; }
   void set_animating_acceleration(const double value) {
     animating_acceleration_ = value;
-  }
-  void set_always_bounce_horizontal(const bool value) {
-    always_bounce_horizontal_ = value;
   }
   bool always_bounce_vertical() const { return always_bounce_vertical_; }
   void set_always_bounce_vertical(const bool value) {
@@ -207,11 +212,6 @@ class ScrollView : public Widget {
   // Inherited from Widget class. Controls the scroll behavior.
   virtual bool HandleEvent(Event* event) override final;
 
-  // Moves the content view based on the expected origin. The actual origin
-  // the content view moves to may be changed when reaching the boundary of
-  // content view.
-  void MoveContentView(const Point& expected_origin);
-
   // Determines whether the animating content view reaches the boundary
   // on both directions.
   void ReachesContentViewBoundary(bool* horizontal, bool* vertical) const;
@@ -235,6 +235,10 @@ class ScrollView : public Widget {
                                  const float content_view_length,
                                  const float content_view_padding,
                                  const bool bounces) const;
+
+  // Sets the content view's origin based on the expected origin. The actual
+  // origin may be changed when reaching the boundary of the content view.
+  void SetContentViewOrigin(const Point& expected_origin);
 
   // Inherited from Widget class.
   virtual bool ShouldHandleEvent(const Point location) override final;
