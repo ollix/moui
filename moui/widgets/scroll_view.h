@@ -64,6 +64,10 @@ class ScrollView : public Widget {
   // Sets the size of content view in points.
   void SetContentViewSize(const float width, const float height);
 
+  // Moves the content view to the specified page. If the specified duration
+  // is greater than 0, the content view will be moved in animation.
+  void ShowPage(const int page, const float duration);
+
   // Accessors and setters.
   bool always_bounce_horizontal() const { return always_bounce_horizontal_; }
   void set_always_bounce_horizontal(const bool value) {
@@ -112,6 +116,44 @@ class ScrollView : public Widget {
   }
 
  protected:
+  // Animates the content view to the passed location horizontally in
+  // configured duration. This method calculates the initial velocity to move
+  // the view automatically.
+  void AnimateContentViewHorizontally(const float origin_x,
+                                      const float duration);
+
+  // Animates the content view to the passed location vertically in
+  // configured duration. This method calculates the initial velocity to move
+  // the view automatically.
+  void AnimateContentViewVertically(const float origin_y,
+                                    const float duration);
+
+  // Gets the current velocity of the scroll.
+  void GetScrollVelocity(double* horizontal_velocity,
+                         double* vertical_velocity);
+
+  // Inherited from Widget class. Controls the scroll behavior.
+  virtual bool HandleEvent(Event* event) override;
+
+  // Redraws scrollers on both horizontal and vertical directions.
+  void RedrawScrollers();
+
+  // Sets the content view's origin based on the expected origin. The actual
+  // origin may be changed when reaching the boundary of the content view.
+  void SetContentViewOrigin(const Point& expected_origin);
+
+  // Inherited from Widget class.
+  virtual bool ShouldHandleEvent(const Point location) override;
+
+  // Stops the animation and resets both horizontal and vertical states.
+  void StopAnimation();
+
+  // Animates content view to stop gradually. Returns false on failure.
+  // This method calculates the initial velocity to animate the content view
+  // based on recent scroll events. If paging is enabled, it stops the content
+  // view at the next page in a pre-defined duration.
+  bool StopScrollingGradually();
+
   // Inherited from Widget class. Moves the content view and updates animation
   // states accordingly.
   virtual bool WidgetViewWillRender(NVGcontext* context) override;
@@ -131,10 +173,11 @@ class ScrollView : public Widget {
 
   // The animation state for either horizontal or vertical direction.
   struct AnimationState {
+    double acceleration;
     // The destination location of the content view.
     float destination_location;
     // The animation duration measured in seconds.
-    double duration;
+    float duration;
     // Records the elapsed time of the current animation.
     double elapsed_time;
     // The initial location of the content view.
@@ -159,38 +202,43 @@ class ScrollView : public Widget {
     double timestamp;
   };
 
-  // Animates the content view to the passed location horizontally in
-  // configured duration. This method calculates the initial velocity to move
-  // the view automatically.
+  // Animates the content view to the passed location horizontally with
+  // configured parameters. This method calculates the initial velocity to
+  // move the view automatically.
   void AnimateContentViewHorizontally(const float origin_x,
+                                      const double acceleration,
                                       const float duration);
 
   // Animates the content view to the passed location horizontally with
   // configured initial velocity and duration.
   void AnimateContentViewHorizontally(const float origin_x,
                                       const double initial_velocity,
-                                      const double duration);
+                                      const double acceleration,
+                                      const float duration);
 
-  // Animates the content view to the passed location vertically in
-  // configured duration. This method calculates the initial velocity to move
-  // the view automatically.
-  void AnimateContentViewVertically(const float origin_x, const float duration);
+  // Animates the content view to the passed location vertically with
+  // configured parameters. This method calculates the initial velocity to
+  // move the view automatically.
+  void AnimateContentViewVertically(const float origin_y,
+                                    const double acceleration,
+                                    const float duration);
 
   // Animates the content view to the passed location vertically with
   // configured initial velocity and duration.
-  void AnimateContentViewVertically(const float origin_x,
+  void AnimateContentViewVertically(const float origin_y,
                                     const double initial_velocity,
-                                    const double duration);
+                                    const double acceleration,
+                                    const float duration);
 
   // Moves the content view to not reach its horizontal boundaries. If pageing
   // is enabled, it moves the current page to the center of the scroll view.
-                                    void BounceContentViewHorizontally();
+  void BounceContentViewHorizontally();
 
   // Moves the content view to not reach its vertical boundaries.
   void BounceContentViewVertically();
 
-  // Returns the content view's horizontal offset for the current page.
-  float GetContentViewOffsetForCurrentPage() const;
+  // Returns the content view's horizontal offset for the specified page.
+  float GetContentViewOffsetForPage(const int page) const;
 
   // Returns the valid range of the content view's origin that guarantees the
   // scroll view is fully covered by the content view.
@@ -205,13 +253,6 @@ class ScrollView : public Widget {
   // `acceptable_scroll_direction_` and the latest `event_history_`.
   ScrollDirection GetScrollDirection() const;
 
-  // Gets the current velocity of the scroll.
-  void GetScrollVelocity(double* horizontal_velocity,
-                         double* vertical_velocity);
-
-  // Inherited from Widget class. Controls the scroll behavior.
-  virtual bool HandleEvent(Event* event) override final;
-
   // Determines whether the animating content view reaches the boundary
   // on both directions.
   void ReachesContentViewBoundary(bool* horizontal, bool* vertical) const;
@@ -224,9 +265,6 @@ class ScrollView : public Widget {
                       const bool shows_scrollers_on_both_directions,
                       Scroller* scroller);
 
-  // Redraws scrollers on both horizontal and vertical directions.
-  void RedrawScrollers();
-
   // Resolves the passed origin location either in horizontal or vertical
   // direction. This method is created for MoveContentView() to calculate
   // a suitable location for showing the content view in various scenarios.
@@ -235,22 +273,6 @@ class ScrollView : public Widget {
                                  const float content_view_length,
                                  const float content_view_padding,
                                  const bool bounces) const;
-
-  // Sets the content view's origin based on the expected origin. The actual
-  // origin may be changed when reaching the boundary of the content view.
-  void SetContentViewOrigin(const Point& expected_origin);
-
-  // Inherited from Widget class.
-  virtual bool ShouldHandleEvent(const Point location) override final;
-
-  // Stops the animation and resets both horizontal and vertical states.
-  void StopAnimation();
-
-  // Animates content view to stop gradually. Returns false on failure.
-  // This method calculates the initial velocity to animate the content view
-  // based on recent scroll events. If paging is enabled, it stops the content
-  // view at the next page in a pre-defined duration.
-  bool StopScrollingGradually();
 
   // Updates the passed animation state based on other passed parameters.
   // This method also reacts to those changes properly.
