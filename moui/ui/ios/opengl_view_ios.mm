@@ -18,13 +18,26 @@
 #import "moui/ui/ios/opengl_view_ios.h"
 
 #include <memory>
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
 #import <QuartzCore/QuartzCore.h>
 
 #include "moui/core/event.h"
 #include "moui/ui/view.h"
 #include "moui/widgets/widget.h"
+
+#if defined MOUI_GLES2
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
+#elif defined MOUI_GLES3
+#include <OpenGLES/ES3/gl.h>
+#include <OpenGLES/ES3/glext.h>
+#endif
+
+#if defined MOUI_GLES2
+#  define EAGL_RENDERING_API_OPENGLES kEAGLRenderingAPIOpenGLES2
+#  define GL_DEPTH24_STENCIL8 GL_DEPTH24_STENCIL8_OES
+#elif defined MOUI_GLES3
+#  define EAGL_RENDERING_API_OPENGLES kEAGLRenderingAPIOpenGLES3
+#endif
 
 
 @interface MOOpenGLView (PrivateDelegateHandling)
@@ -75,7 +88,7 @@
   if (_stencilAndDepthRenderbuffer == 0)
     glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES,
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
                         self.frame.size.width * self.contentScaleFactor,
                         self.frame.size.height * self.contentScaleFactor);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -106,7 +119,8 @@
                     mouiView:(moui::View *)mouiView {
   if((self = [super initWithFrame:CGRectMake(0, 0, 0, 0)])) {
     _colorRenderbuffer = 0;
-    _eaglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    _eaglContext = \
+        [[EAGLContext alloc] initWithAPI:EAGL_RENDERING_API_OPENGLES];
     _framebuffer = 0;
     _is_active = YES;
     _mouiView = mouiView;
