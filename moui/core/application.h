@@ -49,6 +49,10 @@ class Application : public BaseApplication {
     return reinterpret_cast<Application*>(application);
   }
 
+  // This method is designed to be called whenever the application receives a
+  // memory warning.
+  virtual void HandleMemoryWarning() {};
+
 #ifdef MOUI_ANDROID
   // Initializes the JNI environemnt. This method must be called at least once.
   static void InitJNI(JNIEnv* env, jobject activity);
