@@ -56,6 +56,9 @@ class Clock {
   // defined here for bridging JNI code.
   static void ExecuteCallback(Callback* callback);
 
+  // Executes the specified callback on the main thread.
+  static void ExecuteCallbackOnMainThread(std::function<void()> callback);
+
   // Returns a time point representing the current point in time. The time
   // point is not related to wall clock time and cannot decrease as physical
   // time moves forward. It is best suitable for measuring intervals.

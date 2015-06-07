@@ -17,6 +17,7 @@
 
 #include "moui/core/clock.h"
 
+#include <dispatch/dispatch.h>
 #import <Foundation/Foundation.h>
 
 namespace {
@@ -39,6 +40,13 @@ void Clock::ExecuteCallback(Callback* callback) {
   dispatch_time_t delay = dispatch_time(
       DISPATCH_TIME_NOW, callback->interval * NSEC_PER_SEC);
   dispatch_after(delay, queue, ^{ Clock::ExecuteCallback(callback); });
+}
+
+void Clock::ExecuteCallbackOnMainThread(std::function<void()> callback) {
+  if ([NSThread isMainThread])
+    callback();
+  else
+    dispatch_sync(dispatch_get_main_queue(), ^{ callback(); });
 }
 
 }  // namespace moui

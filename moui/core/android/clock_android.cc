@@ -17,6 +17,8 @@
 
 #include "moui/core/clock.h"
 
+#include <functional>
+
 #include "jni.h"
 
 #include "moui/core/application.h"
@@ -55,6 +57,10 @@ void Clock::ExecuteCallback(Callback* callback) {
       clock_class, "executeCallback", "(FJ)V");
   env->CallVoidMethod(java_clock, execute_callback_method, callback->interval,
                       (jlong)callback);
+}
+
+void ExecuteCallbackOnMainThread(std::function<void()> callback) {
+  // Not yet implemented.
 }
 
 }  // namespace moui
