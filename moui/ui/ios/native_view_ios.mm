@@ -77,6 +77,12 @@ bool NativeView::IsHidden() const {
   return native_view.hidden;
 }
 
+void NativeView::SendSubviewToBack(const NativeView* subview) {
+  UIView* native_view = (__bridge UIView*)native_handle_;
+  UIView* native_subview = (__bridge UIView*)subview->native_handle();
+  [native_view sendSubviewToBack:native_subview];
+}
+
 void NativeView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
   UIView* native_view = (__bridge UIView*)native_handle_;

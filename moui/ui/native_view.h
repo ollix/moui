@@ -50,6 +50,9 @@ class NativeView {
 #ifdef MOUI_APPLE
   // Returns true if the view is hidden.
   bool IsHidden() const;
+
+  // Moves the specified subview so that it appears behind its siblings.
+  void SendSubviewToBack(const NativeView* subview);
 #endif
 
   // Sets the bounds of the view.
