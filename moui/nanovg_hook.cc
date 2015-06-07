@@ -55,19 +55,6 @@ void ImageFlipVertical(unsigned char* image, int width, int height) {
   }
 }
 
-// Returns the data of image snapshot or NULL on failure. The returned image
-// data should be freed manually when no longer needed.
-unsigned char* ImageSnapshot(const int x, const int y, const int width,
-                             const int height) {
-  unsigned char* image = \
-      reinterpret_cast<unsigned char*>(std::malloc(width * height * 4));
-  if (image == NULL)
-    return NULL;
-
-  glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image);
-  return image;
-}
-
 // Sets the alpha value of every pixel of the passed image.
 void ImageSetAlpha(unsigned char* image, int width, int height,
                    unsigned char alpha) {
@@ -78,6 +65,20 @@ void ImageSetAlpha(unsigned char* image, int width, int height,
     for (x = 0; x < width; x++)
       row[x * 4 + 3] = alpha;
   }
+}
+
+// Returns the data of the image snapshot from the current framebuffer.
+// The returned image data should be freed manually when no longer needed.
+// `NULL` is returned on failure.
+unsigned char* ImageSnapshot(const int x, const int y, const int width,
+                             const int height) {
+  unsigned char* image = \
+      reinterpret_cast<unsigned char*>(std::malloc(width * height * 4));
+  if (image == NULL)
+    return NULL;
+
+  glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image);
+  return image;
 }
 
 // Unpremultiplies the alpha value of every pixel of the passed image.
@@ -157,7 +158,7 @@ int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
   unsigned char* image = ImageSnapshot(x * scale_factor, y * scale_factor,
                                        kScaledWidth, kScaledHeight);
   if (image == NULL)
-    return 0;
+    return -1;
 
   const int kIdentifier = nvgCreateImageRGBA(
       context, kScaledWidth, kScaledHeight,
