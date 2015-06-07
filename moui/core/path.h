@@ -30,6 +30,7 @@ class Path {
 #ifdef MOUI_APPLE
     kLibrary,
     kResource,
+    kTemporary,
 #endif
   };
 

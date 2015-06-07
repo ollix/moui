@@ -24,6 +24,11 @@
 namespace moui {
 
 std::string Path::GetDirectory(const Directory directory) {
+  // Temporary directory.
+  if (directory == Directory::kTemporary) {
+    return [NSTemporaryDirectory() UTF8String];
+  }
+
   // Resource directory.
   if (directory == Directory::kResource) {
     NSBundle* bundle = [NSBundle mainBundle];
