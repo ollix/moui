@@ -48,7 +48,7 @@ class Button : public Control {
 
   // The style of the highlighted state to render if no corresponded render
   // function is binded.
-  enum class HighlightedStyle {
+  enum class Style {
     // Renders the state as semi-transparent.
     kSemiTransparent,
     // Renders the state with blended translucent black foreground.
@@ -113,10 +113,14 @@ class Button : public Control {
     return adjusts_button_height_to_fit_title_label_;
   }
   void set_adjusts_button_height_to_fit_title_label(const bool value);
-  HighlightedStyle default_highlighted_style() const {
+  Style default_disabled_style() const {
+    return default_disabled_style_;
+  }
+  void set_default_disabled_style(const Style style);
+  Style default_highlighted_style() const {
     return default_highlighted_style_;
   }
-  void set_default_highlighted_style(const HighlightedStyle style);
+  void set_default_highlighted_style(const Style style);
   EdgeInsets title_edge_insets() const { return title_edge_insets_; }
   void set_title_edge_insets(const EdgeInsets edge_insets);
   Label* title_label() const { return title_label_; }
@@ -164,11 +168,17 @@ class Button : public Control {
   // defined in `title_edge_insets_`. The default value is false.
   bool adjusts_button_height_to_fit_title_label_;
 
+  // The style used to render default disabled state when no corresponded
+  // render function is binded. The default style is kSemiTransparent. Note
+  // that this value has nothing to do with any child widget including the
+  // managed title label.
+  Style default_disabled_style_;
+
   // The style used to render default highlighted state when no corresponded
   // render function is binded. The default style is kTranslucentBlack. Note
   // that this value has nothing to do with any child widget including the
   // managed title label.
-  HighlightedStyle default_highlighted_style_;
+  Style default_highlighted_style_;
 
   // The framebuffer for rendering the button in disabled state.
   NVGLUframebuffer* disabled_state_framebuffer_;

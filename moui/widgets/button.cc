@@ -50,7 +50,8 @@ namespace moui {
 Button::Button()
     : Control(),
       adjusts_button_height_to_fit_title_label_(false),
-      default_highlighted_style_(HighlightedStyle::kTranslucentBlack),
+      default_disabled_style_(Style::kSemiTransparent),
+      default_highlighted_style_(Style::kTranslucentBlack),
       disabled_state_framebuffer_(nullptr),
       highlighted_state_framebuffer_(nullptr),
       normal_state_framebuffer_(nullptr),
@@ -239,24 +240,34 @@ void Button::UpdateFramebuffer(const ControlState state,
   const float kWidth = GetWidth();
   const float kHeight = GetHeight();
   nvgBeginFrame(context, kWidth, kHeight, scale_factor);
-  if (renders_default_disabled_effect)
+
+  if ((renders_default_disabled_effect &&
+       default_disabled_style_ == Style::kSemiTransparent) ||
+      (renders_default_highlighted_effect &&
+       default_highlighted_style_ == Style::kSemiTransparent))
     nvgGlobalAlpha(context, kDefaultDisabledStateAlpha);
-  if (renders_default_highlighted_effect &&
-      default_highlighted_style_ == HighlightedStyle::kSemiTransparent)
-    nvgGlobalAlpha(context, kDefaultHighlightedStateAlpha);
   ExecuteRenderFunction(state);
   nvgEndFrame(context);
 
   // Blends with translucent foreground for default highlighted effect.
-  if (renders_default_highlighted_effect &&
-      default_highlighted_style_ != HighlightedStyle::kSemiTransparent) {
+  if ((renders_default_disabled_effect &&
+       default_disabled_style_ != Style::kSemiTransparent) ||
+      (renders_default_highlighted_effect &&
+       default_highlighted_style_ != Style::kSemiTransparent)) {
     glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     nvgBeginFrame(context, kWidth, kHeight, scale_factor);
     nvgBeginPath(context);
     nvgRect(context, 0, 0, kWidth, kHeight);
-    if (default_highlighted_style_ == HighlightedStyle::kTranslucentBlack)
+    if ((renders_default_disabled_effect &&
+         default_disabled_style_ == Style::kTranslucentBlack) ||
+        (renders_default_highlighted_effect &&
+         default_highlighted_style_ == Style::kTranslucentBlack))
       nvgFillColor(context, nvgRGBA(0, 0, 0, 50));
-    else if (default_highlighted_style_ == HighlightedStyle::kTranslucentWhite)
+    else if (renders_default_disabled_effect &&
+             default_disabled_style_ == Style::kTranslucentWhite)
+      nvgFillColor(context, nvgRGBA(255, 255, 255, 200));
+    else if (renders_default_highlighted_effect &&
+             default_highlighted_style_ == Style::kTranslucentWhite)
       nvgFillColor(context, nvgRGBA(255, 255, 255, 50));
     nvgFill(context);
     nvgEndFrame(context);
@@ -354,7 +365,17 @@ void Button::set_adjusts_button_height_to_fit_title_label(const bool value) {
   }
 }
 
-void Button::set_default_highlighted_style(const HighlightedStyle style) {
+void Button::set_default_disabled_style(const Style style) {
+  if (style == default_disabled_style_)
+    return;
+
+  if (context_ != nullptr) {
+    nvgDeleteFramebuffer(context_, &disabled_state_framebuffer_);
+  }
+  default_disabled_style_ = style;
+}
+
+void Button::set_default_highlighted_style(const Style style) {
   if (style == default_highlighted_style_)
     return;
 
