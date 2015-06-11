@@ -142,6 +142,10 @@ class Button : public Control {
   // function for rendering a specific control state.
   virtual void Render(NVGcontext* context) override final;
 
+  // Inherited from Widget class. Renders for the current state into the
+  // corresponded framebuffer.
+  virtual void RenderFramebuffer(NVGcontext* context) override final;
+
   // Returns true if a render function is binded to the passed control state.
   bool RenderFunctionIsBinded(const ControlState state) const;
 

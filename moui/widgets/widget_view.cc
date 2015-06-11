@@ -176,8 +176,10 @@ void WidgetView::Render() {
   PopulateWidgetList(0, 1, &widget_list, root_widget_, nullptr);
 
   // Renders offscreen stuff here so it won't interfere the onscreen rendering.
-  for (WidgetItem* item : widget_list)
+  for (WidgetItem* item : widget_list) {
+    item->widget->RenderFramebuffer(context_);
     item->widget->RenderDefaultFramebuffer(context_);
+  }
 
   // Renders visible widgets on screen.
   const float kWidth = GetWidth();

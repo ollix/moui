@@ -247,7 +247,21 @@ class Widget {
   // Renders Render() in default_framebuffer_ if caches_rendering_ is true.
   void RenderDefaultFramebuffer(NVGcontext* context);
 
-  // Either renders Render() directly or renders default_framebuffer_ if
+  // Allows subclasses to render offscreen stuff into custom framebuffers. This
+  // method gets called before executing `RenderDefaultFramebuffer()`. Note
+  // that this method should only be called by `WidgetView::RenderWidget()`.
+  //
+  // An example to implement this method for offscreen rendering:
+  //    NVGLUframebuffer* framebuffer;  // usually defined as a class member
+  //    float scale_factor;
+  //    BeginFramebufferUpdates(context, &framebuffer, &scale_factor);
+  //    nvgBeginFrame(context, GetWidth(), GetHeight(), scale_factor);
+  //    ...
+  //    nvgEndFrame(context);
+  //    EndFramebufferUpdates();
+  virtual void RenderFramebuffer(NVGcontext* context) {};
+
+  // Either renders Render() directly or renders `default_framebuffer_` if
   // caches_rendering_ is true.
   void RenderOnDemand(NVGcontext* context);
 
@@ -297,18 +311,6 @@ class Widget {
   // corresponded widget view will iterate all of this widget's children
   // to call their `WidgetViewWillRender()` method repeatedly until this
   // widget returns `true`.
-  //
-  // This method also provides an opportunity for offscreen rendering.
-  // A typical use is to create a framebuffer and rendering there. Once done,
-  // the framebuffer can be drawn in Render().
-  //
-  // An example to implement this method for offscreen rendering:
-  //    NVGLUframebuffer* framebuffer;  // usually defined as a class member
-  //    BeginFramebufferUpdates(context, &framebuffer);
-  //    nvgBeginFrame(context, GetWidth(), GetHeight(), ScreenScaleFactor);
-  //    ...
-  //    nvgEndFrame(context);
-  //    EndFramebufferUpdates();
   virtual bool WidgetViewWillRender(NVGcontext* context) { return true; }
 
   // This method gets called right before the corresponded widget view calling

@@ -310,13 +310,11 @@ void Button::UpdateTitleLabel(NVGcontext* context) {
       GetHeight() - title_edge_insets_.top - title_edge_insets_.bottom);
 }
 
-// This method updates the framebuffer according to the current state. However,
-// the current state may not be the actual state to render. For example, if the
-// current state is selected but there is no render function binded. The normal
-// state will be rendered instead.
-bool Button::WidgetViewWillRender(NVGcontext* context) {
-  UpdateTitleLabel(context);
-
+// This method updates the specific framebuffer according to the current state.
+// However, the current state may not be the actual state to render. For
+// example, if the current state is selected but there is no render function
+// binded. The normal state will be rendered instead.
+void Button::RenderFramebuffer(NVGcontext* context) {
   // Determines what state to render and which framebuffer to render to.
   NVGLUframebuffer** framebuffer;
   ControlState state = ControlState::kNormal;
@@ -351,10 +349,15 @@ bool Button::WidgetViewWillRender(NVGcontext* context) {
   } else {
     framebuffer = &normal_state_framebuffer_;
   }
+
   if (*framebuffer == nullptr) {
     UpdateFramebuffer(state, renders_default_disabled_effect,
                       renders_default_highlighted_effect, context, framebuffer);
   }
+}
+
+bool Button::WidgetViewWillRender(NVGcontext* context) {
+  UpdateTitleLabel();
   return true;
 }
 
