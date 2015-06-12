@@ -72,6 +72,8 @@ class WidgetView : public View {
     WidgetItem* parent_item;
     // The rendering scale of the widget.
     float scale;
+    // The opacity value of the widget.
+    float alpha;
     // The origin of the widget that related to the current coordinate system.
     // This value is used as the origin for rendering the widget and
     // determining the related position of its child widgets.

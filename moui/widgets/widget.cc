@@ -64,9 +64,10 @@ Widget::Widget() : Widget(true) {
 }
 
 Widget::Widget(const bool caches_rendering)
-    : animation_count_(0), background_color_(nvgRGBA(255, 255, 255, 255)),
-      caches_rendering_(caches_rendering), context_(nullptr),
-      default_framebuffer_(nullptr), default_framebuffer_mutex_(nullptr),
+    : alpha_(1), animation_count_(0),
+      background_color_(nvgRGBA(255, 255, 255, 255)),
+      caches_rendering_(caches_rendering), default_framebuffer_(nullptr),
+      default_framebuffer_mutex_(nullptr),
       frees_descendants_on_destruction_(false), height_unit_(Unit::kPoint),
       height_value_(0), hidden_(false), is_opaque_(true), measured_scale_(-1),
       parent_(nullptr), real_parent_(nullptr), render_function_(NULL),
@@ -460,6 +461,20 @@ void Widget::UpdateContext(NVGcontext* context) {
   ContextWillChange(context_);
   context_ = context;
   UpdateChildrenRecursively(this);
+}
+
+void Widget::set_alpha(const float alpha) {
+  float revised_alpha = alpha;
+  if (alpha > 1)
+    revised_alpha = 1;
+  else if (alpha < 0)
+    revised_alpha = 0;
+
+  if (revised_alpha == alpha_)
+    return;
+
+  alpha_ = revised_alpha;
+  Redraw();
 }
 
 void Widget::set_background_color(const NVGcolor background_color) {

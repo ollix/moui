@@ -163,6 +163,8 @@ class Widget {
   void UnbindRenderFunction();
 
   // Setters and accessors.
+  float alpha() const { return alpha_; }
+  void set_alpha(const float alpha);
   NVGcolor background_color() const { return background_color_; }
   void set_background_color(const NVGcolor background_color);
   std::vector<Widget*>& children() { return children_; }
@@ -334,6 +336,11 @@ class Widget {
 
   // This setter should only be called by the WidgetView firend class.
   void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
+
+  // The opacity value of the widget, specified as a value from 0.0 to 1.0.
+  // Values below 0.0 are interpreted as 0.0, and values above 1.0 are
+  // interpreted as 1.0. The default value is 1.0.
+  float alpha_;
 
   // The number of animation reuqests that updated by StartAnimation() and
   // StopAnimation(). The widget is animating if this value is greater than 0.

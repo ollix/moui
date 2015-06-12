@@ -139,10 +139,12 @@ void WidgetView::PopulateWidgetList(const int level, const float scale,
   }
 
   // The widget is visible. Adds it to the widget list and checks its children.
+  const float kParentAlpha = (parent_item == nullptr ? 1 : parent_item->alpha);
   auto item = new WidgetItem{widget, {kWidgetX, kWidgetY}, kWidgetWidth,
                              kWidgetHeight, level, parent_item,
-                             widget->scale(), translated_origin,
-                             scissor_origin, scissor_width, scissor_height};
+                             widget->scale(), widget->alpha() * kParentAlpha,
+                             translated_origin, scissor_origin, scissor_width,
+                             scissor_height};
   widget_list->push_back(item);
   const float kChildWidgetScale = scale * widget->scale();
   for (Widget* child : widget->children())
@@ -195,6 +197,7 @@ void WidgetView::Render() {
     PopAndFinalizeWidgetItems(item->level, &rendering_stack);
     rendering_stack.push(item);
     nvgSave(context_);
+    nvgGlobalAlpha(context_, item->alpha);
     nvgTranslate(context_, item->origin.x, item->origin.y);
     nvgScale(context_, item->scale, item->scale);
     nvgIntersectScissor(context_, 0, 0, item->width, item->height);
