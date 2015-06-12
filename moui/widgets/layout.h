@@ -40,6 +40,18 @@ class Layout : public ScrollView {
   Layout();
   ~Layout();
 
+  // Accessors and setters.
+  float bottom_padding() const { return bottom_padding_; }
+  void set_bottom_padding(const float padding);
+  float left_padding() const { return left_padding_; }
+  void set_left_padding(const float padding);
+  float right_padding() const { return right_padding_; }
+  void set_right_padding(const float padding);
+  float spacing() const { return spacing_; }
+  void set_spacing(const float spacing);
+  float top_padding() const { return top_padding_; }
+  void set_top_padding(const float padding);
+
  protected:
   // The state of managed widget.
   struct ManagedWidget {
@@ -61,8 +73,23 @@ class Layout : public ScrollView {
   // Returns true if child widgets should be arranged.
   bool ShouldArrangeChildren();
 
+  // The padding in points to the bottom side of the layout.
+  float bottom_padding_;
+
+  // The padding in points to the left side of the layout.
+  float left_padding_;
+
+  // The padding in points to the right side of the layout.
+  float right_padding_;
+
   // Indicates whether child widgets should be arranged.
   bool should_arrange_children_;
+
+  // The space in ponits between child widgets.
+  float spacing_;
+
+  // The padding in points to the top side of the layout.
+  float top_padding_;
 
   DISALLOW_COPY_AND_ASSIGN(Layout);
 };

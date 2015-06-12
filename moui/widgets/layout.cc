@@ -24,7 +24,9 @@
 
 namespace moui {
 
-Layout::Layout() : ScrollView(), should_arrange_children_(false) {
+Layout::Layout() : ScrollView(), bottom_padding_(0), left_padding_(0),
+                   right_padding_(0), should_arrange_children_(false),
+                   spacing_(0), top_padding_(0) {
   set_is_opaque(false);
 }
 
@@ -73,6 +75,41 @@ bool Layout::WidgetViewWillRender(NVGcontext* context) {
   }
   ArrangeChildren();
   return false;
+}
+
+void Layout::set_bottom_padding(const float padding) {
+  if (padding == bottom_padding_)
+    return;
+  bottom_padding_ = padding;
+  Redraw();
+}
+
+void Layout::set_left_padding(const float padding) {
+  if (padding == left_padding_)
+    return;
+  left_padding_ = padding;
+  Redraw();
+}
+
+void Layout::set_right_padding(const float padding) {
+  if (padding == right_padding_)
+    return;
+  right_padding_ = padding;
+  Redraw();
+}
+
+void Layout::set_spacing(const float spacing) {
+  if (spacing == spacing_)
+    return;
+  spacing_ = spacing;
+  Redraw();
+}
+
+void Layout::set_top_padding(const float padding) {
+  if (padding == top_padding_)
+    return;
+  top_padding_ = padding;
+  Redraw();
 }
 
 }  // namespace moui

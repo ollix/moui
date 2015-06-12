@@ -35,24 +35,38 @@ LinearLayout::~LinearLayout() {
 
 void LinearLayout::ArrangeChildren() {
   float offset = 0;
+  Size content_view_size = GetContentViewSize();
+
   for (ManagedWidget& child : managed_widgets_) {
+    if (offset > 0)
+      offset += spacing();
+    else if (orientation_ == Layout::Orientation::kHorizontal)
+      offset += left_padding();
+    else if (orientation_ == Layout::Orientation::kVertical)
+      offset += top_padding();
+
+    Widget* widget = child.widget;
     if (orientation_ == Layout::Orientation::kHorizontal) {
-      child->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint, offset);
+      widget->SetX(offset);
       offset += child.size.width;
+      content_view_size.height = std::max(
+          content_view_size.height,
+          widget->GetHeight() + top_padding() + bottom_padding());
     } else if (orientation_ == Layout::Orientation::kVertical) {
-      child->SetY(Widget::Alignment::kTop, Widget::Unit::kPoint, offset);
+      widget->SetY(offset);
       offset += child.size.height;
+      content_view_size.width = std::max(
+          content_view_size.width,
+          widget->GetWidth() + left_padding() + right_padding());
     } else {
       assert(false);
     }
   }
 
-  Size content_view_size = GetContentViewSize();
-  if (orientation_ == Layout::Orientation::kHorizontal) {
-    SetContentViewSize(offset, content_view_size.height);
-  } else if (orientation_ == Layout::Orientation::kVertical) {
-    SetContentViewSize(content_view_size.width, offset);
-  }
+  if (orientation_ == Layout::Orientation::kHorizontal)
+    SetContentViewSize(offset + right_padding(), content_view_size.height);
+  else if (orientation_ == Layout::Orientation::kVertical)
+    SetContentViewSize(content_view_size.width, offset + bottom_padding());
 }
 
 }  // namespace moui

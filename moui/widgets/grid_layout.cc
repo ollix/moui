@@ -51,16 +51,19 @@ void GridLayout::ArrangeChildren() {
 
   // Arranges child widgets.
   column = -1;
-  float column_offset = 0;
+  float column_offset = left_padding();
   float row_height = 0;
-  float row_offset = 0;
+  float row_offset = top_padding();
   for (ManagedWidget& child : managed_widgets_) {
     if (++column == number_of_columns_) {
       column = 0;
-      column_offset = 0;
-      row_offset += row_height;
+      column_offset = left_padding();
+      row_offset += row_height + spacing();
       row_height = 0;
+    } else if (column > 0) {
+      column_offset += spacing();
     }
+
     Widget* widget = child.widget;
     widget->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint, column_offset);
     widget->SetY(Widget::Alignment::kTop, Widget::Unit::kPoint, row_offset);
@@ -70,8 +73,9 @@ void GridLayout::ArrangeChildren() {
   }
 
   // Updates the size of the content view.
-  const float kContentHeight = row_offset + row_height;
-  float content_width;
+  const float kContentHeight = row_offset + row_height + bottom_padding();
+  float content_width = \
+      left_padding() + right_padding() + spacing() * (number_of_columns_ - 1);
   for (int i = 0; i < number_of_columns_; ++i)
     content_width += width_of_columns[i];
   SetContentViewSize(content_width, kContentHeight);
