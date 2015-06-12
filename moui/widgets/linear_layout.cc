@@ -35,13 +35,13 @@ LinearLayout::~LinearLayout() {
 
 void LinearLayout::ArrangeChildren() {
   float offset = 0;
-  for (Widget* child : children()) {
+  for (ManagedWidget& child : managed_widgets_) {
     if (orientation_ == Layout::Orientation::kHorizontal) {
       child->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint, offset);
-      offset += child->GetWidth();
+      offset += child.size.width;
     } else if (orientation_ == Layout::Orientation::kVertical) {
       child->SetY(Widget::Alignment::kTop, Widget::Unit::kPoint, offset);
-      offset += child->GetHeight();
+      offset += child.size.height;
     } else {
       assert(false);
     }

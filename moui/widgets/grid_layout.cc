@@ -40,9 +40,11 @@ void GridLayout::ArrangeChildren() {
   float width_of_columns[number_of_columns_];
   for (int i = 0; i < number_of_columns_; ++i)
     width_of_columns[i] = 0;
-  for (Widget* child : children()) {
+
+  std::vector<Size> child_sizes;
+  for (ManagedWidget& child : managed_widgets_) {
     width_of_columns[column] = std::max(width_of_columns[column],
-                                        child->GetWidth());
+                                        child.size.width);
     if (++column == number_of_columns_)
       column = 0;
   }
@@ -52,17 +54,18 @@ void GridLayout::ArrangeChildren() {
   float column_offset = 0;
   float row_height = 0;
   float row_offset = 0;
-  for (Widget* child : children()) {
+  for (ManagedWidget& child : managed_widgets_) {
     if (++column == number_of_columns_) {
       column = 0;
       column_offset = 0;
       row_offset += row_height;
       row_height = 0;
     }
-    child->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint, column_offset);
-    child->SetY(Widget::Alignment::kTop, Widget::Unit::kPoint, row_offset);
+    Widget* widget = child.widget;
+    widget->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint, column_offset);
+    widget->SetY(Widget::Alignment::kTop, Widget::Unit::kPoint, row_offset);
 
-    row_height = std::max(row_height, child->GetHeight());
+    row_height = std::max(row_height, child.size.height);
     column_offset += width_of_columns[column];
   }
 

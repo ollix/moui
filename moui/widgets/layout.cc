@@ -48,8 +48,8 @@ bool Layout::ShouldArrangeChildren() {
     if (managed_widget.widget != child ||
         managed_widget.origin.x != child->GetX() ||
         managed_widget.origin.y != child->GetY() ||
-        managed_widget.size.width != child->GetWidth() ||
-        managed_widget.size.height != child->GetHeight()) {
+        managed_widget.size.width != child->GetWidth() * child->scale() ||
+        managed_widget.size.height != child->GetHeight() * child->scale()) {
       should_arrange_children_ = true;
       return true;
     }
@@ -62,15 +62,16 @@ bool Layout::WidgetViewWillRender(NVGcontext* context) {
     return ScrollView::WidgetViewWillRender(context);
   }
   should_arrange_children_ = false;
-  ArrangeChildren();
 
   // Updates the state of managed widgets.
   managed_widgets_.clear();
   for (Widget* child : children()) {
     managed_widgets_.push_back({{child->GetX(), child->GetY()},
-                                {child->GetWidth(), child->GetHeight()},
+                                {child->GetWidth() * child->scale(),
+                                 child->GetHeight() * child->scale()},
                                 child});
   }
+  ArrangeChildren();
   return false;
 }
 

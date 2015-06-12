@@ -40,7 +40,7 @@ class Layout : public ScrollView {
   Layout();
   ~Layout();
 
- private:
+ protected:
   // The state of managed widget.
   struct ManagedWidget {
     Point origin;
@@ -48,17 +48,18 @@ class Layout : public ScrollView {
     Widget* widget;
   };
 
+  // Keeps the states of currently managed widgets.
+  std::vector<ManagedWidget> managed_widgets_;
+
+  // Inherited from Widget class.
+  virtual bool WidgetViewWillRender(NVGcontext* context) override;
+
+ private:
   // Arranges child widgets. This method must be implmented in subclasses.
   virtual void ArrangeChildren() {}
 
   // Returns true if child widgets should be arranged.
   bool ShouldArrangeChildren();
-
-  // Inherited from Widget class.
-  virtual bool WidgetViewWillRender(NVGcontext* context) override final;
-
-  // Keeps the states of currently managed widgets.
-  std::vector<ManagedWidget> managed_widgets_;
 
   // Indicates whether child widgets should be arranged.
   bool should_arrange_children_;
