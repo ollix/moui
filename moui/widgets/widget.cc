@@ -82,7 +82,7 @@ Widget::Widget(const bool caches_rendering)
 }
 
 Widget::~Widget() {
-  UpdateContext(nullptr);
+  set_widget_view(nullptr);
 
   if (caches_rendering_)
     delete default_framebuffer_mutex_;
@@ -94,7 +94,7 @@ Widget::~Widget() {
 void Widget::AddChild(Widget* child) {
   child->real_parent_ = this;
   child->set_parent(this);
-  UpdateChildrenRecursively(child);
+  child->set_widget_view(widget_view_);
   children_.push_back(child);
   if (widget_view_ != nullptr && !child->IsHidden())
     widget_view_->Redraw();
@@ -152,6 +152,14 @@ bool Widget::CollidePoint(const Point point, const float top_padding,
           point.y < (origin.y + size.height + bottom_padding));
 }
 
+void Widget::ContextWillChange(NVGcontext* context) {
+  if (default_framebuffer_ != nullptr) {
+    default_framebuffer_mutex_->lock();
+    nvgDeleteFramebuffer(&default_framebuffer_);
+    default_framebuffer_mutex_->unlock();
+  }
+}
+
 void Widget::EndFramebufferUpdates() {
   nvgluBindFramebuffer(NULL);
 }
@@ -167,10 +175,7 @@ void Widget::ExecuteRenderFunction(NVGcontext* context) {
   }
 
   nvgTranslate(context, rendering_offset_.x, rendering_offset_.y);
-  if (render_function_ == NULL)
-    Render(context);
-  else
-    render_function_();
+  render_function_ == NULL ? Render(context) : render_function_(context);
 }
 
 float Widget::GetHeight() const {
@@ -299,9 +304,7 @@ bool Widget::RemoveFromParent() {
 
   parent_ = nullptr;
   real_parent_ = nullptr;
-  widget_view_ = nullptr;
-  UpdateContext(nullptr);
-  UpdateChildrenRecursively(this);
+  set_widget_view(nullptr);
   return true;
 }
 
@@ -315,7 +318,7 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
     return;
   }
   should_redraw_default_framebuffer_ = false;
-  nvgDeleteFramebuffer(context_, &default_framebuffer_);
+  nvgDeleteFramebuffer(&default_framebuffer_);
 
   float scale_factor;
   if (BeginFramebufferUpdates(context, &default_framebuffer_, &scale_factor)) {
@@ -440,29 +443,6 @@ void Widget::UnbindRenderFunction() {
   render_function_ = NULL;
 }
 
-void Widget::UpdateChildrenRecursively(Widget* widget) {
-  widget->set_widget_view(widget_view_);
-  widget->UpdateContext(context_);
-  for (Widget* child_widget : widget->children())
-    UpdateChildrenRecursively(child_widget);
-}
-
-void Widget::UpdateContext(NVGcontext* context) {
-  if (context == context_)
-    return;
-
-  // Resets the default framebuffer if caches_rendering_ is true.
-  if (context_ != nullptr && default_framebuffer_ != nullptr) {
-    default_framebuffer_mutex_->lock();
-    nvgDeleteFramebuffer(context_, &default_framebuffer_);
-    default_framebuffer_mutex_->unlock();
-  }
-
-  ContextWillChange(context_);
-  context_ = context;
-  UpdateChildrenRecursively(this);
-}
-
 void Widget::set_alpha(const float alpha) {
   float revised_alpha = alpha;
   if (alpha > 1)
@@ -507,6 +487,22 @@ void Widget::set_uses_integer_for_dimensions(const bool value) {
     uses_integer_for_dimensions_ = value;
     Redraw();
   }
+}
+
+void Widget::set_widget_view(WidgetView* widget_view) {
+  if (widget_view_ == widget_view)
+    return;
+
+  if (widget_view_ != nullptr) {
+    NVGcontext* context = widget_view_->context();
+    if (context != nullptr)
+      ContextWillChange(context);
+  }
+  widget_view_ = widget_view;
+
+  // Updates the widget view of all its child widgets as well.
+  for (Widget* child_widget : children_)
+    child_widget->set_widget_view(widget_view);
 }
 
 }  // namespace moui

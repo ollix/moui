@@ -163,7 +163,6 @@ void WidgetView::Render() {
   preparing_for_rendering_ = true;
   if (context_ == nullptr) {
     context_ = nvgCreateGL(NVG_ANTIALIAS);
-    root_widget_->UpdateContext(context_);
     ContextDidCreate(context_);
   }
 

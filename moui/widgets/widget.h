@@ -18,6 +18,7 @@
 #ifndef MOUI_WIDGETS_WIDGET_H_
 #define MOUI_WIDGETS_WIDGET_H_
 
+#include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -59,20 +60,20 @@ class Widget {
   // method repeatedly will replace the previous binded one.
   //
   // Examples:
-  // BindRenderFunction(state, Function)  // function
-  // BindRenderFunction(state, &Class::Method)  // class method
+  // BindRenderFunction(Function)  // function
+  // BindRenderFunction(&Class::Method)  // class method
   template<class Callback>
   void BindRenderFunction(Callback&& callback) {
-    render_function_ = std::bind(callback, std::ref(context_));
+    render_function_ = std::bind(callback, std::placeholders::_1);
   }
 
   // Binds an instance method for rendering the widget. Calling this method
   // repeatedly will replace the previous binded one.
   //
-  // Example: BindRenderFunction(state, &Class::Method, instance)
+  // Example: BindRenderFunction(&Class::Method, instance)
   template<class Callback, class TargetType>
   void BindRenderFunction(Callback&& callback, TargetType&& target) {
-    render_function_ = std::bind(callback, target, std::ref(context_));
+    render_function_ = std::bind(callback, target, std::placeholders::_1);
   }
 
   // Moves the specified child widget so that it appears on top of its siblings.
@@ -203,21 +204,20 @@ class Widget {
                                NVGLUframebuffer** framebuffer,
                                float* scale_factor);
 
+  // This method will get called when the corresponed nanovg context is about
+  // to change. Subclasses should implement this method to free related
+  // nanovg objects if there is any. Besides, the overriding method should
+  // always call the same method defined in the super class as there are some
+  // default behaviors implemented in this base class.
+  virtual void ContextWillChange(NVGcontext* context);
+
   // Ends the framebuffer environment previously created by
   // `BeginFramebufferUpdates()`.
   void EndFramebufferUpdates();
 
-  // The weak reference to nanovg context that will be updated by WidgetView
-  // and is guaranteed to be available in all render method variants.
-  NVGcontext* context_;
-
  private:
   friend class ScrollView;
   friend class WidgetView;
-
-  // This method will get called when context_ is about to change. Subclasses
-  // can implmenet this method to free nanovg objects binded to it.
-  virtual void ContextWillChange(NVGcontext* context) {};
 
   // Executes either the binded `render_function_` or `Render()` if no render
   // function is binded. This method respects the `rendering_offset_` and it
@@ -281,13 +281,6 @@ class Widget {
   // implemented in the subclass to change the default behavior.
   virtual bool ShouldHandleEvent(const Point location);
 
-  // Updates inherited attributes recursively from the passed widget to all of
-  // its children.
-  void UpdateChildrenRecursively(Widget* widget);
-
-  // Updates the internal context_.
-  void UpdateContext(NVGcontext* context);
-
   // This method gets called when the widget itself and all of its child
   // widgets did finish rendering in a refresh cycle. It's a good place to
   // restore the context state if changed in `WidgetWillRender()`. However,
@@ -335,7 +328,7 @@ class Widget {
   }
 
   // This setter should only be called by the WidgetView firend class.
-  void set_widget_view(WidgetView* widget_view) { widget_view_ = widget_view; }
+  void set_widget_view(WidgetView* widget_view);
 
   // The opacity value of the widget, specified as a value from 0.0 to 1.0.
   // Values below 0.0 are interpreted as 0.0, and values above 1.0 are
@@ -404,7 +397,7 @@ class Widget {
   Widget* real_parent_;
 
   // The render function that binded to replace the Render() call.
-  std::function<void()> render_function_;
+  std::function<void(NVGcontext*)> render_function_;
 
   // The offset related to the widget's origin as the real origin for rendering
   // the binded render function or the `Render() method.

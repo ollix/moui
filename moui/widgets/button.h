@@ -69,8 +69,9 @@ class Button : public Control {
   // BindRenderFunction(state, &Class::Method)  // class method
   template<class Callback>
   void BindRenderFunction(const ControlState state, Callback&& callback) {
+    UnbindRenderFunction(state);
     render_functions_[GetControlStateIndex(state)] = \
-        std::bind(callback, std::ref(context_));
+        std::bind(callback, std::placeholders::_1);
   }
 
   // Binds an instance method for rendering the button with passed state.
@@ -81,8 +82,9 @@ class Button : public Control {
   template<class Callback, class TargetType>
   void BindRenderFunction(const ControlState state, Callback&& callback,
                           TargetType&& target) {
+    UnbindRenderFunction(state);
     render_functions_[GetControlStateIndex(state)] = \
-        std::bind(callback, target, std::ref(context_));
+        std::bind(callback, target, std::placeholders::_1);
   }
 
   // Returns the current title color that is displayed on the button.
@@ -98,6 +100,9 @@ class Button : public Control {
 
   // Returns the title color associated with the specified state.
   NVGcolor GetTitleColor(const ControlState state) const;
+
+  // Resets framebuffers of every state to clear all cached renderings.
+  void ResetFramebuffers();
 
   // Sets the title to use for the specified state.
   void SetTitle(const std::string& title, const ControlState state);
@@ -125,13 +130,14 @@ class Button : public Control {
   void set_title_edge_insets(const EdgeInsets edge_insets);
   Label* title_label() const { return title_label_; }
 
- private:
+ protected:
   // Inherited from Widget class. Resets all framebuffers.
-  virtual void ContextWillChange(NVGcontext* context) override final;
+  virtual void ContextWillChange(NVGcontext* context) override;
 
+ private:
   // Executes the render function for passed state or fills white background
   // if nothing binded.
-  void ExecuteRenderFunction(const ControlState state);
+  void ExecuteRenderFunction(const ControlState state, NVGcontext* context);
 
   // Returns the index of the specified control state.
   int GetControlStateIndex(const ControlState state) const;
@@ -149,9 +155,6 @@ class Button : public Control {
   // Returns true if a render function is binded to the passed control state.
   bool RenderFunctionIsBinded(const ControlState state) const;
 
-  // Resets all framebuffers.
-  void ResetFramebuffers(NVGcontext* context);
-
   // Updates the passed framebuffer offscreen according to passed parameters.
   void UpdateFramebuffer(const ControlState state,
                          const bool renders_default_disabled_effect,
@@ -159,7 +162,7 @@ class Button : public Control {
                          NVGcontext* context, NVGLUframebuffer** framebuffer);
 
   // Updates the title label's attribute based on the button's current state.
-  void UpdateTitleLabel(NVGcontext* context);
+  void UpdateTitleLabel();
 
   // Inherited from Widget class. Updates the title label's attributes to
   // adapt the button's control state and renders the current state to
@@ -202,7 +205,7 @@ class Button : public Control {
   // control states. The element position corresponded to a control state is
   // determined by `GetControlStateIndex()`. Each element could be NULL to
   // represent no binded render function.
-  std::vector<std::function<void()>> render_functions_;
+  std::vector<std::function<void(NVGcontext*)>> render_functions_;
 
   // The framebuffer for rendering the button in selected state.
   NVGLUframebuffer* selected_state_framebuffer_;

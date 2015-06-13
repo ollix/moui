@@ -50,6 +50,7 @@ class WidgetView : public View {
                  const int height);
 
   // Accessors and setters.
+  NVGcontext* context() { return context_; }
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque);
 
@@ -141,7 +142,7 @@ class WidgetView : public View {
   // `root_widget_`, `WidgetView::ViewWillRender()` is called instead.
   void WidgetViewWillRender(Widget* widget);
 
-  // The nanovg context for drawing.
+  // The nanovg context for rendering.
   NVGcontext* context_;
 
   // Keeps a list of widgets to handle events passed to the `HandleEvent()`
