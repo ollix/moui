@@ -143,8 +143,8 @@ class Control : public Widget {
   }
 
   // Unbinds all actions paired with control events, callback, and target.
-  // If the callback is nullptr, all instance methods paired with the target
-  // will be unbinded. If both callback and target are nullptr, all actions
+  // If the callback is `nullptr`, all instance methods paired with the target
+  // will be unbinded. If both callback and target are `nullptr`, all actions
   // with matched control events will be unbinded.
   void UnbindActions(const ControlEvents events,
                      const std::function<void()>* callback,

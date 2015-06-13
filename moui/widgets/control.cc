@@ -42,6 +42,8 @@ Control::Control() : Widget(), highlighted_margin_(0), ignores_events_(false),
 }
 
 Control::~Control() {
+  for (Action* action : actions_)
+    delete action;
 }
 
 void Control::HandleControlEvents(const ControlEvents events) {
@@ -200,6 +202,7 @@ void Control::UnbindActions(const ControlEvents events,
         (callback == nullptr ||
          action->callback.target_type() == callback->target_type())) {
       actions_.erase(action_iterator);
+      delete action;
       continue;
     }
     ++action_iterator;
