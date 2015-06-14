@@ -363,9 +363,13 @@ void Widget::ResetMeasuredScaleRecursively(Widget* widget) {
 
 void Widget::SetBounds(const float x, const float y, const float width,
                        const float height) {
-  SetX(Alignment::kLeft, Unit::kPoint, x);
-  SetY(Alignment::kTop, Unit::kPoint, y);
-  SetWidth(Unit::kPoint, width);
+  SetX(x);
+  SetY(y);
+  SetWidth(width);
+  SetHeight(height);
+}
+
+void Widget::SetHeight(const float height) {
   SetHeight(Unit::kPoint, height);
 }
 
@@ -384,6 +388,10 @@ void Widget::SetHidden(const bool hidden) {
     if (widget_view_ != nullptr)
       widget_view_->Redraw();
   }
+}
+
+void Widget::SetWidth(const float width) {
+  SetWidth(Unit::kPoint, width);
 }
 
 void Widget::SetWidth(const Unit unit, const float width) {
@@ -406,6 +414,10 @@ void Widget::SetX(const Alignment alignment, const Unit unit, const float x) {
     widget_view_->Redraw();
 }
 
+void Widget::SetX(const float x) {
+  SetX(Alignment::kLeft, Unit::kPoint, x);
+}
+
 void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
   if (alignment == y_alignment_ && unit == y_unit_ && y == y_value_)
     return;
@@ -415,6 +427,10 @@ void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
   y_value_ = y;
   if (widget_view_ != nullptr)
     widget_view_->Redraw();
+}
+
+void Widget::SetY(const float y) {
+  SetY(Alignment::kTop, Unit::kPoint, y);
 }
 
 bool Widget::ShouldHandleEvent(const Point location) {

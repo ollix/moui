@@ -133,11 +133,17 @@ class Widget {
   void SetBounds(const float x, const float y, const float width,
                  const float height);
 
+  // Sets the height in points.
+  void SetHeight(const float height);
+
   // Sets the height with the specified unit.
   void SetHeight(const Unit unit, const float height);
 
   // Sets whether the widget should be visible.
   void SetHidden(const bool hidden);
+
+  // Sets the width in points.
+  void SetWidth(const float width);
 
   // Sets the width with the specified unit.
   void SetWidth(const Unit unit, const float width);
@@ -146,9 +152,15 @@ class Widget {
   // kCenter, and kRight.
   void SetX(const Alignment alignment, const Unit unit, const float x);
 
+  // Sets the horizontal position to the parent's origin in points.
+  void SetX(const float x);
+
   // Sets the vertical position. The alignment could only be one of kTop,
   // kMiddle, and kBottom.
   void SetY(const Alignment alignment, const Unit unit, const float y);
+
+  // Sets the vertical position to the parent's origin in points.
+  void SetY(const float y);
 
   // Starts updating the widget synchronized to the refresh rate of the display
   // continuously. StopAnimation() must be called for each StartAnimation().
