@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2015 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,12 +22,11 @@ class View;
 }  // namespace moui
 
 // The native iOS view for rendering OpenGL stuff.
-@interface MOOpenGLView : NSView {
+@interface MOOpenGLView : NSOpenGLView {
  @private
   CVDisplayLinkRef _displayLink;
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
-  NSOpenGLContext* _openGLContext;
   BOOL _stopsUpdatingView;
 }
 

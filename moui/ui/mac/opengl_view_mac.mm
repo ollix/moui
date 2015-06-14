@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2015 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@
 
 namespace {
 
-// The callback function of MOOpenGLView's _displayLink that marks the view's
-// contents as needing to be updated.
+// The callback function of MOOpenGLView's `_displayLink` that marks the view's
+// content as needing to be updated.
 static CVReturn renderCallback(CVDisplayLinkRef displayLink,
-                               const CVTimeStamp *inNow,
-                               const CVTimeStamp *inOutputTime,
+                               const CVTimeStamp* now,
+                               const CVTimeStamp* outputTime,
                                CVOptionFlags flagsIn,
-                               CVOptionFlags *flagsOut,
+                               CVOptionFlags* flagsOut,
                                void *view) {
   [(__bridge MOOpenGLView *)view setNeedsDisplay:YES];
   return kCVReturnSuccess;
@@ -41,8 +41,8 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 @interface MOOpenGLView (PrivateDelegateHandling)
 
 - (NSPoint)convertToInternalPoint:(NSPoint)parentViewPoint;
-- (void)handleEvent:(NSEvent *)event withType:(moui::Event::Type)type;
-- (NSOpenGLContext *)openGLContext;
+- (void)handleEvent:(NSEvent*)event withType:(moui::Event::Type)type;
+- (void)initOpenGLContext;
 
 @end
 
@@ -66,32 +66,35 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
   _mouiView->HandleEvent(std::unique_ptr<moui::Event>(mouiEvent));
 }
 
-- (NSOpenGLContext *)openGLContext {
-  if (_openGLContext == nil) {
-    const NSOpenGLPixelFormatAttribute attributes[] =  {
-        NSOpenGLPFAAccelerated,
-        NSOpenGLPFAAlphaSize, 8,
-        NSOpenGLPFAColorSize, 32,
-        NSOpenGLPFADepthSize, 24,
-        NSOpenGLPFADoubleBuffer,
-        NSOpenGLPFANoRecovery,
-        NSOpenGLPFAStencilSize, 8,
-        (NSOpenGLPixelFormatAttribute)0};
-    NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc]
-        initWithAttributes:attributes] autorelease];
+- (void)initOpenGLContext {
+  const NSOpenGLPixelFormatAttribute attributes[] =  {
+      NSOpenGLPFAAccelerated,
+      NSOpenGLPFAAlphaSize, 8,
+      NSOpenGLPFAColorSize, 32,
+      NSOpenGLPFADepthSize, 24,
+      NSOpenGLPFADoubleBuffer,
+      NSOpenGLPFANoRecovery,
+      NSOpenGLPFAStencilSize, 8,
+      (NSOpenGLPixelFormatAttribute)0};
+  NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc]
+      initWithAttributes:attributes] autorelease];
 
-    _openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat
-                                                shareContext:nil];
-    [_openGLContext setView:self];
+  NSOpenGLContext* context = [[[NSOpenGLContext alloc]
+      initWithFormat:pixelFormat
+      shareContext:nil] autorelease];
 
-    // Sets sync to VBL to eliminate tearing.
-    GLint vblSync = 1;
-    [_openGLContext setValues:&vblSync forParameter:NSOpenGLCPSwapInterval];
-    // Allows for transparent background.
-    GLint opaque = 0;
-    [_openGLContext setValues:&opaque forParameter:NSOpenGLCPSurfaceOpacity];
-  }
-  return _openGLContext;
+  // Sets sync to VBL to eliminate tearing.
+  GLint vblSync = 1;
+  [context setValues:&vblSync forParameter:NSOpenGLCPSwapInterval];
+  // Allows for transparent background.
+  GLint opaque = 0;
+  [context setValues:&opaque forParameter:NSOpenGLCPSurfaceOpacity];
+
+  // Supports Retina resolution.
+  self.wantsBestResolutionOpenGLSurface = YES;
+
+  [self setPixelFormat:pixelFormat];
+  [self setOpenGLContext:context];
 }
 
 @end
@@ -103,21 +106,9 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
     _mouiView = mouiView;
     _needsRedraw = NO;
     _stopsUpdatingView = YES;
-
-    // Initializes the display link.
-    if (CVDisplayLinkCreateWithCGDisplay(CGMainDisplayID(), &_displayLink) == \
-        kCVReturnSuccess) {
-      CVDisplayLinkSetOutputCallback(_displayLink, renderCallback,
-                                     (__bridge void *)self);
-    }
+    [self initOpenGLContext];
   }
   return self;
-}
-
-- (void)dealloc {
-  if (_openGLContext != nil)
-    [_openGLContext dealloc];
-  [super dealloc];
 }
 
 - (void)drawRect:(NSRect)rect {
@@ -144,15 +135,34 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
   [self handleEvent:event withType:moui::Event::Type::kUp];
 }
 
+- (void)prepareOpenGL {
+  [super prepareOpenGL];
+
+  // Creates a display link capable of being used with all active displays
+  CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
+
+  // Sets the renderer output callback function.
+  CVDisplayLinkSetOutputCallback(_displayLink, renderCallback, self);
+
+  // Sets the display link for the current renderer
+  CGLContextObj cglContext = [self.openGLContext CGLContextObj];
+  CGLPixelFormatObj cglPixelFormat = [[self pixelFormat] CGLPixelFormatObj];
+  CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, cglContext,
+                                                    cglPixelFormat);
+}
+
 - (void)render {
   if (self.frame.size.width == 0 || self.frame.size.height == 0 ||
       [self isHidden])
     return;
 
-  NSOpenGLContext* context = [self openGLContext];
-  [context makeCurrentContext];
+  [self.openGLContext makeCurrentContext];
+  CGLLockContext([self.openGLContext CGLContextObj]);
+
   _mouiView->Render();
-  [context flushBuffer];
+
+  CGLFlushDrawable([self.openGLContext CGLContextObj]);
+  CGLUnlockContext([self.openGLContext CGLContextObj]);
 
   @synchronized(self) {
     if (_stopsUpdatingView && !_needsRedraw)
