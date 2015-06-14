@@ -194,10 +194,6 @@ class Widget {
   void set_rendering_offset(const Point offset);
   float scale() const { return scale_; }
   void set_scale(const float scale);
-  bool uses_integer_for_dimensions() const {
-    return uses_integer_for_dimensions_;
-  }
-  void set_uses_integer_for_dimensions(const bool value);
   WidgetView* widget_view() const { return widget_view_; }
 
  protected:
@@ -426,12 +422,6 @@ class Widget {
 
   // Indicates whether the default_framebuffer_ should be drawn.
   bool should_redraw_default_framebuffer_;
-
-  // Indicates whether the widget's dimensions should always use integer
-  // number. If true, the smallest integer value not less than
-  // configured value will be returned by both `GetWidth()`, `GetHeight()`
-  // methods. The default value is false.
-  bool uses_integer_for_dimensions_;
 
   // The WidgetView that contains the this widget instance. This is dedicated
   // for the convenient Redraw() method.
