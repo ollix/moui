@@ -294,7 +294,7 @@ bool Widget::RemoveChild(Widget* child) {
 }
 
 bool Widget::RemoveFromParent() {
-  if (parent_ == nullptr || !parent_->RemoveChild(this))
+  if (real_parent_ == nullptr || !real_parent_->RemoveChild(this))
     return false;
 
   parent_ = nullptr;
