@@ -33,19 +33,11 @@ class Label;
 
 // A button intercepts touch events and calls binded action functions
 // accordingly. Methods for settings action functions are inherted from the
-// Control class. In addtion, this class provides methods for setting the
+// `Control` class. In addtion, this class provides methods for setting the
 // title, render function, and other appearance properties to change the
 // appearance for each button state.
 class Button : public Control {
  public:
-  // Defines inset distances for the title label.
-  struct EdgeInsets {
-    int top;
-    int right;
-    int bottom;
-    int left;
-  };
-
   // The style of the highlighted state to render if no corresponded render
   // function is binded.
   enum class Style {
@@ -95,7 +87,7 @@ class Button : public Control {
 
   // Returns the title associated with the specified state. If no title has
   // been set for the specific state, this method returns the title associated
-  // with the ControlState::kNormal state.
+  // with the `ControlState::kNormal` state.
   std::string GetTitle(const ControlState state) const;
 
   // Returns the title color associated with the specified state.
@@ -131,43 +123,43 @@ class Button : public Control {
   Label* title_label() const { return title_label_; }
 
  protected:
-  // Inherited from Widget class. Resets all framebuffers.
-  virtual void ContextWillChange(NVGcontext* context) override;
+  // Inherited from `Widget` class. Resets all framebuffers.
+  void ContextWillChange(NVGcontext* context) override;
 
  private:
   // Executes the render function for passed state or fills white background
   // if nothing binded.
-  void ExecuteRenderFunction(const ControlState state, NVGcontext* context);
+  void ExecuteRenderFunction(NVGcontext* context, const ControlState state);
 
   // Returns the index of the specified control state.
   int GetControlStateIndex(const ControlState state) const;
 
-  // Inherited from Widget class. This method takes control of how to render
+  // Inherited from `Widget` class. This method takes control of how to render
   // the button. Subclasses should never override this method either.
   // To render customized appearance. Use `BindRenderFunction()` to bind a
   // function for rendering a specific control state.
-  virtual void Render(NVGcontext* context) override final;
+  void Render(NVGcontext* context) final;
 
-  // Inherited from Widget class. Renders for the current state into the
+  // Inherited from `Widget` class. Renders for the current state into the
   // corresponded framebuffer.
-  virtual void RenderFramebuffer(NVGcontext* context) override final;
+  void RenderFramebuffer(NVGcontext* context) final;
 
-  // Returns true if a render function is binded to the passed control state.
+  // Returns `true` if a render function is binded to the passed control state.
   bool RenderFunctionIsBinded(const ControlState state) const;
 
   // Updates the passed framebuffer offscreen according to passed parameters.
-  void UpdateFramebuffer(const ControlState state,
+  void UpdateFramebuffer(NVGcontext* context, NVGLUframebuffer** framebuffer,
+                         const ControlState state,
                          const bool renders_default_disabled_effect,
-                         const bool renders_default_highlighted_effect,
-                         NVGcontext* context, NVGLUframebuffer** framebuffer);
+                         const bool renders_default_highlighted_effect);
 
   // Updates the title label's attribute based on the button's current state.
   void UpdateTitleLabel();
 
-  // Inherited from Widget class. Updates the title label's attributes to
+  // Inherited from `Widget` class. Updates the title label's attributes to
   // adapt the button's control state and renders the current state to
   // corresonded framebuffer offscreen.
-  virtual bool WidgetViewWillRender(NVGcontext* context) override final;
+  bool WidgetViewWillRender(NVGcontext* context) final;
 
   // Indicates whether the height of the button should be increased
   // automatically in order to fit the title label's vertical size.
@@ -176,13 +168,13 @@ class Button : public Control {
   bool adjusts_button_height_to_fit_title_label_;
 
   // The style used to render default disabled state when no corresponded
-  // render function is binded. The default style is kSemiTransparent. Note
+  // render function is binded. The default style is `kSemiTransparent`. Note
   // that this value has nothing to do with any child widget including the
   // managed title label.
   Style default_disabled_style_;
 
   // The style used to render default highlighted state when no corresponded
-  // render function is binded. The default style is kTranslucentBlack. Note
+  // render function is binded. The default style is `kTranslucentBlack`. Note
   // that this value has nothing to do with any child widget including the
   // managed title label.
   Style default_highlighted_style_;
@@ -203,7 +195,7 @@ class Button : public Control {
   // Keeps the binded render functions for different control states. The vector
   // will be initialized in constructor to have the same number of elemens as
   // control states. The element position corresponded to a control state is
-  // determined by `GetControlStateIndex()`. Each element could be NULL to
+  // determined by `GetControlStateIndex()`. Each element could be `NULL` to
   // represent no binded render function.
   std::vector<std::function<void(NVGcontext*)>> render_functions_;
 

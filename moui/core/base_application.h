@@ -22,22 +22,22 @@
 
 namespace moui {
 
-// The BaseApplication class is the base class of the Application class. It is
-// responsible for setting and getting the main application. This class should
-// only be inherited by the Application class.
+// The `BaseApplication` class is the base class of the Application class.
+// It is responsible for setting and getting the main application. This class
+// should only be inherited by the Application class.
 class BaseApplication {
  public:
   BaseApplication();
   ~BaseApplication();
 
   // Returns the pointer to the application that previously set through the
-  // RegisterMainApplication() method.
+  // `RegisterMainApplication()` method.
   static BaseApplication* GetMainApplication();
 
   // Registers the current instance as the main application. The instance can
-  // later be retrieved through the GetMainApplication() method. If this method
-  // is called multiple times, the last instance calling this method will be
-  // the main application.
+  // later be retrieved through the `GetMainApplication()` method. If this
+  // method is called multiple times, the last instance calling this method
+  // will be the actual main application.
   void RegisterMainApplication();
 
  private:

@@ -33,8 +33,8 @@ class GridLayout : public Layout {
   void set_number_of_columns(const int number_of_columns);
 
  private:
-  // Inherited from Layout class.
-  virtual void ArrangeChildren() override final;
+  // Inherited from `Layout` class.
+  void ArrangeChildren() final;
 
   // Indicates the number of columns to arrange child widgets.
   int number_of_columns_;

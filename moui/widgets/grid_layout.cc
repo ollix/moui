@@ -37,15 +37,16 @@ GridLayout::~GridLayout() {
 void GridLayout::ArrangeChildren() {
   // Determines the width of each column.
   int column = 0;
-  float width_of_columns[number_of_columns_];
-  for (int i = 0; i < number_of_columns_; ++i)
+  const int kNumberOfColumns = number_of_columns_;
+  float width_of_columns[kNumberOfColumns];
+  for (int i = 0; i < kNumberOfColumns; ++i)
     width_of_columns[i] = 0;
 
   std::vector<Size> child_sizes;
   for (ManagedWidget& child : managed_widgets_) {
     width_of_columns[column] = std::max(width_of_columns[column],
                                         child.size.width);
-    if (++column == number_of_columns_)
+    if (++column == kNumberOfColumns)
       column = 0;
   }
 
@@ -55,7 +56,7 @@ void GridLayout::ArrangeChildren() {
   float row_height = 0;
   float row_offset = top_padding();
   for (ManagedWidget& child : managed_widgets_) {
-    if (++column == number_of_columns_) {
+    if (++column == kNumberOfColumns) {
       column = 0;
       column_offset = left_padding();
       row_offset += row_height + spacing();
@@ -75,8 +76,8 @@ void GridLayout::ArrangeChildren() {
   // Updates the size of the content view.
   const float kContentHeight = row_offset + row_height + bottom_padding();
   float content_width = \
-      left_padding() + right_padding() + spacing() * (number_of_columns_ - 1);
-  for (int i = 0; i < number_of_columns_; ++i)
+      left_padding() + right_padding() + spacing() * (kNumberOfColumns - 1);
+  for (int i = 0; i < kNumberOfColumns; ++i)
     content_width += width_of_columns[i];
   SetContentViewSize(content_width, kContentHeight);
 }

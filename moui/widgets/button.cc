@@ -17,6 +17,8 @@
 
 #include "moui/widgets/button.h"
 
+#include <cmath>
+
 #include "moui/base.h"
 #include "moui/core/device.h"
 #include "moui/nanovg_hook.h"
@@ -47,18 +49,18 @@ const int kNumberOfControlStates = 4;
 
 namespace moui {
 
-Button::Button()
-    : Control(),
-      adjusts_button_height_to_fit_title_label_(false),
-      default_disabled_style_(Style::kSemiTransparent),
-      default_highlighted_style_(Style::kTranslucentBlack),
-      disabled_state_framebuffer_(nullptr),
-      highlighted_state_framebuffer_(nullptr),
-      normal_state_framebuffer_(nullptr),
-      normal_state_with_highlighted_effect_framebuffer_(nullptr),
-      selected_state_framebuffer_(nullptr),
-      selected_state_with_highlighted_effect_framebuffer_(nullptr),
-      title_edge_insets_({0, 0, 0, 0}), title_label_(new Label) {
+Button::Button() : adjusts_button_height_to_fit_title_label_(false),
+                   default_disabled_style_(Style::kSemiTransparent),
+                   default_highlighted_style_(Style::kTranslucentBlack),
+                   disabled_state_framebuffer_(nullptr),
+                   highlighted_state_framebuffer_(nullptr),
+                   normal_state_framebuffer_(nullptr),
+                   normal_state_with_highlighted_effect_framebuffer_(nullptr),
+                   selected_state_framebuffer_(nullptr),
+                   selected_state_with_highlighted_effect_framebuffer_(nullptr),
+                   title_edge_insets_({0, 0, 0, 0}),
+                   title_label_(new Label) {
+  title_label_->set_number_of_lines(1);
   SetHeight(Widget::Unit::kPoint, 44);
 
   const NVGcolor kDefaultColor = nvgRGBA(0, 0, 0, 255);
@@ -88,8 +90,8 @@ void Button::ContextWillChange(NVGcontext* context) {
   ResetFramebuffers();
 }
 
-void Button::ExecuteRenderFunction(const ControlState state,
-                                   NVGcontext* context) {
+void Button::ExecuteRenderFunction(NVGcontext* context,
+                                   const ControlState state) {
   auto render_function = render_functions_[GetControlStateIndex(state)];
   if (render_function != NULL) {
     render_function(context);
@@ -187,17 +189,68 @@ void Button::Render(NVGcontext* context) {
   nvgFill(context);
 }
 
+// This method updates the specific framebuffer according to the current state.
+// However, the current state may not be the actual state to render. For
+// example, if the current state is selected but there is no render function
+// binded. The normal state will be rendered instead.
+void Button::RenderFramebuffer(NVGcontext* context) {
+  // Determines what state to render and which framebuffer to render to.
+  NVGLUframebuffer** framebuffer;
+  ControlState state = ControlState::kNormal;
+  bool renders_default_disabled_effect = false;
+  bool renders_default_highlighted_effect = false;
+  if (IsDisabled()) {
+    framebuffer = &disabled_state_framebuffer_;
+    if (RenderFunctionIsBinded(ControlState::kDisabled)) {
+      state = ControlState::kDisabled;
+    } else {
+      renders_default_disabled_effect = true;
+      if (IsSelected() && RenderFunctionIsBinded(ControlState::kSelected))
+        state = ControlState::kSelected;
+    }
+  } else if (IsHighlighted()) {
+    if (RenderFunctionIsBinded(ControlState::kHighlighted)) {
+      framebuffer = &highlighted_state_framebuffer_;
+      state = ControlState::kHighlighted;
+    } else if (IsSelected() &&
+               RenderFunctionIsBinded(ControlState::kSelected)) {
+      framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
+      state = ControlState::kSelected;
+      renders_default_highlighted_effect = true;
+    } else if (default_highlighted_style_ == Style::kNone) {
+      framebuffer = &normal_state_framebuffer_;
+    } else {
+      framebuffer = &normal_state_with_highlighted_effect_framebuffer_;
+      renders_default_highlighted_effect = true;
+    }
+  } else if (IsSelected()) {
+    framebuffer = &selected_state_framebuffer_;
+    if (RenderFunctionIsBinded(ControlState::kSelected))
+      state = ControlState::kSelected;
+  } else {
+    framebuffer = &normal_state_framebuffer_;
+  }
+
+  if (*framebuffer == nullptr) {
+    UpdateFramebuffer(context, framebuffer, state,
+                      renders_default_disabled_effect,
+                      renders_default_highlighted_effect);
+  }
+}
+
 bool Button::RenderFunctionIsBinded(const ControlState state) const {
   return render_functions_[GetControlStateIndex(state)] != NULL;
 }
 
 void Button::ResetFramebuffers() {
-  nvgDeleteFramebuffer(&disabled_state_framebuffer_);
-  nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
-  nvgDeleteFramebuffer(&normal_state_framebuffer_);
-  nvgDeleteFramebuffer(&normal_state_with_highlighted_effect_framebuffer_);
-  nvgDeleteFramebuffer(&selected_state_framebuffer_);
-  nvgDeleteFramebuffer(&selected_state_with_highlighted_effect_framebuffer_);
+  moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
+  moui::nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
+  moui::nvgDeleteFramebuffer(&normal_state_framebuffer_);
+  moui::nvgDeleteFramebuffer(
+      &normal_state_with_highlighted_effect_framebuffer_);
+  moui::nvgDeleteFramebuffer(&selected_state_framebuffer_);
+  moui::nvgDeleteFramebuffer(
+      &selected_state_with_highlighted_effect_framebuffer_);
 }
 
 void Button::SetTitle(const std::string& title, const ControlState state) {
@@ -212,23 +265,25 @@ void Button::UnbindRenderFunction(const ControlState state) {
   render_functions_[GetControlStateIndex(state)] = NULL;
 
   if (state == ControlState::kNormal) {
-    nvgDeleteFramebuffer(&normal_state_framebuffer_);
+    moui::nvgDeleteFramebuffer(&normal_state_framebuffer_);
   } else if (state == ControlState::kHighlighted) {
-    nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
-    nvgDeleteFramebuffer(&normal_state_with_highlighted_effect_framebuffer_);
-    nvgDeleteFramebuffer(&selected_state_with_highlighted_effect_framebuffer_);
+    moui::nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
+    moui::nvgDeleteFramebuffer(
+        &normal_state_with_highlighted_effect_framebuffer_);
+    moui::nvgDeleteFramebuffer(
+        &selected_state_with_highlighted_effect_framebuffer_);
   } else if (state == ControlState::kSelected) {
-    nvgDeleteFramebuffer(&selected_state_framebuffer_);
+    moui::nvgDeleteFramebuffer(&selected_state_framebuffer_);
   } else if (state == ControlState::kDisabled) {
-    nvgDeleteFramebuffer(&disabled_state_framebuffer_);
+    moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
   }
 }
 
-void Button::UpdateFramebuffer(const ControlState state,
+void Button::UpdateFramebuffer(NVGcontext* context,
+                               NVGLUframebuffer** framebuffer,
+                               const ControlState state,
                                const bool renders_default_disabled_effect,
-                               const bool renders_default_highlighted_effect,
-                               NVGcontext* context,
-                               NVGLUframebuffer** framebuffer) {
+                               const bool renders_default_highlighted_effect) {
   float scale_factor;
   if (!BeginFramebufferUpdates(context, framebuffer, &scale_factor))
     return;
@@ -242,7 +297,7 @@ void Button::UpdateFramebuffer(const ControlState state,
       (renders_default_highlighted_effect &&
        default_highlighted_style_ == Style::kSemiTransparent))
     nvgGlobalAlpha(context, kDefaultDisabledStateAlpha);
-  ExecuteRenderFunction(state, context);
+  ExecuteRenderFunction(context, state);
   nvgEndFrame(context);
 
   // Blends with translucent foreground for default highlighted effect.
@@ -282,13 +337,16 @@ void Button::UpdateTitleLabel() {
   title_label_->set_text(title);
   title_label_->set_text_color(GetCurrentTitleColor());
   title_label_->SetHidden(false);
-  title_label_->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint,
-                     title_edge_insets_.left);
-  title_label_->SetY(Widget::Alignment::kTop, Widget::Unit::kPoint,
-                     title_edge_insets_.top);
-  title_label_->SetWidth(
-      Widget::Unit::kPoint,
-      GetWidth() - title_edge_insets_.left - title_edge_insets_.right);
+  title_label_->SetX(title_edge_insets_.left);
+  title_label_->SetY(title_edge_insets_.top);
+  // Updates the title label's width and makes sure the text can always fit no
+  // matter what the current scale is.
+  const float kExpectedTitleLabelWidth = \
+      GetWidth() - title_edge_insets_.left - title_edge_insets_.right;
+  const float kAcutalTitleLabelWidth = \
+      std::ceil(kExpectedTitleLabelWidth * GetMeasuredScale())
+      / GetMeasuredScale();
+  title_label_->SetWidth(kAcutalTitleLabelWidth);
 
   // Adjusts the button's height to fit the title label.
   if (adjusts_button_height_to_fit_title_label_) {
@@ -296,60 +354,13 @@ void Button::UpdateTitleLabel() {
                                         title_label_->GetHeight() + \
                                         title_edge_insets_.bottom;
     if (kRequiredButtonHeight > GetHeight()) {
-      SetHeight(Widget::Unit::kPoint, kRequiredButtonHeight);
+      SetHeight(kRequiredButtonHeight);
       ResetFramebuffers();
     }
   }
   // Updates the label's height to fit the button's height.
   title_label_->SetHeight(
-      Widget::Unit::kPoint,
       GetHeight() - title_edge_insets_.top - title_edge_insets_.bottom);
-}
-
-// This method updates the specific framebuffer according to the current state.
-// However, the current state may not be the actual state to render. For
-// example, if the current state is selected but there is no render function
-// binded. The normal state will be rendered instead.
-void Button::RenderFramebuffer(NVGcontext* context) {
-  // Determines what state to render and which framebuffer to render to.
-  NVGLUframebuffer** framebuffer;
-  ControlState state = ControlState::kNormal;
-  bool renders_default_disabled_effect = false;
-  bool renders_default_highlighted_effect = false;
-  if (IsDisabled()) {
-    framebuffer = &disabled_state_framebuffer_;
-    if (RenderFunctionIsBinded(ControlState::kDisabled)) {
-      state = ControlState::kDisabled;
-    } else {
-      renders_default_disabled_effect = true;
-      if (IsSelected() && RenderFunctionIsBinded(ControlState::kSelected))
-        state = ControlState::kSelected;
-    }
-  } else if (IsHighlighted()) {
-    if (RenderFunctionIsBinded(ControlState::kHighlighted)) {
-      framebuffer = &highlighted_state_framebuffer_;
-      state = ControlState::kHighlighted;
-    } else if (IsSelected() &&
-               RenderFunctionIsBinded(ControlState::kSelected)) {
-      framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
-      state = ControlState::kSelected;
-      renders_default_highlighted_effect = true;
-    } else {
-      framebuffer = &normal_state_with_highlighted_effect_framebuffer_;
-      renders_default_highlighted_effect = true;
-    }
-  } else if (IsSelected()) {
-    framebuffer = &selected_state_framebuffer_;
-    if (RenderFunctionIsBinded(ControlState::kSelected))
-      state = ControlState::kSelected;
-  } else {
-    framebuffer = &normal_state_framebuffer_;
-  }
-
-  if (*framebuffer == nullptr) {
-    UpdateFramebuffer(state, renders_default_disabled_effect,
-                      renders_default_highlighted_effect, context, framebuffer);
-  }
 }
 
 bool Button::WidgetViewWillRender(NVGcontext* context) {
@@ -368,7 +379,7 @@ void Button::set_default_disabled_style(const Style style) {
   if (style == default_disabled_style_)
     return;
 
-  nvgDeleteFramebuffer(&disabled_state_framebuffer_);
+  moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
   default_disabled_style_ = style;
 }
 
@@ -376,16 +387,18 @@ void Button::set_default_highlighted_style(const Style style) {
   if (style == default_highlighted_style_)
     return;
 
-  nvgDeleteFramebuffer(&normal_state_with_highlighted_effect_framebuffer_);
-  nvgDeleteFramebuffer(&selected_state_with_highlighted_effect_framebuffer_);
+  moui::nvgDeleteFramebuffer(
+      &normal_state_with_highlighted_effect_framebuffer_);
+  moui::nvgDeleteFramebuffer(
+      &selected_state_with_highlighted_effect_framebuffer_);
   default_highlighted_style_ = style;
 }
 
 void Button::set_title_edge_insets(const EdgeInsets edge_insets) {
   if (edge_insets.top == title_edge_insets_.top &&
-      edge_insets.right == title_edge_insets_.right &&
+      edge_insets.left == title_edge_insets_.left &&
       edge_insets.bottom == title_edge_insets_.bottom &&
-      edge_insets.left == title_edge_insets_.left) {
+      edge_insets.right == title_edge_insets_.right) {
     return;
   }
   title_edge_insets_ = edge_insets;

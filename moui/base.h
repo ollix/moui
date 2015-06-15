@@ -20,6 +20,14 @@
 
 namespace moui {
 
+// Indicates inset distances for rectangles.
+struct EdgeInsets {
+  float top;
+  float left;
+  float bottom;
+  float right;
+};
+
 // Indicates a specific location.
 struct Point {
   float x;
@@ -32,8 +40,8 @@ struct Size {
   float height;
 };
 
-// A macro to disallow the copy constructor and operator= functions
-// This should be used in the private: declarations for a class
+// A macro to disallow the copy constructor and `operator=` functions.
+// This should be used in the private section of a class interface.
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)

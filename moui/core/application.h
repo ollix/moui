@@ -22,27 +22,28 @@
 #include "moui/core/base_application.h"
 
 #ifdef MOUI_ANDROID
-#include "jni.h"
+#include "jni.h"  // NOLINT
 #endif  // MOUI_ANDROID
 
 namespace moui {
 
-// The Application class is the base class for custom applications. This class
-// should never be instantiated directly. Instaed, creating a subclass and
-// implmenet virtual methods there. The custom application instance should call
-// the SetAsMainApplication() method once right after instantiated. For Android
-// support, the InitJNI() method should also be called before instantiating.
+// The `Application` class is the base class for custom applications. This
+// class should never be instantiated directly. Instaed, creating a subclass
+// and implement virtual methods there. The custom application instance should
+// call the `SetAsMainApplication`() method once right after instantiated.
+// For Android support, the `InitJNI()` method should also be called before
+// instantiating.
 class Application : public BaseApplication {
  public:
   Application() {}
   ~Application() {}
 
-  // Called when the application has finished launching.
+  // This method gets called when the application has finished launching.
   virtual void OnLaunch() {}
 
   // Returns the main application. The main application must be registered
   // before calling this method. To register the main application, call the
-  // BaseApplication::RegisterMainApplication() method on an application
+  // `BaseApplication::RegisterMainApplication()` method on an application
   // instance.
   static Application* GetMainApplication() {
     BaseApplication* application = BaseApplication::GetMainApplication();
@@ -51,16 +52,16 @@ class Application : public BaseApplication {
 
   // This method is designed to be called whenever the application receives a
   // memory warning.
-  virtual void HandleMemoryWarning() {};
+  virtual void HandleMemoryWarning() {}
 
 #ifdef MOUI_ANDROID
   // Initializes the JNI environemnt. This method must be called at least once.
   static void InitJNI(JNIEnv* env, jobject activity);
 
-  // Returns the JNIEnv variable that set in the InitJNI() method.
+  // Returns the `JNIEnv` variable that set in the `InitJNI()` method.
   static JNIEnv* GetJNIEnv();
 
-  // Returns the Activity object that set in the InitJNI() method.
+  // Returns the `Activity` object that set in the `InitJNI()` method.
   static jobject GetMainActivity();
 #endif  // MOUI_ANDROID
 

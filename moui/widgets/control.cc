@@ -35,8 +35,12 @@ const int kHandheldDeviceHighlightedMargin = 48;
 
 namespace moui {
 
-Control::Control() : Widget(), highlighted_margin_(0), ignores_events_(false),
-                     state_(ControlState::kNormal), touch_down_margin_(0) {
+Control::Control() : Control(true) {
+}
+
+Control::Control(const bool caches_rendering)
+    : Widget(caches_rendering), highlighted_margin_(0), ignores_events_(false),
+      state_(ControlState::kNormal), touch_down_margin_(0) {
   if (Device::GetCategory() != Device::Category::kDesktop)
     highlighted_margin_ = kHandheldDeviceHighlightedMargin;
 }
@@ -185,7 +189,7 @@ void Control::SetSelected(const bool selected) {
   Redraw();
 }
 
-// Returns true if the widget's bounding box plus the disired margin size
+// Returns `true` if the widget's bounding box plus the disired margin size
 // collides the passed location.
 bool Control::ShouldHandleEvent(const Point location) {
   return CollidePoint(location, touch_down_margin_);

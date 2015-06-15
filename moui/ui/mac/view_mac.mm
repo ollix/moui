@@ -22,7 +22,7 @@
 
 namespace moui {
 
-// Instantiates the MOOpenGLView class and uses it as the native handle.
+// Instantiates the `MOOpenGLView` class and uses it as the native handle.
 View::View() : BaseView() {
   MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
   native_handle_ = (__bridge void*)view;

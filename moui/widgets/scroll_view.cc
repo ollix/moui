@@ -106,9 +106,16 @@ ScrollView::ScrollView()
   vertical_scroller_ = new Scroller(Scroller::Direction::kVertical);
   vertical_scroller_->SetHidden(true);
   Widget::AddChild(vertical_scroller_);
+
+  // Initializes animation states.
+  horizontal_animation_state_.is_animating = false;
+  vertical_animation_state_.is_animating = false;
 }
 
 ScrollView::~ScrollView() {
+  if (frees_descendants_on_destruction())
+    return;
+
   delete content_view_;
   delete horizontal_scroller_;
   delete vertical_scroller_;
@@ -291,7 +298,8 @@ Size ScrollView::GetContentViewSize() const {
   return {content_view_->GetWidth(), content_view_->GetHeight()};
 }
 
-float ScrollView::GetCurrentAnimatingLocation(AnimationState& state) const {
+float ScrollView::GetCurrentAnimatingLocation(
+    const AnimationState& state) const {
   return state.elapsed_time >= state.duration ?
          state.destination_location :
          state.initial_location + CalculateDisplacement(state.initial_velocity,
@@ -322,10 +330,6 @@ int ScrollView::GetMaximumPage() const {
 ScrollView::ScrollDirection ScrollView::GetScrollDirection() const {
   if (event_history_.size() < 2)
     return ScrollDirection::kUnknown;
-
-  // auto event_history_iterator = event_history_.end();
-  // ScrollEvent latest_event = *(event_history_iterator - 1);
-  // ScrollEvent previous_event = *(event_history_iterator - 2);
 
   ScrollEvent latest_event = event_history_.back();
   ScrollEvent previous_event = event_history_.front();
@@ -358,13 +362,15 @@ ScrollView::ScrollDirection ScrollView::GetScrollDirection() const {
 
 void ScrollView::GetScrollVelocity(double* horizontal_velocity,
                                    double* vertical_velocity) {
+  if (horizontal_velocity != nullptr)
+    *horizontal_velocity = 0;
+  if (vertical_velocity != nullptr)
+    *vertical_velocity = 0;
   if (event_history_.size() < 2) {
-    if (horizontal_velocity != nullptr) *horizontal_velocity = 0;
-    if (vertical_velocity != nullptr) *vertical_velocity = 0;
     return;
   }
   ScrollEvent last_event = event_history_.back();
-  ScrollEvent initial_event;
+  ScrollEvent initial_event = {{0, 0}, 0};
   double elapsed_time = -1;
   for (ScrollEvent& event : event_history_) {
     initial_event = event;
@@ -416,10 +422,18 @@ bool ScrollView::HandleEvent(Event* event) {
 
   if (!ignores_upcoming_events_ && event->type() == Event::Type::kMove) {
     ScrollEvent first_event = event_history_.front();
-    const float kOffsetX = current_location.x - first_event.location.x;
-    const float kOffsetY = current_location.y - first_event.location.y;
-    const float kOriginX = initial_scroll_content_view_origin_.x + kOffsetX;
-    const float kOriginY = initial_scroll_content_view_origin_.y + kOffsetY;
+    float offset_x = 0;
+    float offset_y = 0;
+    if (locked_scroll_direction_ == ScrollDirection::kBoth ||
+        locked_scroll_direction_ == ScrollDirection::kHorizontal) {
+      offset_x = current_location.x - first_event.location.x;
+    }
+    if (locked_scroll_direction_ == ScrollDirection::kBoth ||
+        locked_scroll_direction_ == ScrollDirection::kVertical) {
+      offset_y = current_location.y - first_event.location.y;
+    }
+    const float kOriginX = initial_scroll_content_view_origin_.x + offset_x;
+    const float kOriginY = initial_scroll_content_view_origin_.y + offset_y;
     SetContentViewOrigin({kOriginX, kOriginY});
     return false;
   }
@@ -451,6 +465,8 @@ bool ScrollView::IsScrolling() const {
 
 void ScrollView::ReachesContentViewBoundary(bool* horizontal,
                                             bool* vertical) const {
+  *horizontal = false;
+  *vertical = false;
   if (!IsAnimating())
     return;
 
@@ -615,13 +631,10 @@ void ScrollView::SetContentViewOrigin(const Point& expected_origin) {
 }
 
 void ScrollView::SetContentViewSize(const float width, const float height) {
-  if (width == content_view_->GetWidth() &&
-      height == content_view_->GetHeight())
-    return;
-
-  content_view_->SetWidth(Widget::Unit::kPoint, width);
-  content_view_->SetHeight(Widget::Unit::kPoint, height);
-  Redraw();
+  if (width >= 0)
+    content_view_->SetWidth(width);
+  if (height >= 0)
+    content_view_->SetHeight(height);
 }
 
 bool ScrollView::ShouldHandleEvent(const Point location) {

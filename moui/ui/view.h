@@ -23,22 +23,22 @@
 
 namespace moui {
 
-// The View class is a wrapper of the platform-specfic native view for
+// The `View` class is a wrapper of the platform-specfic native view for
 // rendering OpenGL stuff.
 class View : public BaseView {
  public:
   View();
   ~View();
 
-  // Inherited from BaseView class.
-  virtual void Redraw() override;
+  // Inherited from `BaseView` class.
+  void Redraw() override;
 
  private:
-  // Inherited from BaseView class.
-  virtual void StartUpdatingNativeView() override final;
+  // Inherited from `BaseView` class.
+  void StartUpdatingNativeView() final;
 
-  // Inherited from BaseView class.
-  virtual void StopUpdatingNativeView() override final;
+  // Inherited from `BaseView` class.
+  void StopUpdatingNativeView() final;
 
   DISALLOW_COPY_AND_ASSIGN(View);
 };

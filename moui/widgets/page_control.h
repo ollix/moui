@@ -24,9 +24,9 @@
 
 namespace moui {
 
-// PageControl renders page indicator dots at the center of the widget.
-// The height of the widget will be adjusted automatically to fit the diameter
-// of the page indicator dot.
+// The `PageControl` widget displays the page indicator dots at the center of
+// the widget. The height of the widget will be adjusted automatically to fit
+// the diameter of the page indicator dot.
 class PageControl : public Widget {
  public:
   PageControl();
@@ -53,8 +53,8 @@ class PageControl : public Widget {
   void set_page_indicator_dot_padding(const int padding);
 
  private:
-  // Inherited from Widget class. Renders the page indicator dots.
-  virtual void Render(NVGcontext* context) override final;
+  // Inherited from `Widget` class. Renders the page indicator dots.
+  void Render(NVGcontext* context) final;
 
   // The current page that causes the corresponded page indicator dot to be
   // shown with a particular color. The default value is 0.
@@ -65,7 +65,7 @@ class PageControl : public Widget {
   NVGcolor current_page_indicator_color_;
 
   // Indicates whether the page control is hidden when there is only one page.
-  // The default value is false.
+  // The default value is `false`.
   bool hides_for_single_page_;
 
   // The number of page indicators to be shown as dots. The default value is 0.

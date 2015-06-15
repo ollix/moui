@@ -26,8 +26,8 @@
 
 namespace moui {
 
-// This is the base class for implementing every particular layout. Each layout
-// is used to arrange child widgets in a particular manner.
+// This is the base class of layout classes. Each layout class is designed to
+// arrange child widgets in a particular manner.
 class Layout : public ScrollView {
  public:
   // The orientation represents whether the layout's children should be
@@ -63,14 +63,14 @@ class Layout : public ScrollView {
   // Keeps the states of currently managed widgets.
   std::vector<ManagedWidget> managed_widgets_;
 
-  // Inherited from Widget class.
-  virtual bool WidgetViewWillRender(NVGcontext* context) override;
+  // Inherited from `Widget` class.
+  bool WidgetViewWillRender(NVGcontext* context) override;
 
  private:
-  // Arranges child widgets. This method must be implmented in subclasses.
+  // Arranges child widgets. This method must be implemented in subclasses.
   virtual void ArrangeChildren() {}
 
-  // Returns true if child widgets should be arranged.
+  // Returns `true` if child widgets should be arranged.
   bool ShouldArrangeChildren();
 
   // The padding in points to the bottom side of the layout.

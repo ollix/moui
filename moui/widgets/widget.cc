@@ -17,8 +17,8 @@
 
 #include "moui/widgets/widget.h"
 
+#include <algorithm>
 #include <cassert>
-#include <mutex>
 #include <stack>
 #include <vector>
 
@@ -66,32 +66,32 @@ Widget::Widget(const bool caches_rendering)
     : alpha_(1), animation_count_(0),
       background_color_(nvgRGBA(255, 255, 255, 255)),
       caches_rendering_(caches_rendering), default_framebuffer_(nullptr),
-      default_framebuffer_mutex_(nullptr),
       frees_descendants_on_destruction_(false), height_unit_(Unit::kPoint),
       height_value_(0), hidden_(false), is_opaque_(true), measured_scale_(-1),
       parent_(nullptr), real_parent_(nullptr), render_function_(NULL),
       rendering_offset_({0, 0}), scale_(1),
-      should_redraw_default_framebuffer_(true), widget_view_(nullptr),
-      width_unit_(Unit::kPoint), width_value_(0),
+      should_redraw_default_framebuffer_(false), tag_(0),
+      widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
       y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
-  if (caches_rendering)
-    default_framebuffer_mutex_ = new std::mutex;
 }
 
 Widget::~Widget() {
   set_widget_view(nullptr);
 
-  if (caches_rendering_)
-    delete default_framebuffer_mutex_;
+  while (IsAnimating())
+    StopAnimation();
 
   if (frees_descendants_on_destruction_)
     FreeDescendantsRecursively(this);
 }
 
 void Widget::AddChild(Widget* child) {
+  if (child->real_parent_ == this)
+    return;
+
+  child->parent_ = this;
   child->real_parent_ = this;
-  child->set_parent(this);
   child->set_widget_view(widget_view_);
   children_.push_back(child);
   if (widget_view_ != nullptr && !child->IsHidden())
@@ -107,6 +107,17 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
   const float kHeight = GetHeight() * kScaleFactor;
   if (kWidth <= 0 || kHeight <= 0)
     return false;
+
+  // Deletes the `framebuffer` if its size is not matched to the expected size.
+  if (*framebuffer != nullptr) {
+    int framebuffer_width = 0;
+    int framebuffer_height = 0;
+    nvgImageSize((*framebuffer)->ctx, (*framebuffer)->image,
+                 &framebuffer_width, &framebuffer_height);
+    if (kWidth != framebuffer_width || kHeight != framebuffer_height)
+      moui::nvgDeleteFramebuffer(framebuffer);
+  }
+
   if (*framebuffer == nullptr)
     *framebuffer = nvgluCreateFramebuffer(context, kWidth, kHeight, 0);
   if (*framebuffer == NULL) {
@@ -151,11 +162,7 @@ bool Widget::CollidePoint(const Point point, const float top_padding,
 }
 
 void Widget::ContextWillChange(NVGcontext* context) {
-  if (default_framebuffer_ != nullptr) {
-    default_framebuffer_mutex_->lock();
-    nvgDeleteFramebuffer(&default_framebuffer_);
-    default_framebuffer_mutex_->unlock();
-  }
+  moui::nvgDeleteFramebuffer(&default_framebuffer_);
 }
 
 void Widget::EndFramebufferUpdates() {
@@ -222,13 +229,22 @@ float Widget::GetMeasuredScale() {
   return measured_scale_;
 }
 
+float Widget::GetScaledHeight() const {
+  return GetHeight() * scale_;
+}
+
+float Widget::GetScaledWidth() const {
+  return GetWidth() * scale_;
+}
+
 float Widget::GetWidth() const {
   const float kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
   return CalculatePoints(width_unit_, width_value_, kParentWidth);
 }
 
 float Widget::GetX() const {
-  const float kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
+  const float kParentWidth = real_parent_ == nullptr ?
+                             0 : real_parent_->GetWidth();
   const float kOffset = CalculatePoints(x_unit_, x_value_, kParentWidth);
   float x;
   switch (x_alignment_) {
@@ -248,7 +264,8 @@ float Widget::GetX() const {
 }
 
 float Widget::GetY() const {
-  const float kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
+  const float kParentHeight = real_parent_ == nullptr ?
+                              0 : real_parent_->GetHeight();
   const float kOffset = CalculatePoints(y_unit_, y_value_, kParentHeight);
   float y;
   switch (y_alignment_) {
@@ -277,9 +294,7 @@ bool Widget::IsHidden() const {
 
 void Widget::Redraw() {
   if (caches_rendering_) {
-    default_framebuffer_mutex_->lock();
     should_redraw_default_framebuffer_ = true;
-    default_framebuffer_mutex_->unlock();
   }
   if (widget_view_ != nullptr && !IsHidden())
     widget_view_->Redraw();
@@ -307,13 +322,11 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
   if (!caches_rendering_)
     return;
 
-  default_framebuffer_mutex_->lock();
-  if (!should_redraw_default_framebuffer_ && !IsAnimating()) {
-    default_framebuffer_mutex_->unlock();
+  if (default_framebuffer_ != nullptr && !should_redraw_default_framebuffer_ &&
+      !IsAnimating()) {
     return;
   }
   should_redraw_default_framebuffer_ = false;
-  nvgDeleteFramebuffer(&default_framebuffer_);
 
   float scale_factor;
   if (BeginFramebufferUpdates(context, &default_framebuffer_, &scale_factor)) {
@@ -328,7 +341,6 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
                                                  default_framebuffer_->image,
                                                  1);
   }
-  default_framebuffer_mutex_->unlock();
 }
 
 bool Widget::RenderFunctionIsBinded() const {
@@ -348,6 +360,7 @@ void Widget::RenderOnDemand(NVGcontext* context) {
 
 void Widget::ResetMeasuredScale() {
   measured_scale_ = -1;
+  Redraw();
 }
 
 void Widget::ResetMeasuredScaleRecursively(Widget* widget) {
@@ -369,11 +382,12 @@ void Widget::SetHeight(const float height) {
 }
 
 void Widget::SetHeight(const Unit unit, const float height) {
-  if (unit == height_unit_ && height == height_value_)
+  const float kHeight = std::max(0.0f, height);
+  if (unit == height_unit_ && kHeight == height_value_)
     return;
 
   height_unit_ = unit;
-  height_value_ = height;
+  height_value_ = kHeight;
   Redraw();
 }
 
@@ -390,11 +404,12 @@ void Widget::SetWidth(const float width) {
 }
 
 void Widget::SetWidth(const Unit unit, const float width) {
-  if (unit == width_unit_ && width == width_value_)
+  const float kWidth = std::max(0.0f, width);
+  if (unit == width_unit_ && kWidth == width_value_)
     return;
 
   width_unit_ = unit;
-  width_value_ = width;
+  width_value_ = kWidth;
   Redraw();
 }
 
@@ -469,7 +484,7 @@ void Widget::set_alpha(const float alpha) {
 }
 
 void Widget::set_background_color(const NVGcolor background_color) {
-  if (!nvgCompareColor(background_color, background_color_)) {
+  if (!moui::nvgCompareColor(background_color, background_color_)) {
     background_color_ = background_color;
     Redraw();
   }

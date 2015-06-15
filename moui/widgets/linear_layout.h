@@ -29,8 +29,8 @@ class LinearLayout : public Layout {
   ~LinearLayout();
 
  private:
-  // Inherited from Layout class.
-  virtual void ArrangeChildren() override final;
+  // Inherited from `Layout` class.
+  void ArrangeChildren() final;
 
   // The direction to arrange the child widgets.
   Orientation orientation_;

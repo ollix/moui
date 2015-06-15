@@ -25,9 +25,10 @@
 
 namespace {
 
-// The maximum number of lines to render on the screen when number_of_lines_ is
-// set to 0.
-// TODO: Calculates the maximum lines that can fit its parent on demand.
+// The maximum number of lines to render on the screen when `number_of_lines_`
+// is set to 0.
+// TODO(olliwang): Calculates the maximum lines that can fit its parent on
+//                 demand.
 const int kMaximumNumberOfLines = 100;
 
 // The minimum font size guaranteed to render the text.
@@ -35,7 +36,7 @@ const float kMinimumFontSize = 1;
 
 // The offset in points to change the vertical position for rendering text box.
 // This is a workaround to make the rendered position more as expected.
-const float kTextBoxVerticalOffset = 3;
+const float kTextBoxVerticalOffset = 1;
 
 // Default configuration for the label.
 std::string default_font_name;
@@ -52,7 +53,7 @@ Label::Label(const std::string& text) : Label(text, "") {
 }
 
 Label::Label(const std::string& text, const std::string& font_name)
-    : Widget(), adjusts_font_size_to_fit_width_(false),
+    : adjusts_font_size_to_fit_width_(false),
       adjusts_label_height_to_fit_width_(false), font_name_(font_name),
       font_size_(0), minimum_scale_factor_(0), number_of_lines_(1),
       should_prepare_for_rendering_(true), text_(text),
@@ -65,22 +66,25 @@ Label::~Label() {
 }
 
 void Label::ConfigureTextAttributes(NVGcontext* context) {
-  int alignment;
+  int horizontal_alignment;
   switch (text_horizontal_alignment_) {
-    case Alignment::kLeft: alignment = NVG_ALIGN_LEFT; break;
-    case Alignment::kCenter: alignment = NVG_ALIGN_CENTER; break;
-    case Alignment::kRight: alignment = NVG_ALIGN_RIGHT; break;
+    case Alignment::kLeft: horizontal_alignment = NVG_ALIGN_LEFT; break;
+    case Alignment::kCenter: horizontal_alignment = NVG_ALIGN_CENTER; break;
+    case Alignment::kRight: horizontal_alignment = NVG_ALIGN_RIGHT; break;
     default: assert(false);
   }
-  nvgFontSize(context, font_size_to_render_);
-  nvgFontFace(context, font_name().c_str());
   nvgFillColor(context, text_color_);
-  nvgTextAlign(context, alignment);
+  nvgFontFace(context, font_name().c_str());
+  nvgFontSize(context, font_size_to_render_);
+  nvgTextAlign(context, horizontal_alignment | NVG_ALIGN_TOP);
+  nvgTextLetterSpacing(context, 0);
 }
 
 void Label::Render(NVGcontext* context) {
-  ConfigureTextAttributes(context);
+  if (text_to_render_.empty())
+    return;
 
+  ConfigureTextAttributes(context);
   float y;  // the vertical position that will be passed to nvgTextBox()
   float bounds[4];  // bounds of the text
   nvgTextBoxBounds(context, 0, 0, GetWidth(), text_to_render_.c_str(), NULL,
@@ -111,10 +115,18 @@ void Label::SetDefaultFontSize(const float size) {
 
 // This method begins with determining the actual text and font size to render
 // according to `adjusts_font_size_to_fit_width_`, `minimum_scale_factor_` and
-// `number_of_lines_`. It also calculates the required height to render the
-// desired result, and increases the label's height or adjusts the label's
-// position accordingly if `adjusts_label_height_to_fit_width_` is set to true.
+// `number_of_lines_` properties. It also calculates the required height to
+// render the desired result, and increases the label's height or adjusts the
+// label's position accordingly if `adjusts_label_height_to_fit_width_` is
+// set to `true`.
 bool Label::WidgetViewWillRender(NVGcontext* context) {
+  if ((!adjusts_label_height_to_fit_width_ && GetHeight() == 0) ||
+      (adjusts_label_height_to_fit_width_ && GetWidth() == 0) ||
+      text_.empty()) {
+    text_to_render_.clear();
+    return true;
+  }
+
   if (!should_prepare_for_rendering_)
     return true;
   should_prepare_for_rendering_ = false;
@@ -131,14 +143,15 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
   NVGtextRow text_rows[kExpectedNumberOfLines];
   float text_box_height = 0;  // the required height to render text
 
+  ConfigureTextAttributes(context);
   while (true) {
-    ConfigureTextAttributes(context);
     const int kActualNumberOfLines = nvgTextBreakLines(
-        context, text_.c_str(), NULL, kLabelWidth, text_rows,
-        kExpectedNumberOfLines);
+        context, text_.c_str(), kExpectedLastCharToRender, kLabelWidth,
+        text_rows, kExpectedNumberOfLines);
+
     text_to_render_.clear();
     text_box_height = 0;
-    const char* last_char_to_render;
+    const char* last_char_to_render = nullptr;
     for (int i = 0; i < kActualNumberOfLines; ++i) {
       if (i > 0) text_to_render_.append("\n");
       NVGtextRow* row = &text_rows[i];
@@ -166,20 +179,14 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
 
     // Reduces the font size and try again.
     font_size_to_render_ = std::max(kMinimumAcceptableFontSize,
-                                    font_size_to_render_ - 0.1f);
+                                    font_size_to_render_ - 1);
+    nvgFontSize(context, font_size_to_render_);
   }
 
   // Adjusts label height to fit width.
-  if (adjusts_label_height_to_fit_width_ && text_box_height > kLabelHeight) {
-    if (text_vertical_alignment_ == Label::Alignment::kMiddle) {
-      SetY(Widget::Alignment::kTop, Widget::Unit::kPoint,
-           GetY() - (text_box_height - kLabelHeight) / 2);
-    } else if (text_vertical_alignment_ == Label::Alignment::kBottom) {
-      SetY(Widget::Alignment::kTop, Widget::Unit::kPoint,
-           GetY() - (text_box_height - kLabelHeight));
-    }
+  if (adjusts_label_height_to_fit_width_ && text_box_height > kLabelHeight)
     SetHeight(Widget::Unit::kPoint, text_box_height);
-  }
+
   return true;
 }
 
@@ -219,9 +226,10 @@ float Label::font_size() const {
   return font_size_;
 }
 
-void Label::set_font_size(const float size) {
-  if (size != font_size_) {
-    font_size_ = size;
+void Label::set_font_size(const float font_size) {
+  const int kFontSize = static_cast<int>(font_size);
+  if (kFontSize != font_size_) {
+    font_size_ = kFontSize;
     should_prepare_for_rendering_ = true;
     Redraw();
   }
@@ -252,7 +260,7 @@ void Label::set_text(const std::string& text) {
 }
 
 void Label::set_text_color(const NVGcolor text_color) {
-  if (!nvgCompareColor(text_color, text_color_)) {
+  if (!moui::nvgCompareColor(text_color, text_color_)) {
     text_color_ = text_color;
     Redraw();
   }

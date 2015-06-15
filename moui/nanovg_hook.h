@@ -19,43 +19,46 @@
 #define MOUI_NANOVG_HOOK_H_
 
 #if defined MOUI_GL2
-#  define NANOVG_GL2
+#  define NANOVG_GL2 1
 #  define nvgCreateGL(flags) nvgCreateGL2(flags)
 #  define nvgDeleteGL(context) nvgDeleteGL2(context)
 #elif defined MOUI_GLES2
-#  define NANOVG_GLES2
+#  define NANOVG_GLES2 1
 #  define nvgCreateGL(flags) nvgCreateGLES2(flags)
 #  define nvgDeleteGL(context) nvgDeleteGLES2(context)
 #elif defined MOUI_GL3
-#  define NANOVG_GL3
+#  define NANOVG_GL3 1
 #  define nvgCreateGL(flags) nvgCreateGL3(flags)
 #  define nvgDeleteGL(context) nvgDeleteGL3(context)
 #elif defined MOUI_GLES3
-#  define NANOVG_GLES3
+#  define NANOVG_GLES3 1
 #  define nvgCreateGL(flags) nvgCreateGLES3(flags)
 #  define nvgDeleteGL(context) nvgDeleteGLES3(context)
 #endif
 
 #include "moui/opengl_hook.h"
-#include "nanovg.h"
-#include "nanovg_gl.h"
-#include "nanovg_gl_utils.h"
+#include "nanovg/src/nanovg.h"
+#include "nanovg/src/nanovg_gl.h"
+#include "nanovg/src/nanovg_gl_utils.h"
 
 // Additonal APIs for nanovg.
 namespace moui {
 
-// Returns true if passed colors are the same.
+// Returns `true` if passed colors are the same.
 bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2);
 
 // Returns the image identifier of the current snapshot of the passed context
 // or -1 on failure. The returned image needs to be freed manually through
-// nvgDeleteImage().
+// `nvgDeleteImage()`.
 int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
                            const int width, const int height,
                            const float scale_factor);
 
 // Deletes the passed framebuffer and resets the pointer.
 void nvgDeleteFramebuffer(NVGLUframebuffer** framebuffer);
+
+// Deletes the passed image and set the image id to -1.
+void nvgDeleteImage(NVGcontext* context, int* image);
 
 }  // namespace moui
 

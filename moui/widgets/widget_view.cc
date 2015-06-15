@@ -17,8 +17,9 @@
 
 #include "moui/widgets/widget_view.h"
 
-#include <cassert>
+#include <algorithm>
 #include <stack>
+#include <string>
 #include <vector>
 
 #include "moui/core/device.h"
@@ -162,7 +163,7 @@ void WidgetView::Redraw() {
 void WidgetView::Render() {
   preparing_for_rendering_ = true;
   if (context_ == nullptr) {
-    context_ = nvgCreateGL(NVG_ANTIALIAS);
+    context_ = nvgCreateGL(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
     ContextDidCreate(context_);
   }
 

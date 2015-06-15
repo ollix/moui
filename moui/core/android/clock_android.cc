@@ -19,7 +19,7 @@
 
 #include <functional>
 
-#include "jni.h"
+#include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
 

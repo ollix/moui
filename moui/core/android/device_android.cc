@@ -17,7 +17,7 @@
 
 #include "moui/core/device.h"
 
-#include "jni.h"
+#include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
 

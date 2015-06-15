@@ -19,17 +19,9 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <mutex>
 #include <string>
 
 #include "moui/opengl_hook.h"
-
-namespace {
-
-// The mutex for making animation thread-safe.
-std::mutex animation_mutex;
-
-}  // namespace;
 
 namespace moui {
 
@@ -44,7 +36,7 @@ GLuint BaseView::CompileShader(const GLenum shader_type,
   // Compiles the shader.
   GLuint shader_handle = glCreateShader(shader_type);
   const GLchar* source_string = static_cast<const GLchar*>(source.c_str());
-  const int source_length = source.length();
+  const int source_length = static_cast<int>(source.length());
   glShaderSource(shader_handle, 1, &source_string, &source_length);
   glCompileShader(shader_handle);
   GLint compile_result;
@@ -68,7 +60,7 @@ GLuint BaseView::CompileShaderAtPath(const GLenum shader_type,
     return 0;
   GLuint shader_handle = 0;
   if (std::fseek(file, 0, SEEK_END) == 0) {
-    const int kFileSize = std::ftell(file);
+    const int kFileSize = static_cast<int>(std::ftell(file));
     std::fseek(file, 0, SEEK_SET);
     char source_buffer[kFileSize];
     if (std::fread(source_buffer, 1, kFileSize, file) == kFileSize) {
@@ -85,19 +77,15 @@ bool BaseView::IsAnimating() const {
 }
 
 void BaseView::StartAnimation() {
-  animation_mutex.lock();
   ++animation_count_;
   StartUpdatingNativeView();
-  animation_mutex.unlock();
 }
 
 void BaseView::StopAnimation() {
-  animation_mutex.lock();
   --animation_count_;
   if (animation_count_ == 0)
     StopUpdatingNativeView();
   animation_count_ = std::max(0, animation_count_);
-  animation_mutex.unlock();
 }
 
 }  // namespace moui

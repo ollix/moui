@@ -18,7 +18,7 @@
 #ifndef MOUI_CORE_CLOCK_H_
 #define MOUI_CORE_CLOCK_H_
 
-#include <chrono>
+#include <chrono>  // NOLINT
 #include <functional>
 #include <utility>
 
@@ -26,7 +26,7 @@
 
 namespace moui {
 
-// The Clock class is used to schedule function calls. It is designed as a
+// The `Clock` class is used to schedule function calls. It is designed as a
 // place for static class methods so don't try instantiating this class.
 class Clock {
  public:
@@ -51,8 +51,8 @@ class Clock {
   }
 
   // Executes the callback, waits the interval time in platform-specific thread,
-  // then executes it again. It stops once the callback returns false or the
-  // interval is negative. This method should be used internally only. It's
+  // then executes it again. It stops once the callback returning `false` or
+  // the interval is negative. This method should be used internally only. It's
   // defined here for bridging JNI code.
   static void ExecuteCallback(Callback* callback);
 

@@ -36,7 +36,7 @@ enum ControlEvents {
   // An event where a finger is dragged into the bounds of the control.
   kTouchDragEnter = 1 << 2,
   // An event where a finger is dragged from within a control to outside its
-  // bounds.v
+  // bounds.
   kTouchDragExit = 1 << 3,
   // An event where a finger is dragged inside the bounds of the control.
   kTouchDragInside = 1 << 4,
@@ -75,6 +75,7 @@ enum ControlState {
 class Control : public Widget {
  public:
   Control();
+  explicit Control(const bool caches_rendering);
   ~Control();
 
   // Binds a function or class method to handle particular control events.
@@ -106,13 +107,13 @@ class Control : public Widget {
     actions_.push_back(action);
   }
 
-  // Returns true if the current state is disabled.
+  // Returns `true` if the current state is disabled.
   bool IsDisabled() const;
 
-  // Returns true if the current state is highlighted.
+  // Returns `true` if the current state is highlighted.
   bool IsHighlighted() const;
 
-  // Returns true if the current state is selected.
+  // Returns `true` if the current state is selected.
   bool IsSelected() const;
 
   // Sets or clears the disabled state. The widget will be drawn if the state
@@ -164,19 +165,19 @@ class Control : public Widget {
   struct Action {
     std::function<void()> callback;  // the callback function
     ControlEvents control_events;  // fires the callback when any is matched
-    void* target;  // nullptr or the instance the callback belongs to.
+    void* target;  // `nullptr` or the instance the callback belongs to.
   };
 
-  // Responds to the passed control events that populated by HandleEvent().
+  // Responds to the passed control events that populated by `HandleEvent()`.
   void HandleControlEvents(const ControlEvents events);
 
-  // Inherited from Widget class.
-  virtual bool HandleEvent(Event* event) override final;
+  // Inherited from `Widget` class.
+  bool HandleEvent(Event* event) final;
 
-  // Inherited from Widget class.
-  virtual bool ShouldHandleEvent(const Point location) override final;
+  // Inherited from `Widget` class.
+  bool ShouldHandleEvent(const Point location) final;
 
-  // Holds a list of all binded actions. HandleControlEvents() will iterate
+  // Holds a list of all binded actions. `HandleControlEvents()` will iterate
   // the list to fire callbacks with matched control events.
   std::vector<Action*> actions_;
 
@@ -185,7 +186,7 @@ class Control : public Widget {
   int highlighted_margin_;
 
   // Indicates whether all coming events should be ignored. This value is
-  // set to false by default and controlled in the `HandleEvent()` method.
+  // set to `false` by default and controlled in the `HandleEvent()` method.
   bool ignores_events_;
 
   // Records the control's position that related to the corresponded widget

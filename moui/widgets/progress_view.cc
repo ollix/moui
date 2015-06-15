@@ -105,7 +105,7 @@ void ProgressView::RenderSquareHorizontalBar(NVGcontext* context) const {
 }
 
 void ProgressView::set_bar_color(const NVGcolor bar_color) {
-  if (!nvgCompareColor(bar_color, bar_color_)) {
+  if (!moui::nvgCompareColor(bar_color, bar_color_)) {
     bar_color_ = bar_color;
     Redraw();
   }
@@ -125,7 +125,7 @@ void ProgressView::set_progress(const float progress) {
 }
 
 void ProgressView::set_track_color(const NVGcolor track_color) {
-  if (!nvgCompareColor(track_color, track_color_)) {
+  if (!moui::nvgCompareColor(track_color, track_color_)) {
     track_color_ = track_color;
     Redraw();
   }

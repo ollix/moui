@@ -62,7 +62,7 @@ void PageControl::set_current_page(const int page) {
 }
 
 void PageControl::set_current_page_indicator_color(const NVGcolor color) {
-  if (!nvgCompareColor(color, current_page_indicator_color_)) {
+  if (!moui::nvgCompareColor(color, current_page_indicator_color_)) {
     current_page_indicator_color_ = color;
     Redraw();
   }
@@ -83,7 +83,7 @@ void PageControl::set_number_of_pages(const int number_of_pages) {
 }
 
 void PageControl::set_page_indicator_color(const NVGcolor color) {
-  if (!nvgCompareColor(color, page_indicator_color_)) {
+  if (!moui::nvgCompareColor(color, page_indicator_color_)) {
     page_indicator_color_ = color;
     Redraw();
   }

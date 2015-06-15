@@ -17,7 +17,7 @@
 
 #include "moui/ui/window.h"
 
-#include "jni.h"
+#include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
 #include "moui/ui/base_window.h"

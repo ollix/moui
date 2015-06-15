@@ -207,8 +207,8 @@
 
 // Sets `_stopsUpdatingView` to NO to make sure `_display_link` stays in the
 // run loop and keep updating the view continuously. If the updating mechanism
-// was not activated yet or stopped previously, a new CADisplayLink object will
-// be created and added to the run loop.
+// was not activated yet or stopped previously, a new `CADisplayLink` object
+// will be created and added to the run loop.
 - (void)startUpdatingView {
   @synchronized(self) {
     _stopsUpdatingView = NO;

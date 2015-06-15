@@ -22,10 +22,10 @@
 
 namespace moui {
 
-// The NativeView behaves as a bridge to the platform-specific native view.
-// In iOS, the native view would be UIView or its subclasses. In Android, the
-// native view would be android.view.View or its subclasses. The native_handle_
-// class member stores the pointer to the real native view.
+// The `NativeView` behaves as a bridge to the platform-specific native view.
+// In iOS, the native view would be `UIView` or its subclasses. In Android, the
+// native view would be `android.view.View` or its subclasses. The
+// `native_handle_` class member stores the pointer to the real native view.
 class NativeView {
  public:
   explicit NativeView(void* native_handle);
@@ -48,7 +48,7 @@ class NativeView {
   int GetWidth() const;
 
 #ifdef MOUI_APPLE
-  // Returns true if the view is hidden.
+  // Returns `true` if the view is hidden.
   bool IsHidden() const;
 
   // Moves the specified subview so that it appears behind its siblings.

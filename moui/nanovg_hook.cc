@@ -15,15 +15,6 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#include <algorithm>
-#include <cstdlib>
-
-#include "moui/opengl_hook.h"
-#include "nanovg.h"
-
-// Makes sure the nanovg implementation loaded once to prevent "undefined
-// symbols" or "duplicate symbols" issues. Only includes the "nanovg_hook.h"
-// header file in other modules to use nanovg.
 #if defined MOUI_GL2
 #  define NANOVG_GL2_IMPLEMENTATION
 #elif defined MOUI_GLES2
@@ -33,13 +24,43 @@
 #elif defined MOUI_GLES3
 #  define NANOVG_GLES3_IMPLEMENTATION
 #endif
-#include "nanovg_gl.h"
-#include "nanovg_gl_utils.h"
+
+#include "moui/nanovg_hook.h"
+
+#include <algorithm>
+#include <cstdlib>
 
 namespace {
 
+// Returns the data of the image snapshot from the current framebuffer.
+// The returned image data should be freed manually when no longer needed.
+// `NULL` is returned on failure.
+unsigned char* CreateImageSnapshot(const int x, const int y, const int width,
+                                   const int height) {
+  unsigned char* image = \
+      reinterpret_cast<unsigned char*>(std::malloc(width * height * 4));
+  if (image == NULL)
+    return NULL;
+
+  glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image);
+  return image;
+}
+
+// Sets the alpha value of every pixel of the passed image.
+void SetImageAlpha(const int width, const int height, unsigned char alpha,
+                   unsigned char* image) {
+  const int kStride = width * 4;
+  int x, y;
+  for (y = 0; y < height; y++) {
+    unsigned char* row = &image[y * kStride];
+    for (x = 0; x < width; x++)
+      row[x * 4 + 3] = alpha;
+  }
+}
+
 // Flips the passed image vertically.
-void ImageFlipVertical(unsigned char* image, int width, int height) {
+void FlipImageVertically(const int width, const int height,
+                         unsigned char* image) {
   const int kStride = width * 4;
   int i = 0, j = height - 1, k;
   while (i < j) {
@@ -55,34 +76,9 @@ void ImageFlipVertical(unsigned char* image, int width, int height) {
   }
 }
 
-// Sets the alpha value of every pixel of the passed image.
-void ImageSetAlpha(unsigned char* image, int width, int height,
-                   unsigned char alpha) {
-  const int kStride = width * 4;
-  int x, y;
-  for (y = 0; y < height; y++) {
-    unsigned char* row = &image[y * kStride];
-    for (x = 0; x < width; x++)
-      row[x * 4 + 3] = alpha;
-  }
-}
-
-// Returns the data of the image snapshot from the current framebuffer.
-// The returned image data should be freed manually when no longer needed.
-// `NULL` is returned on failure.
-unsigned char* ImageSnapshot(const int x, const int y, const int width,
-                             const int height) {
-  unsigned char* image = \
-      reinterpret_cast<unsigned char*>(std::malloc(width * height * 4));
-  if (image == NULL)
-    return NULL;
-
-  glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image);
-  return image;
-}
-
 // Unpremultiplies the alpha value of every pixel of the passed image.
-void ImageUnpremultiplyAlpha(unsigned char* image, int width, int height) {
+void UnpremultiplyImageAlpha(const int width, const int height,
+                             unsigned char* image) {
   const int kStride = width * 4;
   int x, y;
 
@@ -146,7 +142,7 @@ void ImageUnpremultiplyAlpha(unsigned char* image, int width, int height) {
 namespace moui {
 
 bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2) {
-  return color1.r == color2.r && color1.g == color2.g &&
+  return color1.r == color2.r && color1.g == color2.g && \
          color1.b == color2.b && color1.a == color2.a;
 }
 
@@ -155,15 +151,15 @@ int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
                            const float scale_factor) {
   const int kScaledWidth = width * scale_factor;
   const int kScaledHeight = height * scale_factor;
-  unsigned char* image = ImageSnapshot(x * scale_factor, y * scale_factor,
-                                       kScaledWidth, kScaledHeight);
+  unsigned char* image = CreateImageSnapshot(x * scale_factor, y * scale_factor,
+                                             kScaledWidth, kScaledHeight);
   if (image == NULL)
     return -1;
 
   const int kIdentifier = nvgCreateImageRGBA(
       context, kScaledWidth, kScaledHeight,
       NVG_IMAGE_FLIPY | NVG_IMAGE_PREMULTIPLIED, image);
-  delete image;
+  std::free(image);
   return kIdentifier;
 }
 
@@ -173,6 +169,14 @@ void nvgDeleteFramebuffer(NVGLUframebuffer** framebuffer) {
   }
   nvgluDeleteFramebuffer(*framebuffer);
   *framebuffer = nullptr;
+}
+
+void nvgDeleteImage(NVGcontext* context, int* image) {
+  if (*image < 0)
+    return;
+
+  nvgDeleteImage(context, *image);
+  *image = -1;
 }
 
 }  // namespace moui

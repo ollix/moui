@@ -24,6 +24,7 @@
 
 namespace moui {
 
+// The `ProgressView` widget depicts the progress of a task over time.
 class ProgressView : public Widget {
  public:
   // The style of the rendered progress track and progress bar.
@@ -51,14 +52,14 @@ class ProgressView : public Widget {
   void set_track_color(const NVGcolor bar_color);
 
  private:
-  // Inherited from Widget class. Renders the progress view according to the
-  // configured style_.
-  virtual void Render(NVGcontext* context) override final;
+  // Inherited from `Widget` class. Renders the progress view according to the
+  // configured `style_`.
+  void Render(NVGcontext* context) final;
 
-  // Renders the progress view for the kRoundHorizontalBar style.
+  // Renders the progress view for the `kRoundHorizontalBar` style.
   void RenderRoundHorizontalBar(NVGcontext* context) const;
 
-  // Renders the progress view for the kSquareHorizontalBar style.
+  // Renders the progress view for the `kSquareHorizontalBar` style.
   void RenderSquareHorizontalBar(NVGcontext* context) const;
 
   // The color of the progress bar. The default color is dark gray.
@@ -69,7 +70,7 @@ class ProgressView : public Widget {
   float progress_;
 
   // The style of the progress view to render. The default style is
-  // kRoundHorizontalBar.
+  // `kRoundHorizontalBar`.
   Style style_;
 
   // The color of the progress track. The default color is light gray.

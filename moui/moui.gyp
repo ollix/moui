@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# ---
+# Author: olliwang@ollix.com (Olli Wang)
+
 {
   'includes': [
     'common.gypi',
@@ -56,7 +60,10 @@
         'widgets/widget.cc',
         'widgets/widget_view.cc',
       ],
-      'include_dirs': [ '..' ],
+      'include_dirs': [
+        '..',
+        'deps',
+      ],
       'conditions': [
         ['OS == "android"', {
           'defines': [
@@ -146,7 +153,8 @@
       ],
       'direct_dependent_settings': {
         'include_dirs': [
-          '..'
+          '..',
+          'deps',
         ],
         'conditions': [
           ['OS == "android"', {

@@ -21,8 +21,8 @@ namespace moui {
 class View;
 }  // namespace moui
 
-// The MOOpenGLViewController creates a MOOpenGLView instance as its view and
-// is responsible for rendering it when the view will be displayed.
+// The `MOOpenGLViewController` creates a `MOOpenGLView` instance as its view
+// and is responsible for rendering the view when appearing.
 @interface MOOpenGLViewController : UIViewController {
  @private
   moui::View* _mouiView;

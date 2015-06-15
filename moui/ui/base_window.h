@@ -10,8 +10,8 @@
 
 namespace moui {
 
-// The BaseWindow class is the base class of the Window class. This class
-// should only be inherited by the Window class and never instantiated
+// The `BaseWindow` class is the base class of the `Window` class. This class
+// should only be inherited by the `Window` class and never instantiated
 // directly. The purpose of this class is to provide a way for registering and
 // retrieving the main window.
 class BaseWindow {
@@ -20,12 +20,12 @@ class BaseWindow {
   ~BaseWindow();
 
   // Registers the specified native handle that can later be retrieved
-  // throguh the GetMainNativeHandle() method.
+  // throguh the `GetMainNativeHandle()` method.
   static void RegisterMainNativeHandle(void* native_handle);
 
  protected:
   // Returns the native handle previously registered through the
-  // RegisterMainNativeHandle() method.
+  // `RegisterMainNativeHandle()` method.
   static void* GetMainNativeHandle();
 
   // The pointer to the platform-specific window instance.

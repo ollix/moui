@@ -17,7 +17,7 @@
 
 #include "moui/core/application.h"
 
-#include "jni.h"
+#include "jni.h"  // NOLINT
 
 namespace {
 

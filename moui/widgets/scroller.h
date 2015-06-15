@@ -24,8 +24,8 @@
 
 namespace moui {
 
-// The scroller controls scrolling of a document view within the clip view of
-// a scroll view.
+// The `Scroller` widget controls scrolling of a document view within the clip
+// view of a scroll view.
 class Scroller : public Widget {
  public:
   // The direction of the scroller.
@@ -38,10 +38,10 @@ class Scroller : public Widget {
   ~Scroller();
 
   // Hides the scroller in animation. The animation will be canceled
-  // and return to the opaque state immediately if Redraw() is called.
+  // and return to the opaque state immediately if `Redraw()` is called.
   void HideInAnimation();
 
-  // Inherited from Widget class.
+  // Inherited from `Widget` class.
   void Redraw();
 
   // Accessors and setters.
@@ -71,18 +71,18 @@ class Scroller : public Widget {
   }
 
  private:
-  // Inherited from Widget class.
-  virtual void Render(NVGcontext* context) override final;
+  // Inherited from `Widget` class.
+  void Render(NVGcontext* context) final;
 
   // Renders the knob.
   void RenderKnob(NVGcontext* context, const float position,
                   const float length) const;
 
-  // Inherited from Widget class.
-  virtual void WidgetViewDidRender(NVGcontext* context) override final;
+  // Inherited from `Widget` class.
+  void WidgetViewDidRender(NVGcontext* context) final;
 
-  // Inherited from Widget class.
-  virtual bool WidgetViewWillRender(NVGcontext* context) override final;
+  // Inherited from `Widget` class.
+  bool WidgetViewWillRender(NVGcontext* context) final;
 
   // Keeps the timestamp when starting animation.
   double animation_initial_timestamp_;
@@ -94,7 +94,7 @@ class Scroller : public Widget {
   Direction direction_;
 
   // Indicates whether the scroller is hiding in animation. The hiding
-  // animation is triggered by the HideInAnimation() method.
+  // animation is triggered by the `HideInAnimation()` method.
   bool hiding_in_animation_;
 
   // The position of the knob represented from 0.0 (indicating the top or left
@@ -105,8 +105,8 @@ class Scroller : public Widget {
   double knob_proportion_;
 
   // Indicates whether scrollers are displayed on both horizontal and vertical
-  // directions. If true, the intersection corner of both tracks is reserved
-  // as an empty space. The default is false.
+  // directions. If `true`, the intersection corner of both tracks is reserved
+  // as an empty space. The default value is `false`.
   bool shows_scrollers_on_both_directions_;
 
   DISALLOW_COPY_AND_ASSIGN(Scroller);

@@ -26,6 +26,7 @@
 
 namespace moui {
 
+// The `Label` widget implements a read-only text view.
 class Label : public Widget {
  public:
   enum class Alignment {
@@ -60,7 +61,8 @@ class Label : public Widget {
   std::string font_name() const;
   void set_font_name(const std::string& name);
   float font_size() const;
-  void set_font_size(const float size);
+  void set_font_size(const float font_size);
+  float font_size_to_render() const { return font_size_to_render_; }
   float minimum_scale_factor() const { return minimum_scale_factor_; }
   void set_minimum_scale_factor(const float factor);
   int number_of_lines() const { return number_of_lines_; }
@@ -80,12 +82,12 @@ class Label : public Widget {
   // Configures text attributes through nanovg APIs.
   void ConfigureTextAttributes(NVGcontext* context);
 
-  // Inherited from Widget class.
-  virtual void Render(NVGcontext* context) override final;
+  // Inherited from `Widget` class.
+  void Render(NVGcontext* context) final;
 
-  // Inherited from Widget class. The implementation prepares the rendering
+  // Inherited from `Widget` class. The implementation prepares the rendering
   // environemnt according various configurations to render expected results.
-  virtual bool WidgetViewWillRender(NVGcontext* context) override final;
+  bool WidgetViewWillRender(NVGcontext* context) final;
 
   // Indicates whether the font size should be reduced in order to fit the text
   // into the label's bounding rectangle. The default value is no.
@@ -94,26 +96,27 @@ class Label : public Widget {
   // Indicates whether the height of the label should be increased automatically
   // in order to fit the text into the label's bounding rectangle. The vertical
   // position of the label will also be adjusted as well to respect
-  // text_vertical_alignment_. The default value is false.
+  // `text_vertical_alignment_`. The default value is `false`.
   bool adjusts_label_height_to_fit_width_;
 
   // The font name of the font that applies to enitre string of text. Note
-  // that the font name must previously registered through nvgCreateFont(),
+  // that the font name must previously registered through `nvgCreateFont()`,
   // or nothing will display on the screen.
   std::string font_name_;
 
   // The size of the font that applies to entire string of text. The default
   // value is 12. If the value is set to 0, the font size set through
-  // SetDefaultFontSize() will be used.
+  // `SetDefaultFontSize()` will be used.
   float font_size_;
 
   // The actual font size for rendering on screen. This value is calculated
-  // automatically in WidgetWillRender() according to various configurations.
+  // automatically in `WidgetViewWillRender()` according to various
+  // configurations.
   float font_size_to_render_;
 
-  // The minimum scale factor supprted for the label's text. The value
+  // The minimum scale factor supported for the label's text. The value
   // indicates the smallest multiplier for the current font size that yields
-  // and acceptable font size to use when rendering the label's text. If the
+  // an acceptable font size to use when rendering the label's text. If the
   // value is set to 0, the font size to render can be as small as possible.
   // The default value is 0.
   float minimum_scale_factor_;
@@ -124,7 +127,7 @@ class Label : public Widget {
   int number_of_lines_;
 
   // Indicates whether the label should prepare the environment before actual
-  // rendering. If true, the preparation will be done in WidgetWillRender().
+  // rendering. If true, the preparation will be done in `WidgetWillRender()`.
   bool should_prepare_for_rendering_;
 
   // The text displayed by the label.
@@ -134,17 +137,17 @@ class Label : public Widget {
   NVGcolor text_color_;
 
   // The actual text for rendering on screen. This value is populated
-  // automatically in WidgetWillRender() according to various configurations.
+  // automatically in `WidgetWillRender()` according to various configurations.
   std::string text_to_render_;
 
   // The technique to use for aligning the text horizontally. The value must
-  // be one of Alignment::kLeft, Alignment::kCenter, Alignment::kRight.
-  // The default value is Alignment::kLeft.
+  // be one of `Alignment::kLeft`, `Alignment::kCenter`, `Alignment::kRight`.
+  // The default value is `Alignment::kLeft`.
   Alignment text_horizontal_alignment_;
 
   // The technique to use for aligning the text vertically. The value must
-  // be one of Alignment::kTop, Alignment::kMiddle, Alignment::kBottom.
-  // The default value is Alignment::kTop.
+  // be one of `Alignment::kTop`, `Alignment::kMiddle`, `Alignment::kBottom`.
+  // The default value is `Alignment::kTop`.
   Alignment text_vertical_alignment_;
 
   DISALLOW_COPY_AND_ASSIGN(Label);

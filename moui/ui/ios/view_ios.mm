@@ -23,7 +23,7 @@
 
 namespace moui {
 
-// Instantiates the MOOpenGLViewController class and uses its view as the
+// Instantiates the `MOOpenGLViewController` class and uses its view as the
 // native handle.
 View::View() : BaseView() {
   MOOpenGLViewController* view_controller = \
@@ -36,8 +36,8 @@ View::~View() {
   [native_view.viewController dealloc];
 }
 
-// Calls CALayer's `setNeedsDisplay` method to trigger the `displayLayer:`
-// method defined in MOOpenGLView.
+// Calls `CALayer`'s `setNeedsDisplay` method to trigger the `displayLayer:`
+// method defined in `MOOpenGLView`.
 void View::Redraw() {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
   [[native_view layer] setNeedsDisplay];

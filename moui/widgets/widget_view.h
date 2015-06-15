@@ -42,8 +42,8 @@ class WidgetView : public View {
   // Attaches a widget to the widget view for rendering.
   void AddWidget(Widget* widget);
 
-  // Inherited from View class.
-  virtual void Redraw() override final;
+  // Inherited from `View` class.
+  void Redraw() final;
 
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width,
@@ -95,11 +95,11 @@ class WidgetView : public View {
   // Keeps a list of widget items to render in order.
   typedef std::vector<WidgetItem*> WidgetList;
 
-  // This method gets called right after `context_` is created in Rneder().
-  virtual void ContextDidCreate(NVGcontext* context) {};
+  // This method gets called right after `context_` is created in `Rneder()`.
+  virtual void ContextDidCreate(NVGcontext* context) {}
 
-  // Inherited from BaseView class.
-  virtual void HandleEvent(std::unique_ptr<Event> event) override final;
+  // Inherited from `BaseView` class.
+  void HandleEvent(std::unique_ptr<Event> event) final;
 
   // Pops widget items from the stack and finalizes each popped widget until
   // reaching the passed level.
@@ -111,11 +111,11 @@ class WidgetView : public View {
                           WidgetList* widget_list, Widget* widget,
                           WidgetItem* parent_item);
 
-  // Inherited from BaseView class. Renders belonged widgets recursively.
-  virtual void Render() override final;
+  // Inherited from `BaseView` class. Renders belonged widgets recursively.
+  void Render() final;
 
-  // Inherited from BaseView class.
-  virtual bool ShouldHandleEvent(const Point location) override final;
+  // Inherited from `BaseView` class.
+  bool ShouldHandleEvent(const Point location) final;
 
   // Updates the `event_responders_` instance variable based on the passed
   // location. This is a recursive method, both the returned value and

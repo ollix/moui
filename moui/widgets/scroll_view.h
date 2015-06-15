@@ -30,8 +30,8 @@ namespace moui {
 class Event;
 class Scroller;
 
-// The ScrollView class provides support for displaying content that is larger
-// than the size of the scroll view itself.
+// The `ScrollView` class allows to display content that is larger than the
+// size of the scroll view itself.
 class ScrollView : public Widget {
  public:
   ScrollView();
@@ -55,13 +55,13 @@ class ScrollView : public Widget {
   // Returns the number of the last page. The page number starts with 0.
   int GetMaximumPage() const;
 
-  // Returns true if the content view is scrolling.
+  // Returns `true` if the content view is scrolling.
   bool IsScrolling() const;
 
   // Sets content view's offset that correspondes to the scroll view's origin.
   void SetContentViewOffset(const Point offset);
 
-  // Sets the size of content view in points.
+  // Sets the size of content view in points. Negative values will be ignored.
   void SetContentViewSize(const float width, const float height);
 
   // Moves the content view to the specified page. If the specified duration
@@ -89,10 +89,7 @@ class ScrollView : public Widget {
   }
   bool bounces() const { return bounces_; }
   void set_bounces(const bool value) { bounces_ = value; }
-  std::vector<Widget*>& children() {
-    Widget* content_view = reinterpret_cast<Widget*>(content_view_);
-    return content_view->children();
-  }
+  std::vector<Widget*>& children() { return content_view_->children(); }
   bool enables_paging() const { return enables_paging_; }
   void set_enables_paging(const bool value) { enables_paging_ = value; }
   bool enables_scroll() const { return enables_scroll_; }
@@ -101,7 +98,7 @@ class ScrollView : public Widget {
     return !enables_paging_ || page_width_ <= 0 || page_width_ > GetWidth() ?
            GetWidth() : page_width_;
   }
-  void set_page_width(const float page_width) { page_width_ = page_width; };
+  void set_page_width(const float page_width) { page_width_ = page_width; }
   bool shows_horizontal_scroll_indicator() const {
     return shows_horizontal_scroll_indicator_;
   }
@@ -132,8 +129,8 @@ class ScrollView : public Widget {
   void GetScrollVelocity(double* horizontal_velocity,
                          double* vertical_velocity);
 
-  // Inherited from Widget class. Controls the scroll behavior.
-  virtual bool HandleEvent(Event* event) override;
+  // Inherited from `Widget` class. Controls the scroll behavior.
+  bool HandleEvent(Event* event) override;
 
   // Redraws scrollers on both horizontal and vertical directions.
   void RedrawScrollers();
@@ -142,8 +139,8 @@ class ScrollView : public Widget {
   // origin may be changed when reaching the boundary of the content view.
   void SetContentViewOrigin(const Point& expected_origin);
 
-  // Inherited from Widget class.
-  virtual bool ShouldHandleEvent(const Point location) override;
+  // Inherited from `Widget` class.
+  bool ShouldHandleEvent(const Point location) override;
 
   // Stops the animation and resets both horizontal and vertical states.
   void StopAnimation();
@@ -154,9 +151,9 @@ class ScrollView : public Widget {
   // view at the next page in a pre-defined duration.
   bool StopScrollingGradually();
 
-  // Inherited from Widget class. Moves the content view and updates animation
+  // Inherited from `Widget` class. Moves the content view and updates animation
   // states accordingly.
-  virtual bool WidgetViewWillRender(NVGcontext* context) override;
+  bool WidgetViewWillRender(NVGcontext* context) override;
 
  private:
   // The direction of the scroll action.
@@ -247,7 +244,7 @@ class ScrollView : public Widget {
 
   // Returns the current location of the animating content view based on the
   // passed animation state.
-  float GetCurrentAnimatingLocation(AnimationState& state) const;
+  float GetCurrentAnimatingLocation(const AnimationState& state) const;
 
   // Returns the current scroll direction based on the
   // `acceptable_scroll_direction_` and the latest `event_history_`.
@@ -266,7 +263,7 @@ class ScrollView : public Widget {
                       Scroller* scroller);
 
   // Resolves the passed origin location either in horizontal or vertical
-  // direction. This method is created for MoveContentView() to calculate
+  // direction. This method is created for `MoveContentView()` to calculate
   // a suitable location for showing the content view in various scenarios.
   float ResolveContentViewOrigin(const float expected_location,
                                  const float scroll_view_length,
@@ -291,26 +288,26 @@ class ScrollView : public Widget {
   // Indicates whether bouncing always occurs when horizontal scrolling reaches
   // the end of the content. If the value is true, horizontal dragging is
   // allowed even if the content is smaller than the bounds of the scroll view.
-  // The default value is false.
+  // The default value is `false`.
   bool always_bounce_horizontal_;
 
   // Indicates whether bouncing always occurs when vertical scrolling reaches
   // the end of the content. If the value is true, vertical dragging is allowed
   // even if the content is smaller than the bounds of the scroll view. The
-  // default value is false.
+  // default value is `false`.
   bool always_bounce_vertical_;
 
   // Indicates whether a scroll action should always move the scroll view to
   // the next page. If this value is set to false, the scroll view will stop
   // gradually as usual and then move the current page to the center of which.
-  // The default value is true.
+  // The default value is `true`.
   bool always_scroll_to_next_page_;
 
   // Indicates whether the scroll view bounces past the edge of content back
   // again. If the value is true, the scroll view bounces when it encounters
   // a boundary of the content. If the value is false, scrolling stops
   // immediately at the content boundary without bouncing. The default value
-  // is true.
+  // is `true`.
   bool bounces_;
 
   // The strong reference to the widget that contains scrollable views.
@@ -318,11 +315,11 @@ class ScrollView : public Widget {
 
   // Indicates whether paging is enabled. If the value is true, the scroll view
   // stops on multiples of the scroll view's bounds when scrolling. The default
-  // value is false.
+  // value is `false`.
   bool enables_paging_;
 
   // Indicates whether scrolling is enabled. If the value is false, the scroll
-  // view does not respond to coming events. The default value is true.
+  // view does not respond to coming events. The default value is `true`.
   bool enables_scroll_;
 
   // Keeps all event reocrds in the current sequenece of events.
