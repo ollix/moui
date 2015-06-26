@@ -19,21 +19,19 @@
 
 #include "moui/ui/base_view.h"
 #import "moui/ui/ios/opengl_view_ios.h"
-#import "moui/ui/ios/opengl_view_controller_ios.h"
 
 namespace moui {
 
 // Instantiates the `MOOpenGLViewController` class and uses its view as the
 // native handle.
 View::View() : BaseView() {
-  MOOpenGLViewController* view_controller = \
-      [[MOOpenGLViewController alloc] initWithMouiView:this];
-  native_handle_ = (__bridge void*)view_controller.view;
+  MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
+  native_handle_ = (__bridge void*)view;
 }
 
 View::~View() {
   MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  [native_view.viewController dealloc];
+  [native_view dealloc];
 }
 
 // Calls `CALayer`'s `setNeedsDisplay` method to trigger the `displayLayer:`

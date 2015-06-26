@@ -77,65 +77,51 @@
 }
 
 - (void)setupFramebuffer {
-  if (_framebuffer != 0)
-    return;
+  [EAGLContext setCurrentContext:_context];
 
-  if (_framebuffer == 0)
-    glGenFramebuffers(1, &_framebuffer);
+  glGenFramebuffers(1, &_framebuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
+  // Creates the color render buffer.
+  glGenRenderbuffers(1, &_colorRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                            GL_RENDERBUFFER, _colorRenderbuffer);
+
   // Creates both stencil and depth render buffers.
-  if (_stencilAndDepthRenderbuffer == 0)
-    glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
+  glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
-                        self.frame.size.width * self.contentScaleFactor,
-                        self.frame.size.height * self.contentScaleFactor);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                             GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
                             GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-
-  // Creates the color render buffer.
-  if (_colorRenderbuffer == 0)
-    glGenRenderbuffers(1, &_colorRenderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                            GL_RENDERBUFFER, _colorRenderbuffer);
-  [_eaglContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
 }
 
 @end
 
 @implementation MOOpenGLView
 
-@synthesize viewController = _viewController;
-
 + (Class)layerClass {
   return [CAEAGLLayer class];
 }
 
-- (id)initWithViewController:(MOOpenGLViewController *)viewController
-                    mouiView:(moui::View *)mouiView {
+- (id)initWithMouiView:(moui::View *)mouiView {
   if((self = [super initWithFrame:CGRectMake(0, 0, 0, 0)])) {
     _colorRenderbuffer = 0;
-    _eaglContext = \
-        [[EAGLContext alloc] initWithAPI:EAGL_RENDERING_API_OPENGLES];
+    _context = [[EAGLContext alloc] initWithAPI:EAGL_RENDERING_API_OPENGLES];
     _framebuffer = 0;
     _is_active = YES;
     _mouiView = mouiView;
     _needsRedraw = NO;
     _stencilAndDepthRenderbuffer = 0;
     _stopsUpdatingView = YES;
-    _viewController = viewController;
 
-    // Initializes CAEAGLLayer.
-    _eaglLayer = (CAEAGLLayer *)self.layer;
-    _eaglLayer.delegate = self;
-    _eaglLayer.opaque = NO;
+    // Initializes the CAEAGLLayer.
+    CAEAGLLayer* eaglLayer = (CAEAGLLayer *)self.layer;
+    eaglLayer.opaque = NO;
 
-    // Makes sure the rendering resolution is matched to the screen.
-    self.contentScaleFactor = [UIScreen mainScreen].scale;
+    self.contentScaleFactor= [UIScreen mainScreen].scale;
+    [self setupFramebuffer];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(applicationDidBecomeActive)
@@ -152,11 +138,21 @@
 - (void)dealloc {
   if (_colorRenderbuffer != 0)
     glDeleteRenderbuffers(1, &_colorRenderbuffer);
+  if (_stencilAndDepthRenderbuffer != 0)
+    glDeleteFramebuffers(1, &_stencilAndDepthRenderbuffer);
   if (_framebuffer != 0)
     glDeleteFramebuffers(1, &_framebuffer);
+  if (_display_link != nil)
+    [_display_link invalidate];
+  [_context dealloc];
 
-  [_display_link dealloc];
-  [_eaglContext dealloc];
+  [[NSNotificationCenter defaultCenter] removeObserver:self
+      name:UIApplicationDidBecomeActiveNotification
+      object:[UIApplication sharedApplication]];
+  [[NSNotificationCenter defaultCenter] removeObserver:self
+      name:UIApplicationWillResignActiveNotification
+      object:[UIApplication sharedApplication]];
+
   [super dealloc];
 }
 
@@ -187,11 +183,20 @@
       self.isHidden)
     return;
 
-  [EAGLContext setCurrentContext:_eaglContext];
-  [self setupFramebuffer];
+  // Binds the framebuffer and renderbuffers.
+  [EAGLContext setCurrentContext:_context];
+  glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
+                        self.frame.size.width * self.contentScaleFactor,
+                        self.frame.size.height * self.contentScaleFactor);
+  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
+  [_context renderbufferStorage:GL_RENDERBUFFER
+                   fromDrawable:(CAEAGLLayer *)self.layer];
+  // Rendering.
   _mouiView->Render();
-  [_eaglContext presentRenderbuffer:GL_RENDERBUFFER];
-  [EAGLContext setCurrentContext:nil];
+  // Displays the renderbuffer's contents on screen.
+  [_context presentRenderbuffer:GL_RENDERBUFFER];
 
   // Removes the display link from the run loop if no need to update the view
   // continuously.

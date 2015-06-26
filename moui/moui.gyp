@@ -40,7 +40,6 @@
         'ui/android/window_android.cc',
         'ui/ios/native_view_ios.mm',
         'ui/ios/opengl_view_ios.mm',
-        'ui/ios/opengl_view_controller_ios.mm',
         'ui/ios/view_ios.mm',
         'ui/ios/window_ios.mm',
         'ui/mac/opengl_view_mac.mm',
@@ -109,7 +108,6 @@
           'sources!': [
             'ui/ios/native_view_ios.mm',
             'ui/ios/opengl_view_ios.mm',
-            'ui/ios/opengl_view_controller_ios.mm',
             'ui/ios/view_ios.mm',
             'ui/ios/window_ios.mm',
           ],

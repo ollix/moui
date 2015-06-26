@@ -15,35 +15,35 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#include <OpenGLES/ES2/gl.h>
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
+
+#if defined MOUI_GLES2
+#include <OpenGLES/ES2/gl.h>
+#elif defined MOUI_GLES3
+#include <OpenGLES/ES3/gl.h>
+#endif
+
 
 namespace moui {
 class View;
 }  // namespace moui
 
-@class MOOpenGLViewController;
-
 // The native iOS view for rendering OpenGL stuff.
 @interface MOOpenGLView : UIView {
  @private
   GLuint _colorRenderbuffer;
+  EAGLContext* _context;
   CADisplayLink* _display_link;
   GLuint _framebuffer;
-  EAGLContext* _eaglContext;
-  CAEAGLLayer* _eaglLayer;
   bool _is_active;  // indicates whether the app is active
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
   GLuint _stencilAndDepthRenderbuffer;
   BOOL _stopsUpdatingView;
-  __weak MOOpenGLViewController* _viewController;
 }
 
-@property(nonatomic, assign) MOOpenGLViewController* viewController;
-
-- (id)initWithViewController:(MOOpenGLViewController *)viewController
-                    mouiView:(moui::View *)mouiView;
+- (id)initWithMouiView:(moui::View *)mouiView;
 
 // Sets up the OpenGL context and asks corresponded moui view to render.
 // This method should never be called directly. Instead, calling
