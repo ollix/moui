@@ -42,6 +42,10 @@ class WidgetView : public View {
   // Attaches a widget to the widget view for rendering.
   void AddWidget(Widget* widget);
 
+  // Inherited from `View` class. Calls the `HandleMemoryWarning()` method on
+  // all managed widgets recursively.
+  void HandleMemoryWarning() final;
+
   // Inherited from `View` class.
   void Redraw() final;
 
@@ -100,6 +104,10 @@ class WidgetView : public View {
 
   // Inherited from `BaseView` class.
   void HandleEvent(std::unique_ptr<Event> event) final;
+
+  // Calls the `HandleMemoryWarning()` method for the specified `widget` and
+  // all of its descendants.
+  void HandleMemoryWarningRecursively(moui::Widget* widget);
 
   // Pops widget items from the stack and finalizes each popped widget until
   // reaching the passed level.

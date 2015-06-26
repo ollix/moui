@@ -284,6 +284,10 @@ float Widget::GetY() const {
   return y;
 }
 
+void Widget::HandleMemoryWarning(NVGcontext* context) {
+  moui::nvgDeleteFramebuffer(&default_framebuffer_);
+}
+
 bool Widget::IsAnimating() const {
   return animation_count_ > 0;
 }

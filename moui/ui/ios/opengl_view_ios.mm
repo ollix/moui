@@ -45,6 +45,7 @@
 - (void)applicationDidBecomeActive;
 - (void)applicationWillResignActive;
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
+- (void) handleMemoryWarning:(NSNotification *)notification;
 - (void)setupFramebuffer;
 
 @end
@@ -74,6 +75,12 @@
                           static_cast<float>(location.y)});
   }
   _mouiView->HandleEvent(std::unique_ptr<moui::Event>(mouiEvent));
+}
+
+// This method will get called when receiving the
+// `UIApplicationDidReceiveMemoryWarningNotification`.
+- (void)handleMemoryWarning:(NSNotification *)notification {
+  _mouiView->HandleMemoryWarning();
 }
 
 - (void)setupFramebuffer {
@@ -131,6 +138,10 @@
         selector:@selector(applicationWillResignActive)
         name:UIApplicationWillResignActiveNotification
         object:[UIApplication sharedApplication]];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(handleMemoryWarning:)
+        name:UIApplicationDidReceiveMemoryWarningNotification
+        object:[UIApplication sharedApplication]];
   }
   return self;
 }
@@ -151,6 +162,9 @@
       object:[UIApplication sharedApplication]];
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:UIApplicationWillResignActiveNotification
+      object:[UIApplication sharedApplication]];
+  [[NSNotificationCenter defaultCenter] removeObserver:self
+      name:UIApplicationDidReceiveMemoryWarningNotification
       object:[UIApplication sharedApplication]];
 
   [super dealloc];

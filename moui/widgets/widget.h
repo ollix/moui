@@ -230,6 +230,12 @@ class Widget {
   // `BeginFramebufferUpdates()`.
   void EndFramebufferUpdates();
 
+  // This methods gets called when the application receives a memory warning.
+  // The overriding method in subclasses should always call the same method
+  // defined in its super class as there are some default behaviors
+  // implemented in this base class.
+  virtual void HandleMemoryWarning(NVGcontext* context);
+
  private:
   friend class ScrollView;
   friend class WidgetView;

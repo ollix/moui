@@ -86,7 +86,7 @@ Button::~Button() {
 }
 
 void Button::ContextWillChange(NVGcontext* context) {
-  Widget::ContextWillChange(context);
+  Control::ContextWillChange(context);
   ResetFramebuffers();
 }
 
@@ -157,6 +157,11 @@ std::string Button::GetTitle(const ControlState state) const {
 
 NVGcolor Button::GetTitleColor(const ControlState state) const {
   return title_colors_[GetControlStateIndex(state)];
+}
+
+void Button::HandleMemoryWarning(NVGcontext* context) {
+  Control::HandleMemoryWarning(context);
+  ResetFramebuffers();
 }
 
 void Button::Render(NVGcontext* context) {

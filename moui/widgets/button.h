@@ -126,6 +126,9 @@ class Button : public Control {
   // Inherited from `Widget` class. Resets all framebuffers.
   void ContextWillChange(NVGcontext* context) override;
 
+  // Inherited from `Widget` class.
+  void HandleMemoryWarning(NVGcontext* context) override;
+
  private:
   // Executes the render function for passed state or fills white background
   // if nothing binded.

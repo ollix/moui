@@ -67,6 +67,16 @@ void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
   }
 }
 
+void WidgetView::HandleMemoryWarning() {
+  HandleMemoryWarningRecursively(root_widget_);
+}
+
+void WidgetView::HandleMemoryWarningRecursively(moui::Widget* widget) {
+  widget->HandleMemoryWarning(context_);
+  for (Widget* child_widget : widget->children())
+    HandleMemoryWarningRecursively(child_widget);
+}
+
 void WidgetView::PopAndFinalizeWidgetItems(const int level,
                                            WidgetItemStack* stack) {
   while (!stack->empty()) {

@@ -30,6 +30,10 @@ class View : public BaseView {
   View();
   ~View();
 
+  // This method is designed to be called whenever the application receives a
+  // memory warning. Currently this method only works for iOS.
+  virtual void HandleMemoryWarning() {}
+
   // Inherited from `BaseView` class.
   void Redraw() override;
 
