@@ -32,8 +32,7 @@
 
 namespace moui {
 
-WidgetView::WidgetView() : View(), context_(nullptr), is_opaque_(true),
-                           preparing_for_rendering_(false),
+WidgetView::WidgetView() : context_(nullptr), preparing_for_rendering_(false),
                            requests_redraw_(false), root_widget_(new Widget) {
   root_widget_->set_widget_view(this);
 }
@@ -43,10 +42,6 @@ WidgetView::~WidgetView() {
     nvgDeleteGL(context_);
   }
   delete root_widget_;
-}
-
-void WidgetView::AddWidget(Widget* widget) {
-  root_widget_->AddChild(widget);
 }
 
 void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
@@ -174,7 +169,6 @@ void WidgetView::Render() {
   preparing_for_rendering_ = true;
   if (context_ == nullptr) {
     context_ = nvgCreateGL(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-    ContextDidCreate(context_);
   }
 
   // Determines widgets to render in order and filters invisible onces.
@@ -264,10 +258,7 @@ bool WidgetView::UpdateEventResponders(const Point location, Widget* widget) {
 
 void WidgetView::WidgetViewDidRender(Widget* widget) {
   nvgSave(context_);
-  if (widget == root_widget_)
-    ViewDidRender(context_);
-  else
-    widget->WidgetViewDidRender(context_);
+  widget->WidgetViewDidRender(context_);
   nvgRestore(context_);
   for (Widget* child : widget->children())
     WidgetViewDidRender(child);
@@ -280,20 +271,12 @@ void WidgetView::WidgetViewWillRender(Widget* widget) {
   bool result = false;
   while (!result) {
     nvgSave(context_);
-    if (widget == root_widget_)
-      result = ViewWillRender(context_);
-    else
-      result = widget->WidgetViewWillRender(context_);
+    result = widget->WidgetViewWillRender(context_);
     nvgRestore(context_);
 
     for (Widget* child : widget->children())
       WidgetViewWillRender(child);
   }
-}
-
-void WidgetView::set_is_opaque(const bool is_opaque) {
-  is_opaque_ = is_opaque;
-  root_widget_->set_is_opaque(is_opaque);
 }
 
 }  // namespace moui

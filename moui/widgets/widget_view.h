@@ -39,9 +39,6 @@ class WidgetView : public View {
   WidgetView();
   ~WidgetView();
 
-  // Attaches a widget to the widget view for rendering.
-  void AddWidget(Widget* widget);
-
   // Inherited from `View` class. Calls the `HandleMemoryWarning()` method on
   // all managed widgets recursively.
   void HandleMemoryWarning() final;
@@ -50,13 +47,11 @@ class WidgetView : public View {
   void Redraw() final;
 
   // Sets the bounds for the view and its managed widget.
-  void SetBounds(const int x, const int y, const int width,
-                 const int height);
+  void SetBounds(const int x, const int y, const int width, const int height);
 
   // Accessors and setters.
-  NVGcontext* context() { return context_; }
-  bool is_opaque() const { return is_opaque_; }
-  void set_is_opaque(const bool is_opaque);
+  NVGcontext* context() const { return context_; }
+  Widget* root_widget() const { return root_widget_; }
 
  private:
   // A widget item is a wrapper for a widget object and keeps some information
@@ -99,9 +94,6 @@ class WidgetView : public View {
   // Keeps a list of widget items to render in order.
   typedef std::vector<WidgetItem*> WidgetList;
 
-  // This method gets called right after `context_` is created in `Rneder()`.
-  virtual void ContextDidCreate(NVGcontext* context) {}
-
   // Inherited from `BaseView` class.
   void HandleEvent(std::unique_ptr<Event> event) final;
 
@@ -131,23 +123,12 @@ class WidgetView : public View {
   // When calling this method, specify `nullptr` for the `widget` parameter.
   bool UpdateEventResponders(const Point location, Widget* widget);
 
-  // This method gets called when the view did finish rendering all visible
-  // widgets.
-  virtual void ViewDidRender(NVGcontext* context) {}
-
-  // This method gets called before the view started rendering widgets. This
-  // method accepts a boolean value to be returned. If `false`, the view will
-  // iterate its attached widgets repeatly until it returns `true`.
-  virtual bool ViewWillRender(NVGcontext* context) { return true; }
-
-  // Calls the `Widget::WidgetViewDidRender()` method of the passed widget
-  // and all of its children recursively. If the passed widget is the
-  // `root_widget_`, `WidgetView::ViewDidRender()` is called instead.
+  // Calls the `Widget::WidgetViewDidRender()` method on the passed widget
+  // and all of its descendant widgets recursively.
   void WidgetViewDidRender(Widget* widget);
 
-  // Calls the `Widget::WidgetViewWillRender()` method of the passed widget
-  // and all of its children recursively. If the passed widget is the
-  // `root_widget_`, `WidgetView::ViewWillRender()` is called instead.
+  // Calls the `Widget::WidgetViewWillRender()` method on the passed widget
+  // and all of its descendant widgets recursively.
   void WidgetViewWillRender(Widget* widget);
 
   // The nanovg context for rendering.
@@ -156,9 +137,6 @@ class WidgetView : public View {
   // Keeps a list of widgets to handle events passed to the `HandleEvent()`
   // method. The list could be updated by `UpdateEventResponders()`.
   std::vector<Widget*> event_responders_;
-
-  // Indicates whether the view is opaque.
-  bool is_opaque_;
 
   // The root widget for rendering. All its children will be rendered as well.
   Widget* root_widget_;
