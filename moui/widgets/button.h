@@ -41,6 +41,8 @@ class Button : public Control {
   // The style of the highlighted state to render if no corresponded render
   // function is binded.
   enum class Style {
+    // Renders the normal state without any change.
+    kNone,
     // Renders the state as semi-transparent.
     kSemiTransparent,
     // Renders the state with blended translucent black foreground.

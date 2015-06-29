@@ -174,6 +174,8 @@ void Button::Render(NVGcontext* context) {
       framebuffer = &highlighted_state_framebuffer_;
     else if (IsSelected())
       framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
+    else if (default_highlighted_style_ == Style::kNone)
+      framebuffer = &normal_state_framebuffer_;
     else
       framebuffer = &normal_state_with_highlighted_effect_framebuffer_;
   } else if (IsSelected()) {
