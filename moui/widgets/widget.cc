@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <stack>
 #include <vector>
 
@@ -235,6 +236,38 @@ float Widget::GetScaledHeight() const {
 
 float Widget::GetScaledWidth() const {
   return GetWidth() * scale_;
+}
+
+// Asks the corresponded `widget_view_` to render the current widget in a
+// newly created framebuffer. Once done, read the pixels out from that
+// framebuffer and we can delete the framebuffer safely at this point.
+unsigned char* Widget::GetSnapshot() {
+  if (widget_view_ == nullptr)
+    return nullptr;
+
+  NVGcontext* context = widget_view_->context();
+  if (context == nullptr)
+    return nullptr;
+
+  NVGLUframebuffer* framebuffer = nullptr;
+  if (!BeginFramebufferUpdates(context, &framebuffer, nullptr))
+    return nullptr;
+  widget_view_->Render(this, framebuffer);
+
+  int framebuffer_width = 0;
+  int framebuffer_height = 0;
+  nvgImageSize(framebuffer->ctx, framebuffer->image, &framebuffer_width,
+               &framebuffer_height);
+
+  unsigned char* snapshot = reinterpret_cast<unsigned char*>(
+      std::malloc(framebuffer_width * framebuffer_height * 4));
+  if (snapshot != nullptr) {
+    glReadPixels(0, 0, framebuffer_width, framebuffer_height, GL_RGBA,
+                 GL_UNSIGNED_BYTE, snapshot);
+  }
+  EndFramebufferUpdates();
+  moui::nvgDeleteFramebuffer(&framebuffer);
+  return snapshot;
 }
 
 float Widget::GetWidth() const {

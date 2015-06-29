@@ -50,10 +50,13 @@ class WidgetView : public View {
   void SetBounds(const int x, const int y, const int width, const int height);
 
   // Accessors and setters.
-  NVGcontext* context() const { return context_; }
+  NVGcontext* context();
   Widget* root_widget() const { return root_widget_; }
 
  private:
+  // Allows `Widget::GetSnapshot()` to call the `Render()` method.
+  friend class Widget;
+
   // A widget item is a wrapper for a widget object and keeps some information
   // to render the widget.
   struct WidgetItem {
@@ -113,6 +116,13 @@ class WidgetView : public View {
 
   // Inherited from `BaseView` class. Renders belonged widgets recursively.
   void Render() final;
+
+  // Renders the specified `widget` and all of its descendant widgets to the
+  // specified `framebuffer`. If the `framebuffer` is `nullptr`, the `widget`
+  // will be rendered without binding the `framebuffer`. Note that the
+  // specified `widget` will always be rendered even if its `hidden_` property
+  // is set to `true`.
+  void Render(Widget* widget, NVGLUframebuffer* framebuffer);
 
   // Inherited from `BaseView` class.
   bool ShouldHandleEvent(const Point location) final;

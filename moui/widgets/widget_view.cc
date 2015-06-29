@@ -92,13 +92,13 @@ void WidgetView::PopAndFinalizeWidgetItems(const int level,
 void WidgetView::PopulateWidgetList(const int level, const float scale,
                                     WidgetList* widget_list, Widget* widget,
                                     WidgetItem* parent_item) {
-  if (widget->IsHidden()) return;
+  if (level != 0 && widget->IsHidden()) return;
   const float kWidgetWidth = widget->GetWidth();
   if (kWidgetWidth <= 0) return;
   const float kWidgetHeight = widget->GetHeight();
   if (kWidgetHeight <= 0) return;
-  const float kWidgetX = widget->GetX();
-  const float kWidgetY = widget->GetY();
+  const float kWidgetX = level == 0 ? 0 : widget->GetX();
+  const float kWidgetY = level == 0 ? 0 : widget->GetY();
   const float kScaledWidgetWidth = kWidgetWidth * scale * widget->scale();
   const float kScaledWidgetHeight = kWidgetHeight * scale * widget->scale();
 
@@ -166,55 +166,64 @@ void WidgetView::Redraw() {
 }
 
 void WidgetView::Render() {
+  Render(root_widget_, nullptr);
+}
+
+void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
   preparing_for_rendering_ = true;
-  if (context_ == nullptr) {
-    context_ = nvgCreateGL(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-  }
+  NVGcontext* context = this->context();
 
   // Determines widgets to render in order and filters invisible onces.
   requests_redraw_ = true;
   while (requests_redraw_) {
     requests_redraw_ = false;
-    WidgetViewWillRender(root_widget_);
+    WidgetViewWillRender(widget);
   }
   preparing_for_rendering_ = false;
   WidgetList widget_list;
-  PopulateWidgetList(0, 1, &widget_list, root_widget_, nullptr);
+  PopulateWidgetList(0, widget->GetMeasuredScale(), &widget_list, widget,
+                     nullptr);
 
   // Renders offscreen stuff here so it won't interfere the onscreen rendering.
+  if (framebuffer != nullptr)
+    nvgluBindFramebuffer(NULL);
   for (WidgetItem* item : widget_list) {
-    item->widget->RenderFramebuffer(context_);
-    item->widget->RenderDefaultFramebuffer(context_);
+    item->widget->RenderFramebuffer(context);
+    item->widget->RenderDefaultFramebuffer(context);
   }
+  if (framebuffer != nullptr)
+    nvgluBindFramebuffer(framebuffer);
 
   // Renders visible widgets on screen.
-  const float kWidth = GetWidth();
-  const float kHeight = GetHeight();
-  const float kScreenScaleFactor = Device::GetScreenScaleFactor();
+  const float kWidth = widget->GetWidth();
+  const float kHeight = widget->GetHeight();
+  const float kScreenScaleFactor = \
+      Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
+
   glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  nvgBeginFrame(context_, kWidth, kHeight, kScreenScaleFactor);
+  nvgBeginFrame(context, kWidth, kHeight, kScreenScaleFactor);
   WidgetItemStack rendering_stack;
   for (WidgetItem* item : widget_list) {
     PopAndFinalizeWidgetItems(item->level, &rendering_stack);
     rendering_stack.push(item);
-    nvgSave(context_);
-    nvgGlobalAlpha(context_, item->alpha);
-    nvgTranslate(context_, item->origin.x, item->origin.y);
-    nvgScale(context_, item->scale, item->scale);
-    nvgIntersectScissor(context_, 0, 0, item->width, item->height);
-    item->widget->WidgetWillRender(context_);
-    nvgSave(context_);
-    item->widget->RenderOnDemand(context_);
-    nvgRestore(context_);
+    nvgSave(context);
+    nvgGlobalAlpha(context, item->alpha);
+    nvgTranslate(context, item->origin.x, item->origin.y);
+    nvgScale(context, item->scale, item->scale);
+    nvgIntersectScissor(context, 0, 0, item->width, item->height);
+    item->widget->WidgetWillRender(context);
+    nvgSave(context);
+    item->widget->RenderOnDemand(context);
+    nvgRestore(context);
   }
   PopAndFinalizeWidgetItems(0, &rendering_stack);
-  nvgEndFrame(context_);
+  nvgEndFrame(context);
 
   // Notifies all attached widgets that the rendering process is done.
-  WidgetViewDidRender(root_widget_);
+  WidgetViewDidRender(widget);
 }
 
 void WidgetView::SetBounds(const int x, const int y, const int width,
@@ -257,26 +266,31 @@ bool WidgetView::UpdateEventResponders(const Point location, Widget* widget) {
 }
 
 void WidgetView::WidgetViewDidRender(Widget* widget) {
-  nvgSave(context_);
-  widget->WidgetViewDidRender(context_);
-  nvgRestore(context_);
+  NVGcontext* context = this->context();
+  nvgSave(context);
+  widget->WidgetViewDidRender(context);
+  nvgRestore(context);
   for (Widget* child : widget->children())
     WidgetViewDidRender(child);
 }
 
 void WidgetView::WidgetViewWillRender(Widget* widget) {
-  if (widget->IsHidden())
-    return;
-
+  NVGcontext* context = this->context();
   bool result = false;
   while (!result) {
-    nvgSave(context_);
-    result = widget->WidgetViewWillRender(context_);
-    nvgRestore(context_);
+    nvgSave(context);
+    result = widget->WidgetViewWillRender(context);
+    nvgRestore(context);
 
     for (Widget* child : widget->children())
       WidgetViewWillRender(child);
   }
+}
+
+NVGcontext* WidgetView::context() {
+  if (context_ == nullptr)
+    context_ = nvgCreateGL(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+  return context_;
 }
 
 }  // namespace moui

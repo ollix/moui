@@ -106,6 +106,12 @@ class Widget {
   // Returns the scaled width in points.
   float GetScaledWidth() const;
 
+  // Returns the snapshot of the widget including all of its descendants
+  // that respect both the screen sacle factor and the `scale_` property,
+  // and each pixel is represented by 4 consective bytes in the RGBA format.
+  // The returned data needs to be freed manually by `std::free()`.
+  virtual unsigned char* GetSnapshot();
+
   // Returns the width in points.
   float GetWidth() const;
 
