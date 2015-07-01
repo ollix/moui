@@ -49,6 +49,9 @@ class Label : public Widget {
   // Sets the default font size.
   static void SetDefaultFontSize(const float size);
 
+  // Updates the label's width to fit the text.
+  void UpdateWidthToFitText(NVGcontext* context);
+
   // Accessors and setters.
   bool adjusts_font_size_to_fit_width() const {
     return adjusts_font_size_to_fit_width_;

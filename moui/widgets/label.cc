@@ -113,6 +113,25 @@ void Label::SetDefaultFontSize(const float size) {
   default_font_size = size;
 }
 
+void Label::UpdateWidthToFitText(NVGcontext* context) {
+  font_size_to_render_ = font_size_ > 0 ? font_size_ : default_font_size;
+  if (font_size_to_render_ <= 0 || text_.empty())
+    return;
+
+  ConfigureTextAttributes(context);
+  const char* start = text_.c_str();
+  const char* end = start + text_.size();
+  float bounds[4];
+  const float kWidth = std::max(
+      nvgTextBounds(context, 0, 0, start, end, bounds),
+      bounds[2] - bounds[0]);
+
+  if (kWidth != GetWidth()) {
+    should_prepare_for_rendering_ = true;
+    SetWidth(Widget::Unit::kPoint, kWidth);
+  }
+}
+
 // This method begins with determining the actual text and font size to render
 // according to `adjusts_font_size_to_fit_width_`, `minimum_scale_factor_` and
 // `number_of_lines_` properties. It also calculates the required height to
