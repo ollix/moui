@@ -100,6 +100,10 @@ class Widget {
   // coordinate system.
   float GetMeasuredScale();
 
+  // Gets the minimum space required to render the enitre widget including the
+  // configured horizontal and vertical offsets.
+  void GetOccupiedSpace(Size* size) const;
+
   // Returns the scaled height in points.
   float GetScaledHeight() const;
 
@@ -243,6 +247,7 @@ class Widget {
   virtual void HandleMemoryWarning(NVGcontext* context);
 
  private:
+  friend class Layout;
   friend class ScrollView;
   friend class WidgetView;
 

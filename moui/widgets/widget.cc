@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <stack>
 #include <vector>
@@ -230,6 +231,28 @@ float Widget::GetMeasuredScale() {
   return measured_scale_;
 }
 
+void Widget::GetOccupiedSpace(Size* size) const {
+  size->width = GetWidth();
+  size->height = GetHeight();
+
+  const float kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
+  const float kOffsetX = CalculatePoints(x_unit_, x_value_, kParentWidth);
+  if (x_alignment_ == Alignment::kLeft || x_alignment_ == Alignment::kRight)
+    size->width += kOffsetX;
+  else if (x_alignment_ == Alignment::kCenter)
+    size->width += std::abs(kOffsetX);
+
+  const float kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
+  const float kOffsetY = CalculatePoints(y_unit_, y_value_, kParentHeight);
+  if (y_alignment_ == Alignment::kTop || y_alignment_ == Alignment::kBottom)
+    size->height += kOffsetY;
+  else if (x_alignment_ == Alignment::kMiddle)
+    size->height += std::abs(kOffsetY);
+
+  size->width *= scale_;
+  size->height *= scale_;
+}
+
 float Widget::GetScaledHeight() const {
   return GetHeight() * scale_;
 }
@@ -342,6 +365,7 @@ bool Widget::RemoveChild(Widget* child) {
   if (iterator == children_.end())
     return false;
   children_.erase(iterator);
+  Redraw();
   return true;
 }
 

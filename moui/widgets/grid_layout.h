@@ -34,7 +34,7 @@ class GridLayout : public Layout {
 
  private:
   // Inherited from `Layout` class.
-  void ArrangeChildren() final;
+  void ArrangeCells(const ManagedWidgetVector managed_widgets) final;
 
   // Indicates the number of columns to arrange child widgets.
   int number_of_columns_;

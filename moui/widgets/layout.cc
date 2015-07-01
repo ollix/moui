@@ -24,57 +24,109 @@
 
 namespace moui {
 
-Layout::Layout() : ScrollView(), bottom_padding_(0), left_padding_(0),
-                   right_padding_(0), should_arrange_children_(false),
-                   spacing_(0), top_padding_(0) {
+Layout::Layout() : adjusts_size_to_fit_contents_(false), bottom_padding_(0),
+                   left_padding_(0), right_padding_(0),
+                   should_rearrange_cells_(false), spacing_(0),
+                   top_padding_(0) {
   set_is_opaque(false);
 }
 
 Layout::~Layout() {
+  for (Widget* cell : GetCells())
+    delete cell;
+}
+
+// When adding a child widget, the child is actually added to a newly created
+// cell widget.
+void Layout::AddChild(Widget* child) {
+  auto cell = new Widget(false);
+  cell->set_is_opaque(false);
+  cell->AddChild(child);
+  ScrollView::AddChild(cell);
+  child->set_parent(this);
+}
+
+// Populates and returns a list of valid cells. Cells are actually the children
+// of the content view's children of the inherited `ScrollView` class. Also,
+// if `RemoveFromParent()` was called from one of the actual managed widgets,
+// its corresponded cell will contain no child. And it's a good timing to
+// free and remove the cell when this situation is detected.
+std::vector<Widget*> Layout::GetCells() {
+  std::vector<Widget*> cells;
+  for (Widget* cell : reinterpret_cast<ScrollView*>(this)->children()) {
+    if (cell->children().size() != 1) {
+      cell->RemoveFromParent();
+      delete cell;
+      continue;
+    }
+    cells.push_back(cell);
+  }
+  return cells;
 }
 
 // Checks if there is any difference between the current child widgets and the
 // managed widgets. If it is, the child widgets should be rearranged.
-bool Layout::ShouldArrangeChildren() {
-  if (should_arrange_children_)
+bool Layout::ShouldRearrangeCells() {
+  if (should_rearrange_cells_)
     return true;
 
-  if (children().size() != managed_widgets_.size()) {
-    should_arrange_children_ = true;
+  std::vector<Widget*> cells = GetCells();
+  if (cells.size() != managed_widgets_.size()) {
+    should_rearrange_cells_ = true;
     return true;
   }
 
-  int i = 0;
-  for (Widget* child : children()) {
-    ManagedWidget managed_widget = managed_widgets_[i++];
-    if (managed_widget.widget != child ||
-        managed_widget.origin.x != child->GetX() ||
-        managed_widget.origin.y != child->GetY() ||
-        managed_widget.size.width != child->GetWidth() * child->scale() ||
-        managed_widget.size.height != child->GetHeight() * child->scale()) {
-      should_arrange_children_ = true;
+  int index = 0;
+  for (Widget* cell : cells) {
+    Widget* widget = cell->children().at(0);
+    Size occupied_size;
+    widget->GetOccupiedSpace(&occupied_size);
+
+    ManagedWidget managed_widget = managed_widgets_[index++];
+    if (managed_widget.widget != widget ||
+        managed_widget.occupied_size.width != occupied_size.width ||
+        managed_widget.occupied_size.height != occupied_size.height) {
+      should_rearrange_cells_ = true;
       return true;
     }
   }
   return false;
 }
 
+void Layout::UpdateContentSize(const float width, const float height) {
+  SetContentViewSize(width, height);
+
+  if (adjusts_size_to_fit_contents_) {
+    SetWidth(width);
+    SetHeight(height);
+  }
+}
+
 bool Layout::WidgetViewWillRender(NVGcontext* context) {
-  if (!ShouldArrangeChildren()) {
+  if (!ShouldRearrangeCells()) {
     return ScrollView::WidgetViewWillRender(context);
   }
-  should_arrange_children_ = false;
+  should_rearrange_cells_ = false;
 
-  // Updates the state of managed widgets.
+  // Updates managed widgets.
   managed_widgets_.clear();
-  for (Widget* child : children()) {
-    managed_widgets_.push_back({{child->GetX(), child->GetY()},
-                                {child->GetWidth() * child->scale(),
-                                 child->GetHeight() * child->scale()},
-                                child});
+  for (Widget* cell : GetCells()) {
+    Widget* widget = cell->children().at(0);
+    Size occupied_size;
+    widget->GetOccupiedSpace(&occupied_size);
+    managed_widgets_.push_back({widget, occupied_size, cell});
   }
-  ArrangeChildren();
+  ArrangeCells(managed_widgets_);
   return false;
+}
+
+std::vector<Widget*>& Layout::children() {
+  managed_children_.clear();
+  for (Widget* cell : GetCells()) {
+    if (cell->children().size() == 1)
+      managed_children_.push_back(cell->children().at(0));
+  }
+  return managed_children_;
 }
 
 void Layout::set_bottom_padding(const float padding) {

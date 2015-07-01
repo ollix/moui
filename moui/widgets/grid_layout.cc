@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "moui/widgets/layout.h"
-#include "moui/widgets/scroll_view.h"
 #include "moui/widgets/widget.h"
 
 namespace moui {
@@ -34,52 +33,67 @@ GridLayout::GridLayout(const int number_of_columns)
 GridLayout::~GridLayout() {
 }
 
-void GridLayout::ArrangeChildren() {
-  // Determines the width of each column.
-  int column = 0;
+void GridLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
+  // Determines the width of each column and the height of each row.
   const int kNumberOfColumns = number_of_columns_;
+  const int kNumberOfRows = \
+      std::ceil(1.0 * managed_widgets.size() / kNumberOfColumns);
+
   float width_of_columns[kNumberOfColumns];
   for (int i = 0; i < kNumberOfColumns; ++i)
     width_of_columns[i] = 0;
 
-  std::vector<Size> child_sizes;
-  for (ManagedWidget& child : managed_widgets_) {
+  float height_of_rows[kNumberOfRows];
+  for (int i = 0; i < kNumberOfRows; ++i)
+    height_of_rows[i] = 0;
+
+  int column = 0;
+  int row = 0;
+  for (ManagedWidget managed_widget : managed_widgets) {
     width_of_columns[column] = std::max(width_of_columns[column],
-                                        child.size.width);
-    if (++column == kNumberOfColumns)
+                                        managed_widget.occupied_size.width);
+    height_of_rows[row] = std::max(height_of_rows[row],
+                                   managed_widget.occupied_size.height);
+    if (++column == kNumberOfColumns) {
       column = 0;
+      ++row;
+    }
   }
 
-  // Arranges child widgets.
+  // Updates the bounds of every cell.
   column = -1;
+  row = 0;
   float column_offset = left_padding();
-  float row_height = 0;
   float row_offset = top_padding();
-  for (ManagedWidget& child : managed_widgets_) {
+  float row_height = 0;
+  for (ManagedWidget managed_widget : managed_widgets) {
     if (++column == kNumberOfColumns) {
       column = 0;
       column_offset = left_padding();
-      row_offset += row_height + spacing();
-      row_height = 0;
+      row_offset += height_of_rows[++row] + spacing();
     } else if (column > 0) {
       column_offset += spacing();
     }
 
-    Widget* widget = child.widget;
-    widget->SetX(Widget::Alignment::kLeft, Widget::Unit::kPoint, column_offset);
-    widget->SetY(Widget::Alignment::kTop, Widget::Unit::kPoint, row_offset);
+    Widget* cell = managed_widget.cell;
+    if (row < kNumberOfRows)
+      row_height = height_of_rows[row];
 
-    row_height = std::max(row_height, child.size.height);
+    cell->SetX(column_offset);
+    cell->SetY(row_offset);
+    cell->SetWidth(width_of_columns[column]);
+    cell->SetHeight(row_height);
+
     column_offset += width_of_columns[column];
   }
 
-  // Updates the size of the content view.
+  // Updates the size of content view.
   const float kContentHeight = row_offset + row_height + bottom_padding();
   float content_width = \
       left_padding() + right_padding() + spacing() * (kNumberOfColumns - 1);
   for (int i = 0; i < kNumberOfColumns; ++i)
     content_width += width_of_columns[i];
-  SetContentViewSize(content_width, kContentHeight);
+  UpdateContentSize(content_width, kContentHeight);
 }
 
 void GridLayout::set_number_of_columns(const int number_of_columns) {

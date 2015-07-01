@@ -40,9 +40,19 @@ class Layout : public ScrollView {
   Layout();
   ~Layout();
 
+  // Overrides
+  void AddChild(Widget* child);
+
   // Accessors and setters.
+  bool adjusts_size_to_fit_contents() const {
+    return adjusts_size_to_fit_contents_;
+  }
+  void set_adjusts_size_to_fit_contents(const bool value) {
+    adjusts_size_to_fit_contents_ = value;
+  }
   float bottom_padding() const { return bottom_padding_; }
   void set_bottom_padding(const float padding);
+  std::vector<Widget*>& children();
   float left_padding() const { return left_padding_; }
   void set_left_padding(const float padding);
   float right_padding() const { return right_padding_; }
@@ -55,23 +65,36 @@ class Layout : public ScrollView {
  protected:
   // The state of managed widget.
   struct ManagedWidget {
-    Point origin;
-    Size size;
+    // The actual widget to be displayed on screen.
     Widget* widget;
+    // The required size to display the widget.
+    Size occupied_size;
+    // The cell that wraps the widget.
+    Widget* cell;
   };
+  typedef std::vector<ManagedWidget> ManagedWidgetVector;
 
-  // Keeps the states of currently managed widgets.
-  std::vector<ManagedWidget> managed_widgets_;
+  // Updates the content view's size. The specified values should be able to
+  // display all managed cells. If `adjusts_size_to_fit_contents_` is set to
+  // `ture`, the size of the layout itself will be changed as well.
+  void UpdateContentSize(const float width, const float height);
 
   // Inherited from `Widget` class.
   bool WidgetViewWillRender(NVGcontext* context) override;
 
  private:
-  // Arranges child widgets. This method must be implemented in subclasses.
-  virtual void ArrangeChildren() {}
+  // Arranges cells. This method must be implemented in subclasses.
+  virtual void ArrangeCells(const ManagedWidgetVector managed_widgets) = 0;
 
-  // Returns `true` if child widgets should be arranged.
-  bool ShouldArrangeChildren();
+  // Returns a list of cells that contains the managed widgets.
+  std::vector<Widget*> GetCells();
+
+  // Returns `true` if cells should be rearranged.
+  bool ShouldRearrangeCells();
+
+  // Indicates whether the layout's size should be adjusted automatically to
+  // fit its contents.
+  bool adjusts_size_to_fit_contents_;
 
   // The padding in points to the bottom side of the layout.
   float bottom_padding_;
@@ -79,11 +102,17 @@ class Layout : public ScrollView {
   // The padding in points to the left side of the layout.
   float left_padding_;
 
+  // Keeps a list of weak references to the actual widgets to be layouted.
+  std::vector<Widget*> managed_children_;
+
+  // Keeps the states of currently managed widgets.
+  std::vector<ManagedWidget> managed_widgets_;
+
   // The padding in points to the right side of the layout.
   float right_padding_;
 
-  // Indicates whether child widgets should be arranged.
-  bool should_arrange_children_;
+  // Indicates whether cells should be rearranged.
+  bool should_rearrange_cells_;
 
   // The space in ponits between child widgets.
   float spacing_;

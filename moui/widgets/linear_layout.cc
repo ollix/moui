@@ -17,11 +17,10 @@
 
 #include "moui/widgets/linear_layout.h"
 
-#include <cassert>
+#include <algorithm>
 #include <vector>
 
 #include "moui/widgets/layout.h"
-#include "moui/widgets/scroll_view.h"
 #include "moui/widgets/widget.h"
 
 namespace moui {
@@ -33,11 +32,24 @@ LinearLayout::LinearLayout(const Orientation orientation)
 LinearLayout::~LinearLayout() {
 }
 
-void LinearLayout::ArrangeChildren() {
-  float offset = 0;
-  Size content_view_size = GetContentViewSize();
+void LinearLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
+  // Determines the maximum cell length. For horizontal orientation, the length
+  // represents the cell's height. For vertical orientation, the length
+  // represents the cell's width.
+  float max_cell_length = 0;
+  for (ManagedWidget managed_widget : managed_widgets) {
+    if (orientation_ == Layout::Orientation::kHorizontal) {
+      max_cell_length = std::max(max_cell_length,
+                                 managed_widget.occupied_size.height);
+    } else if (orientation_ == Layout::Orientation::kVertical) {
+      max_cell_length = std::max(max_cell_length,
+                                 managed_widget.occupied_size.width);
+    }
+  }
 
-  for (ManagedWidget& child : managed_widgets_) {
+  // Updates the bounds of every cell.
+  float offset = 0;
+  for (ManagedWidget managed_widget : managed_widgets) {
     if (offset > 0)
       offset += spacing();
     else if (orientation_ == Layout::Orientation::kHorizontal)
@@ -45,28 +57,30 @@ void LinearLayout::ArrangeChildren() {
     else if (orientation_ == Layout::Orientation::kVertical)
       offset += top_padding();
 
-    Widget* widget = child.widget;
+    Widget* cell = managed_widget.cell;
     if (orientation_ == Layout::Orientation::kHorizontal) {
-      widget->SetX(offset);
-      offset += child.size.width;
-      content_view_size.height = std::max(
-          content_view_size.height,
-          widget->GetHeight() + top_padding() + bottom_padding());
+      cell->SetX(offset);
+      cell->SetY(top_padding());
+      cell->SetWidth(managed_widget.occupied_size.width);
+      cell->SetHeight(max_cell_length);
+      offset += managed_widget.occupied_size.width;
     } else if (orientation_ == Layout::Orientation::kVertical) {
-      widget->SetY(offset);
-      offset += child.size.height;
-      content_view_size.width = std::max(
-          content_view_size.width,
-          widget->GetWidth() + left_padding() + right_padding());
-    } else {
-      assert(false);
+      cell->SetX(left_padding());
+      cell->SetY(offset);
+      cell->SetWidth(max_cell_length);
+      cell->SetHeight(managed_widget.occupied_size.height);
+      offset += managed_widget.occupied_size.height;
     }
   }
 
-  if (orientation_ == Layout::Orientation::kHorizontal)
-    SetContentViewSize(offset + right_padding(), content_view_size.height);
-  else if (orientation_ == Layout::Orientation::kVertical)
-    SetContentViewSize(content_view_size.width, offset + bottom_padding());
+  // Updates the size of content view.
+  if (orientation_ == Layout::Orientation::kHorizontal) {
+    UpdateContentSize(offset + right_padding(),
+                      max_cell_length + top_padding() + bottom_padding());
+  } else if (orientation_ == Layout::Orientation::kVertical) {
+    UpdateContentSize(max_cell_length + left_padding() + right_padding(),
+                      offset + bottom_padding());
+  }
 }
 
 }  // namespace moui

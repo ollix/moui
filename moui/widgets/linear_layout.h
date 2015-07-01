@@ -30,7 +30,7 @@ class LinearLayout : public Layout {
 
  private:
   // Inherited from `Layout` class.
-  void ArrangeChildren() final;
+  void ArrangeCells(const ManagedWidgetVector managed_widgets) final;
 
   // The direction to arrange the child widgets.
   Orientation orientation_;
