@@ -189,9 +189,9 @@ class Control : public Widget {
   // set to `false` by default and controlled in the `HandleEvent()` method.
   bool ignores_events_;
 
-  // Records the control's position that related to the corresponded widget
-  // view's coordinate system when receiving the `Event::Type::kDown` event.
-  Point initial_position_;
+  // Records the control's origin related to the corresponded widget view's
+  // coordinate system when receiving the `Event::Type::kDown` event.
+  Point initial_origin_;
 
   // A bitmask value that indicates the state of a control. A control can have
   // more than one state at a time.

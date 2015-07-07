@@ -73,28 +73,27 @@ void Control::HandleControlEvents(const ControlEvents events) {
 
 // Handles corresponded control events converted from the passed event.
 bool Control::HandleEvent(Event* event) {
-  if (IsDisabled() ||
-      (ignores_events_ && event->type() != Event::Type::kDown)) {
+  if (IsDisabled() || ignores_events_) {
     return true;
   }
 
-  // Determines the control's current position related to the corresponded
+  // Determines the control's current origin related to the corresponded
   // widget view's coordinate system.
-  Point position;
-  GetMeasuredBounds(&position, nullptr);
+  Point origin;
+  GetMeasuredBounds(&origin, nullptr);
 
   int control_events = 0;
   // Down.
   if (event->type() == Event::Type::kDown) {
     control_events |= ControlEvents::kTouchDown;
-    ignores_events_ = false;
-    initial_position_ = position;
-  // Move.
-  } else if (event->type() == Event::Type::kMove &&
-             (position.x != initial_position_.x ||
-              position.y != initial_position_.y)) {
+    initial_origin_ = origin;
+  // Starts ignoring upcoming events if the button's origin has been changed.
+  // This situation happens when underlying scroll view is scrolling.
+  } else if (origin.x != initial_origin_.x ||
+             origin.y != initial_origin_.y) {
     ignores_events_ = true;
     control_events |= ControlEvents::kTouchCancel;
+  // Move.
   } else if (event->type() == Event::Type::kMove) {
     const bool kTouchOutside = !CollidePoint(
         static_cast<Point>(event->locations()->front()),  // location
@@ -127,7 +126,7 @@ bool Control::HandleEvent(Event* event) {
   }
   // Handles the populated control event.
   HandleControlEvents(static_cast<ControlEvents>(control_events));
-  return true;
+  return ignores_events_;
 }
 
 bool Control::IsDisabled() const {
@@ -192,6 +191,7 @@ void Control::SetSelected(const bool selected) {
 // Returns `true` if the widget's bounding box plus the disired margin size
 // collides the passed location.
 bool Control::ShouldHandleEvent(const Point location) {
+  ignores_events_ = false;
   return CollidePoint(location, touch_down_margin_);
 }
 

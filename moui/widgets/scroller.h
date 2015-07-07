@@ -44,31 +44,18 @@ class Scroller : public Widget {
   // Inherited from `Widget` class.
   void Redraw();
 
+  // Inherited from `Widget` class.
+  void SetHidden(const bool hidden);
+
   // Accessors and setters.
   double knob_position() const { return knob_proportion_; }
-  void set_knob_position(const double value) {
-    if (value < 0)
-      knob_position_ = 0;
-    else if (value > 1)
-      knob_position_ = 1;
-    else
-      knob_position_ = value;
-  }
+  void set_knob_position(const double value);
   double knob_proportion() const { return knob_proportion_; }
-  void set_knob_proportion(const double value) {
-    if (value < 0)
-      knob_proportion_ = 0;
-    else if (value > 1)
-      knob_proportion_ = 1;
-    else
-      knob_proportion_ = value;
-  }
+  void set_knob_proportion(const double value);
   bool shows_scrollers_on_both_directions() const {
     return shows_scrollers_on_both_directions_;
   }
-  void set_shows_scrollers_on_both_directions(const bool value) {
-    shows_scrollers_on_both_directions_ = value;
-  }
+  void set_shows_scrollers_on_both_directions(const bool value);
 
  private:
   // Inherited from `Widget` class.

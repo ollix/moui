@@ -45,20 +45,23 @@ WidgetView::~WidgetView() {
 }
 
 void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
-  std::string valid_identifier = "";
+  bool ignores_non_scroll_view_responders = false;
+
   for (Widget* responder : event_responders_) {
-    std::string current_identifier = responder->responder_chain_identifier();
+    const bool kResponderIsScrollView = \
+        responder->responder_chain_identifier() == "moui::ScrollView";
 
-    // Skips responder that does not match the valid identifier or is already
-    // deattached from this widget view.
-    if (responder->widget_view() != this ||
-        (!valid_identifier.empty() && valid_identifier != current_identifier))
+    if (ignores_non_scroll_view_responders && !kResponderIsScrollView) {
       continue;
-
-    if (responder->HandleEvent(event.get()))
-      valid_identifier = current_identifier;
-    else
+    } else if (responder->HandleEvent(event.get())) {
+      if (kResponderIsScrollView)
+        ignores_non_scroll_view_responders = true;
+      continue;
+    } else if (!kResponderIsScrollView) {
+      ignores_non_scroll_view_responders = true;
+    } else if (kResponderIsScrollView)  {
       break;
+    }
   }
 }
 

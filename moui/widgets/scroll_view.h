@@ -18,6 +18,7 @@
 #ifndef MOUI_WIDGETS_SCROLL_VIEW_H_
 #define MOUI_WIDGETS_SCROLL_VIEW_H_
 
+#include <cmath>
 #include <vector>
 
 #include "moui/base.h"
@@ -41,7 +42,7 @@ class ScrollView : public Widget {
   void AddChild(Widget* child);
 
   // Moves the content view to the specified offset in animation.
-  void AnimateContentViewOffset(const Point offset, const float duration);
+  void AnimateContentViewOffset(const Point offset, const double duration);
 
   // Returns the offset of the content view.
   Point GetContentViewOffset() const;
@@ -52,12 +53,6 @@ class ScrollView : public Widget {
   // Returns the number of the current page. The page number starts with 0.
   int GetCurrentPage() const;
 
-  // Returns the number of the last page. The page number starts with 0.
-  int GetMaximumPage() const;
-
-  // Returns `true` if the content view is scrolling.
-  bool IsScrolling() const;
-
   // Sets content view's offset that correspondes to the scroll view's origin.
   void SetContentViewOffset(const Point offset);
 
@@ -66,20 +61,22 @@ class ScrollView : public Widget {
 
   // Moves the content view to the specified page. If the specified duration
   // is greater than 0, the content view will be moved in animation.
-  void ShowPage(const int page, const float duration);
+  void ShowPage(const int page, const double duration);
 
   // Accessors and setters.
   bool always_bounce_horizontal() const { return always_bounce_horizontal_; }
   void set_always_bounce_horizontal(const bool value) {
     always_bounce_horizontal_ = value;
   }
-  double animating_acceleration() const { return animating_acceleration_; }
-  void set_animating_acceleration(const double value) {
-    animating_acceleration_ = value;
-  }
   bool always_bounce_vertical() const { return always_bounce_vertical_; }
   void set_always_bounce_vertical(const bool value) {
     always_bounce_vertical_ = value;
+  }
+  bool always_scroll_both_directions() const {
+    return always_scroll_both_directions_;
+  }
+  void set_always_scroll_both_directions(const bool value) {
+    always_scroll_both_directions_ = value;
   }
   bool always_scroll_to_next_page() const {
     return always_scroll_to_next_page_;
@@ -90,15 +87,20 @@ class ScrollView : public Widget {
   bool bounces() const { return bounces_; }
   void set_bounces(const bool value) { bounces_ = value; }
   std::vector<Widget*>& children() { return content_view_->children(); }
+  float deceleration_rate() const { return deceleration_rate_; }
+  void set_deceleration_rate(const float deceleration_rate) {
+    deceleration_rate_ = std::abs(deceleration_rate);
+  }
   bool enables_paging() const { return enables_paging_; }
   void set_enables_paging(const bool value) { enables_paging_ = value; }
   bool enables_scroll() const { return enables_scroll_; }
   void set_enables_scroll(const bool value) { enables_scroll_ = value; }
+  bool is_scrolling() const { return is_scrolling_; }
   float page_width() const {
     return !enables_paging_ || page_width_ <= 0 || page_width_ > GetWidth() ?
            GetWidth() : page_width_;
   }
-  void set_page_width(const float page_width) { page_width_ = page_width; }
+  void set_page_width(const float page_width);
   bool shows_horizontal_scroll_indicator() const {
     return shows_horizontal_scroll_indicator_;
   }
@@ -114,20 +116,18 @@ class ScrollView : public Widget {
 
  protected:
   // Animates the content view to the passed location horizontally in
-  // configured duration. This method calculates the initial velocity to move
-  // the view automatically.
+  // configured duration.
   void AnimateContentViewHorizontally(const float origin_x,
-                                      const float duration);
+                                      const double duration);
 
   // Animates the content view to the passed location vertically in
-  // configured duration. This method calculates the initial velocity to move
-  // the view automatically.
+  // configured duration.
   void AnimateContentViewVertically(const float origin_y,
-                                    const float duration);
+                                    const double duration);
 
   // Gets the current velocity of the scroll.
-  void GetScrollVelocity(double* horizontal_velocity,
-                         double* vertical_velocity);
+  void GetScrollVelocity(float* horizontal_velocity,
+                         float* vertical_velocity);
 
   // Inherited from `Widget` class. Controls the scroll behavior.
   bool HandleEvent(Event* event) override;
@@ -137,7 +137,7 @@ class ScrollView : public Widget {
 
   // Sets the content view's origin based on the expected origin. The actual
   // origin may be changed when reaching the boundary of the content view.
-  void SetContentViewOrigin(const Point& expected_origin);
+  void SetContentViewOrigin(const Point& origin);
 
   // Inherited from `Widget` class.
   bool ShouldHandleEvent(const Point location) override;
@@ -145,36 +145,30 @@ class ScrollView : public Widget {
   // Stops the animation and resets both horizontal and vertical states.
   void StopAnimation();
 
-  // Animates content view to stop gradually. Returns false on failure.
-  // This method calculates the initial velocity to animate the content view
-  // based on recent scroll events. If paging is enabled, it stops the content
-  // view at the next page in a pre-defined duration.
-  bool StopScrollingGradually();
+  // Animates content view to stop gradually.
+  void StopScrollingGradually();
 
-  // Inherited from `Widget` class. Moves the content view and updates animation
-  // states accordingly.
+  // Inherited from `Widget` class. Animates the content view and updates
+  // the animation states accordingly.
   bool WidgetViewWillRender(NVGcontext* context) override;
 
  private:
-  // The direction of the scroll action.
-  enum class ScrollDirection {
-    // The scroll is free for both horizontal and vertical directions.
-    kBoth,
+  // The directions of the scroll action.
+  enum ScrollDirection {
     // The scroll direction is horizontal.
-    kHorizontal,
+    kHorizontal = 0x01 << 0,
     // The scroll direction is vertical.
-    kVertical,
-    // The scroll direction is unknown.
-    kUnknown,
+    kVertical = 0x01 << 1,
   };
 
-  // The animation state for either horizontal or vertical direction.
-  struct AnimationState {
-    double acceleration;
+  // The animation states for either horizontal or vertical direction.
+  struct AnimationStates {
+    // The deceleration for animating the content view.
+    float deceleration;
     // The destination location of the content view.
     float destination_location;
     // The animation duration measured in seconds.
-    float duration;
+    double duration;
     // Records the elapsed time of the current animation.
     double elapsed_time;
     // The initial location of the content view.
@@ -182,7 +176,7 @@ class ScrollView : public Widget {
     // Records the timestamp when starting the animation.
     double initial_timestamp;
     // The initial velocity for animating the content view.
-    double initial_velocity;
+    float initial_velocity;
     // Indicates whether the animation is ongoing.
     bool is_animating;
     // Indicates whether the animation behaviors as a bouncing effect.
@@ -191,7 +185,7 @@ class ScrollView : public Widget {
     double reaches_boundary_timestamp;
   };
 
-  // The record of scroll event.
+  // The record of a scroll event.
   struct ScrollEvent {
     // Keeps the location where the event happens.
     Point location;
@@ -200,32 +194,22 @@ class ScrollView : public Widget {
   };
 
   // Animates the content view to the passed location horizontally with
-  // configured parameters. This method calculates the initial velocity to
-  // move the view automatically.
+  // configured initial velocity, deceleration and duration.
   void AnimateContentViewHorizontally(const float origin_x,
-                                      const double acceleration,
-                                      const float duration);
-
-  // Animates the content view to the passed location horizontally with
-  // configured initial velocity and duration.
-  void AnimateContentViewHorizontally(const float origin_x,
-                                      const double initial_velocity,
-                                      const double acceleration,
-                                      const float duration);
+                                      const float initial_velocity,
+                                      const float deceleration,
+                                      const double duration);
 
   // Animates the content view to the passed location vertically with
-  // configured parameters. This method calculates the initial velocity to
-  // move the view automatically.
+  // configured initial velocity, deceleration, and duration.
   void AnimateContentViewVertically(const float origin_y,
-                                    const double acceleration,
-                                    const float duration);
+                                    const float initial_velocity,
+                                    const float deceleration,
+                                    const double duration);
 
-  // Animates the content view to the passed location vertically with
-  // configured initial velocity and duration.
-  void AnimateContentViewVertically(const float origin_y,
-                                    const double initial_velocity,
-                                    const double acceleration,
-                                    const float duration);
+  // Bounces the content view based on the direction of the specified
+  // `animation_states`.
+  void BounceContentView(AnimationStates* animation_states);
 
   // Moves the content view to not reach its horizontal boundaries. If pageing
   // is enabled, it moves the current page to the center of the scroll view.
@@ -234,25 +218,23 @@ class ScrollView : public Widget {
   // Moves the content view to not reach its vertical boundaries.
   void BounceContentViewVertically();
 
-  // Returns the content view's horizontal offset for the specified page.
-  float GetContentViewOffsetForPage(const int page) const;
+  // Returns the content view's horizontal origin for the specified page.
+  float GetContentViewOriginForPage(const int page) const;
 
-  // Returns the valid range of the content view's origin that guarantees the
-  // scroll view is fully covered by the content view.
-  void GetContentViewOriginLimits(float* minimum_x, float* minimum_y,
-                                  float* maximum_x, float* maximum_y) const;
+  // Returns the boundaries of content view.
+  void GetContentViewBoundaries(float* minimum_x, float* minimum_y,
+                                float* maximum_x, float* maximum_y) const;
 
-  // Returns the current location of the animating content view based on the
-  // passed animation state.
-  float GetCurrentAnimatingLocation(const AnimationState& state) const;
+  // Returns the number of the last page. The page number starts with 0.
+  int GetMaximumPage() const;
 
-  // Returns the current scroll direction based on the
-  // `acceptable_scroll_direction_` and the latest `event_history_`.
-  ScrollDirection GetScrollDirection() const;
+  // Returns the page of the specified horizontal origin of the content view.
+  int GetPage(const float origin_x) const;
 
-  // Determines whether the animating content view reaches the boundary
-  // on both directions.
-  void ReachesContentViewBoundary(bool* horizontal, bool* vertical) const;
+  // Gets the current scroll direction based on the
+  // `acceptable_scroll_directions_` and the latest `event_history_`.
+  // Returns `false` on failure.
+  bool GetScrollDirection(ScrollDirection* direction) const;
 
   // Redraws the scroller for a specific direction.
   void RedrawScroller(const float scroll_view_length,
@@ -262,31 +244,26 @@ class ScrollView : public Widget {
                       const bool shows_scrollers_on_both_directions,
                       Scroller* scroller);
 
-  // Resolves the passed origin location either in horizontal or vertical
-  // direction. This method is created for `MoveContentView()` to calculate
-  // a suitable location for showing the content view in various scenarios.
+  // Returns the preferred content view location that should be used while
+  // moving the content view manually. Specifically, it converts the
+  // `expected_location` to a suitable location when the `expected_location`
+  // is beyond its boundaries. However, this method is not designed for
+  // animation use.
   float ResolveContentViewOrigin(const float expected_location,
                                  const float scroll_view_length,
                                  const float content_view_length,
                                  const float content_view_padding,
-                                 const bool bounces) const;
+                                 const bool always_bounces) const;
 
-  // Updates the passed animation state based on other passed parameters.
-  // This method also reacts to those changes properly.
-  void UpdateAnimationState(const bool reaches_boundary, Scroller* scroller,
-                            AnimationState* state);
+  void UpdateAnimationOriginAndStates(const double timestamp,
+                                      AnimationStates* states);
 
   // Indicates the direction that is acceptable for scrolling. This value is
   // determined in the `ShouldHandleEvent()` method.
-  ScrollDirection acceptable_scroll_direction_;
-
-  // The acceleration that controls the feel of how the content view moves
-  // in animation. This value is measured in points per second and must be
-  // a negative number.
-  double animating_acceleration_;
+  ScrollDirection acceptable_scroll_directions_;
 
   // Indicates whether bouncing always occurs when horizontal scrolling reaches
-  // the end of the content. If the value is true, horizontal dragging is
+  // the end of the content. If the value is `true`, horizontal dragging is
   // allowed even if the content is smaller than the bounds of the scroll view.
   // The default value is `false`.
   bool always_bounce_horizontal_;
@@ -297,14 +274,23 @@ class ScrollView : public Widget {
   // default value is `false`.
   bool always_bounce_vertical_;
 
-  // Indicates whether a scroll action should always move the scroll view to
-  // the next page. If this value is set to false, the scroll view will stop
-  // gradually as usual and then move the current page to the center of which.
-  // The default value is `true`.
+  // Indicates whether to always allow to scroll to any direction. This value
+  // is effective only if both vertical and horizontal scroll directions are
+  // accepted. If the value is `false`, the scroll view will lock the
+  // acceptable scroll directions to one of the vertical direction, horizontal
+  // direction or both depending on the user's scroll direction. The default
+  // value is `true`.
+  bool always_scroll_both_directions_;
+
+  // Indicates whether scrolling should always stop at next page. This property
+  // is effective only if `enables_paging_` is `true`. The default value is
+  // `false`. When this property is `false`, the scrolling still stops at a
+  // specific page but which page to stop is depending on the horizontal
+  // scrolling velocity.
   bool always_scroll_to_next_page_;
 
   // Indicates whether the scroll view bounces past the edge of content back
-  // again. If the value is true, the scroll view bounces when it encounters
+  // again. If the value is `true`, the scroll view bounces when it encounters
   // a boundary of the content. If the value is false, scrolling stops
   // immediately at the content boundary without bouncing. The default value
   // is `true`.
@@ -312,6 +298,12 @@ class ScrollView : public Widget {
 
   // The strong reference to the widget that contains scrollable views.
   Widget* content_view_;
+
+  // Indicates the deceleration rate that used to slow down the scrolling
+  // until the content view is still. The actual deceleration is calculated
+  // by multiplying the rate by the desired initial velocity. This value
+  // should always be specified as a positive value.
+  float deceleration_rate_;
 
   // Indicates whether paging is enabled. If the value is true, the scroll view
   // stops on multiples of the scroll view's bounds when scrolling. The default
@@ -326,14 +318,14 @@ class ScrollView : public Widget {
   std::vector<ScrollEvent> event_history_;
 
   // Keeps the states for animating content view in horizontal direction.
-  AnimationState horizontal_animation_state_;
+  AnimationStates horizontal_animation_states_;
 
   // The strong reference to the horizontal scroller displayed at the bottom of
   // the scroll view.
   Scroller* horizontal_scroller_;
 
   // Indicates whether upcoming events should be ignored by `HandleEvent()`.
-  // This value is reset to false in `ShouldHandleEvent()`.
+  // This value is reset to `false` in `ShouldHandleEvent()`.
   bool ignores_upcoming_events_;
 
   // Records the content view's origin when receiving the first scroll event.
@@ -342,14 +334,20 @@ class ScrollView : public Widget {
   // Records the current page when received the first scroll event.
   int initial_scroll_page_;
 
-  // Indicates the direction that is available for scrolling. This value is
-  // reset in `ShouldHandleEvent()` and updated in `HandleEvent()`.
-  ScrollDirection locked_scroll_direction_;
+  // Indicates whether the scroll view is scrolling.
+  bool is_scrolling_;
+
+  // Indicates the directions available for scrolling. This value is reset in
+  // `ShouldHandleEvent()` and updated in `HandleEvent()`.
+  ScrollDirection locked_scroll_directions_;
 
   // Indicates the width of every page. The value should always be greater than
   // 0 and lesser than the scroll view's width, or `page_width()` will return
   // the scroll view's width instead of the actual value.
   float page_width_;
+
+  // The page to move to when `enables_paging_` is `true`.
+  int moves_content_view_to_page_;
 
   // Indicates whether the horizontal scroll indicator is visible.
   bool shows_horizontal_scroll_indicator_;
@@ -358,7 +356,7 @@ class ScrollView : public Widget {
   bool shows_vertical_scroll_indicator_;
 
   // Keeps the states for animating content view in vertical direction.
-  AnimationState vertical_animation_state_;
+  AnimationStates vertical_animation_states_;
 
   // The strong reference to the vertical scroller displayed at the right of
   // the scroll view.

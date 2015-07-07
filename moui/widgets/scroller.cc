@@ -27,7 +27,7 @@
 namespace {
 
 // The duration measured in seconds for hiding the scroller in animation.
-const float kAnimatingHideDuration = 0.2;
+const double kAnimatingHideDuration = 0.2;
 
 // The default width of the scroller's knob.
 const float kKnobWidth = 5;
@@ -118,6 +118,12 @@ void Scroller::RenderKnob(NVGcontext* context, const float position,
   nvgStroke(context);
 }
 
+void Scroller::SetHidden(const bool hidden) {
+  Widget::SetHidden(hidden);
+  if (!hidden && hiding_in_animation_)
+    Redraw();
+}
+
 // Stops animation if reaching the animation duration.
 void Scroller::WidgetViewDidRender(NVGcontext* context) {
   if (animation_progress_ < 1)
@@ -144,6 +150,39 @@ bool Scroller::WidgetViewWillRender(NVGcontext* context) {
 
   animation_progress_ = std::min(1.0f, animation_progress_);
   return true;
+}
+
+void Scroller::set_knob_position(const double value) {
+  double knob_position = value;
+  if (value < 0)
+    knob_position = 0;
+  else if (value > 1)
+    knob_position = 1;
+
+  if (knob_position != knob_position_) {
+    knob_position_ = knob_position;
+    Redraw();
+  }
+}
+
+void Scroller::set_knob_proportion(const double value) {
+  double knob_proportion = value;
+  if (value < 0)
+    knob_proportion = 0;
+  else if (value > 1)
+    knob_proportion = 1;
+
+  if (knob_proportion != knob_proportion_) {
+    knob_proportion_ = knob_proportion;
+    Redraw();
+  }
+}
+
+void Scroller::set_shows_scrollers_on_both_directions(const bool value) {
+  if (value != shows_scrollers_on_both_directions_) {
+    shows_scrollers_on_both_directions_ = value;
+    Redraw();
+  }
 }
 
 }  // namespace moui
