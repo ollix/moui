@@ -131,7 +131,33 @@ class Button : public Control {
   // Inherited from `Widget` class.
   void HandleMemoryWarning(NVGcontext* context) override;
 
+  // Inherited from `Widget` class. Stops transitioning between different
+  // control states once the transition is done.
+  void WidgetDidRender(NVGcontext* context) override;
+
+  // Inherited from `Widget` class. Updates the title label's attributes to
+  // adapt the button's control state and renders the current state to
+  // corresonded framebuffer offscreen.
+  bool WidgetViewWillRender(NVGcontext* context) override;
+
  private:
+  // The states for animaing the transition between different control states.
+  struct TransitionStates {
+    // Indicates whether the transition is happening.
+    bool is_transitioning;
+    // Indicates the timestamp of initiating the transition. The progress
+    // value at this time point should be 0.0.
+    double initial_timestamp;
+    // Indicates the duration in seconds used for the transition.
+    double duration;
+    // Records the transition progress, specified as a value from 0.0 to 1.0.
+    float progress;
+    // The framebuffer to render while transitioning.
+    NVGLUframebuffer* framebuffer;
+    // Keeps the `title_label_`'s text color that should be transitioned from.
+    NVGcolor previous_title_color;
+  };
+
   // Executes the render function for passed state or fills white background
   // if nothing binded.
   void ExecuteRenderFunction(NVGcontext* context, const ControlState state);
@@ -149,28 +175,44 @@ class Button : public Control {
   // corresponded framebuffer.
   void RenderFramebuffer(NVGcontext* context) final;
 
+  // Renders the specified `control_state` to the passed `framebuffer`.
+  // Returns `false` on failure.
+  bool RenderFramebufferForControlState(
+      NVGcontext* context, NVGLUframebuffer** framebuffer,
+      const ControlState control_state,
+      const bool renders_default_disabled_effect,
+      const bool renders_default_highlighted_effect);
+
+  // Renders the button's current transition state to the passed `framebuffer`.
+  // Returns `false` on failure.
+  bool RenderFramebufferForTransition(NVGcontext* context,
+                                      NVGLUframebuffer** framebuffer);
+
   // Returns `true` if a render function is binded to the passed control state.
   bool RenderFunctionIsBinded(const ControlState state) const;
 
-  // Updates the passed framebuffer offscreen according to passed parameters.
-  void UpdateFramebuffer(NVGcontext* context, NVGLUframebuffer** framebuffer,
-                         const ControlState state,
-                         const bool renders_default_disabled_effect,
-                         const bool renders_default_highlighted_effect);
+  // Stops transitioning between different control states. The is a callback
+  // function for `kTouchCancel`, `kTouchUpInside` and `kTouchUpOutside`
+  // control events. And it is called in `WidgetDidRender()` once the
+  // transition is done.
+  void StopTransitioningBetweenControlStates(Control* control);
+
+  // Starts transitioning between different control states. This is a callback
+  // function for both `kTouchDragEnter` and `kTouchDragExit` control events.
+  void TransitionBetweenControlStates(Control* control);
 
   // Updates the title label's attribute based on the button's current state.
   void UpdateTitleLabel();
-
-  // Inherited from `Widget` class. Updates the title label's attributes to
-  // adapt the button's control state and renders the current state to
-  // corresonded framebuffer offscreen.
-  bool WidgetViewWillRender(NVGcontext* context) final;
 
   // Indicates whether the height of the button should be increased
   // automatically in order to fit the title label's vertical size.
   // The adjustment not only respects button's height but also vertical values
   // defined in `title_edge_insets_`. The default value is false.
   bool adjusts_button_height_to_fit_title_label_;
+
+  // Keeps the reference to the framebuffer pointer of current control state.
+  // This value is updated in the `RenderFramebuffer()` method.
+  NVGLUframebuffer** current_framebuffer_;
 
   // The style used to render default disabled state when no corresponded
   // render function is binded. The default style is `kSemiTransparent`. Note
@@ -187,6 +229,11 @@ class Button : public Control {
   // The framebuffer for rendering the button in disabled state.
   NVGLUframebuffer* disabled_state_framebuffer_;
 
+  // The reference to the framebuffer pointer that will be actually rendered
+  // in the `Render()` method. This value is updated in the
+  // `RenderFramebuffer()` method.
+  NVGLUframebuffer** final_framebuffer_;
+
   // The framebuffer for rendering the button in highlighted state.
   NVGLUframebuffer* highlighted_state_framebuffer_;
 
@@ -196,6 +243,10 @@ class Button : public Control {
   // The framebuffer for rendering the button in normal state with default
   // highlighted effect.
   NVGLUframebuffer* normal_state_with_highlighted_effect_framebuffer_;
+
+  // Keeps the reference to the framebuffer pointer of previous control state.
+  // This value is updated in the `RenderFramebuffer()` method.
+  NVGLUframebuffer** previous_framebuffer_;
 
   // Keeps the binded render functions for different control states. The vector
   // will be initialized in constructor to have the same number of elemens as
@@ -223,6 +274,10 @@ class Button : public Control {
 
   // Records titles for every control states.
   std::vector<std::string> titles_;
+
+  // Keeps the transition states for animating the transition between different
+  // control states.
+  TransitionStates transition_states_;
 
   DISALLOW_COPY_AND_ASSIGN(Button);
 };

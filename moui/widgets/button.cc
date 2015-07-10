@@ -17,11 +17,14 @@
 
 #include "moui/widgets/button.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "moui/base.h"
+#include "moui/core/clock.h"
 #include "moui/core/device.h"
 #include "moui/nanovg_hook.h"
+#include "moui/opengl_hook.h"
 #include "moui/widgets/control.h"
 #include "moui/widgets/label.h"
 #include "moui/widgets/widget_view.h"
@@ -36,31 +39,38 @@ enum class ControlStateIndex {
   kSelected,
 };
 
-// The alpha value for rendering default disabled state.
-const float kDefaultDisabledStateAlpha = 0.5;
-
-// The alpha value for rendering default highlighted state.
-const float kDefaultHighlightedStateAlpha = 0.5;
-
 // The number of ControlStates constants.
 const int kNumberOfControlStates = 4;
+
+// The duration in seconds for transition happened when a finger dragged into
+// the bounds of the button.
+const double kTransitionDragEnterDuration = 0.2;
+
+// The duration in seconds for transition happened when a finger is dragged
+// from within a button to outside its bounds.
+const double kTransitionDragExitDuration = 0.1;
 
 }  // namespace
 
 namespace moui {
 
 Button::Button() : adjusts_button_height_to_fit_title_label_(false),
+                   current_framebuffer_(nullptr),
                    default_disabled_style_(Style::kSemiTransparent),
                    default_highlighted_style_(Style::kTranslucentBlack),
                    disabled_state_framebuffer_(nullptr),
+                   final_framebuffer_(nullptr),
                    highlighted_state_framebuffer_(nullptr),
                    normal_state_framebuffer_(nullptr),
                    normal_state_with_highlighted_effect_framebuffer_(nullptr),
+                   previous_framebuffer_(nullptr),
                    selected_state_framebuffer_(nullptr),
                    selected_state_with_highlighted_effect_framebuffer_(nullptr),
                    title_edge_insets_({0, 0, 0, 0}),
                    title_label_(new Label) {
   title_label_->set_number_of_lines(1);
+  transition_states_.is_transitioning = false;
+  transition_states_.framebuffer = nullptr;
   SetHeight(Widget::Unit::kPoint, 44);
 
   const NVGcolor kDefaultColor = nvgRGBA(0, 0, 0, 255);
@@ -79,6 +89,15 @@ Button::Button() : adjusts_button_height_to_fit_title_label_(false),
   title_label_->set_text_horizontal_alignment(Label::Alignment::kCenter);
   title_label_->set_text_vertical_alignment(Label::Alignment::kMiddle);
   AddChild(title_label_);
+
+  // Binds the methods for handling transition between control states.
+  BindAction(static_cast<ControlEvents>(ControlEvents::kTouchDragEnter |
+                                        ControlEvents::kTouchDragExit),
+             &Button::TransitionBetweenControlStates, this);
+  BindAction(static_cast<ControlEvents>(ControlEvents::kTouchCancel |
+                                        ControlEvents::kTouchUpInside |
+                                        ControlEvents::kTouchUpOutside),
+             &Button::StopTransitioningBetweenControlStates, this);
 }
 
 Button::~Button() {
@@ -165,25 +184,7 @@ void Button::HandleMemoryWarning(NVGcontext* context) {
 }
 
 void Button::Render(NVGcontext* context) {
-  // Determines the renderbuffer to render.
-  NVGLUframebuffer** framebuffer;
-  if (IsDisabled()) {
-    framebuffer = &disabled_state_framebuffer_;
-  } else if (IsHighlighted()) {
-    if (RenderFunctionIsBinded(ControlState::kHighlighted))
-      framebuffer = &highlighted_state_framebuffer_;
-    else if (IsSelected())
-      framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
-    else if (default_highlighted_style_ == Style::kNone)
-      framebuffer = &normal_state_framebuffer_;
-    else
-      framebuffer = &normal_state_with_highlighted_effect_framebuffer_;
-  } else if (IsSelected()) {
-    framebuffer = &selected_state_framebuffer_;
-  } else {
-    framebuffer = &normal_state_framebuffer_;
-  }
-  if (*framebuffer == nullptr)
+  if (*final_framebuffer_ == nullptr)
     return;
 
   const float kWidth = GetWidth();
@@ -191,7 +192,7 @@ void Button::Render(NVGcontext* context) {
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
   NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
-                                   (*framebuffer)->image, 1);
+                                   (*final_framebuffer_)->image, 1);
   nvgFillPaint(context, paint);
   nvgFill(context);
 }
@@ -238,11 +239,123 @@ void Button::RenderFramebuffer(NVGcontext* context) {
     framebuffer = &normal_state_framebuffer_;
   }
 
-  if (*framebuffer == nullptr) {
-    UpdateFramebuffer(context, framebuffer, state,
-                      renders_default_disabled_effect,
-                      renders_default_highlighted_effect);
+  // Deletes the framebuffer if the expected framebuffer size has been changed.
+  if (*framebuffer != nullptr) {
+    const float kScaleFactor = \
+        Device::GetScreenScaleFactor() * GetMeasuredScale();
+    int framebuffer_width = 0;
+    int framebuffer_height = 0;
+    nvgImageSize((*framebuffer)->ctx, (*framebuffer)->image,
+                 &framebuffer_width, &framebuffer_height);
+    if (framebuffer_width != static_cast<int>(GetWidth() * kScaleFactor) ||
+        framebuffer_height != static_cast<int>(GetHeight() * kScaleFactor))
+      moui::nvgDeleteFramebuffer(framebuffer);
   }
+  // Renders the new framebuffer.
+  if (*framebuffer == nullptr) {
+    RenderFramebufferForControlState(context, framebuffer, state,
+                                     renders_default_disabled_effect,
+                                     renders_default_highlighted_effect);
+  }
+  // Updates the `current_framebuffer_` and `previous_framebuffer_` properties.
+  if (framebuffer != current_framebuffer_) {
+    previous_framebuffer_ = current_framebuffer_;
+    current_framebuffer_ = framebuffer;
+  }
+
+  if (transition_states_.is_transitioning &&
+      RenderFramebufferForTransition(context, &transition_states_.framebuffer))
+    final_framebuffer_ = &transition_states_.framebuffer;
+  else
+    final_framebuffer_ = current_framebuffer_;
+}
+
+bool Button::RenderFramebufferForControlState(
+    NVGcontext* context, NVGLUframebuffer** framebuffer,
+    const ControlState control_state,
+    const bool renders_default_disabled_effect,
+    const bool renders_default_highlighted_effect) {
+  float scale_factor;
+  if (!BeginFramebufferUpdates(context, framebuffer, &scale_factor))
+    return false;
+
+  const float kWidth = GetWidth();
+  const float kHeight = GetHeight();
+  nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+  ExecuteRenderFunction(context, control_state);
+  nvgEndFrame(context);
+
+  // Creates the semi-transparent effect.
+  if ((renders_default_disabled_effect &&
+       default_disabled_style_ == Style::kSemiTransparent) ||
+      (renders_default_highlighted_effect &&
+       default_highlighted_style_ == Style::kSemiTransparent)) {
+    glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+    nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+    nvgBeginPath(context);
+    nvgRect(context, 0, 0, kWidth, kHeight);
+    nvgFillColor(context, nvgRGBAf(0, 0, 0, 0.5));
+    nvgFill(context);
+    nvgEndFrame(context);
+  // Creates the `translucent` effect.
+  } else if ((renders_default_disabled_effect &&
+              default_disabled_style_ != Style::kSemiTransparent) ||
+             (renders_default_highlighted_effect &&
+              default_highlighted_style_ != Style::kSemiTransparent)) {
+    glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+    nvgBeginPath(context);
+    nvgRect(context, 0, 0, kWidth, kHeight);
+    if ((renders_default_disabled_effect &&
+         default_disabled_style_ == Style::kTranslucentBlack) ||
+        (renders_default_highlighted_effect &&
+         default_highlighted_style_ == Style::kTranslucentBlack))
+      nvgFillColor(context, nvgRGBA(0, 0, 0, 50));
+    else if (renders_default_disabled_effect &&
+             default_disabled_style_ == Style::kTranslucentWhite)
+      nvgFillColor(context, nvgRGBA(255, 255, 255, 200));
+    else if (renders_default_highlighted_effect &&
+             default_highlighted_style_ == Style::kTranslucentWhite)
+      nvgFillColor(context, nvgRGBA(255, 255, 255, 50));
+    nvgFill(context);
+    nvgEndFrame(context);
+  }
+  EndFramebufferUpdates();
+  return true;
+}
+
+bool Button::RenderFramebufferForTransition(NVGcontext* context,
+                                            NVGLUframebuffer** framebuffer) {
+  if (!transition_states_.is_transitioning)
+    return false;
+
+  float scale_factor;
+  if (!BeginFramebufferUpdates(context, framebuffer, &scale_factor)) {
+    return false;
+  }
+  const float kWidth = GetWidth();
+  const float kHeight = GetHeight();
+  glBlendFunc(GL_ONE, GL_ONE);
+  nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+  // Draws for the previous control state.
+  nvgBeginPath(context);
+  nvgRect(context, 0, 0, kWidth, kHeight);
+  NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
+                                   (*previous_framebuffer_)->image,
+                                   1 - transition_states_.progress);
+  nvgFillPaint(context, paint);
+  nvgFill(context);
+  // Draws for the current control state.
+  nvgBeginPath(context);
+  nvgRect(context, 0, 0, kWidth, kHeight);
+  paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
+                          (*current_framebuffer_)->image,
+                          transition_states_.progress);
+  nvgFillPaint(context, paint);
+  nvgFill(context);
+  nvgEndFrame(context);
+  EndFramebufferUpdates();
+  return true;
 }
 
 bool Button::RenderFunctionIsBinded(const ControlState state) const {
@@ -268,6 +381,50 @@ void Button::SetTitleColor(const NVGcolor color, const ControlState state) {
   title_colors_[GetControlStateIndex(state)] = color;
 }
 
+void Button::StopTransitioningBetweenControlStates(Control* control) {
+  if (transition_states_.is_transitioning) {
+    transition_states_.is_transitioning = false;
+    StopAnimation();
+    Redraw();
+  }
+}
+
+void Button::TransitionBetweenControlStates(Control* control) {
+  if (previous_framebuffer_ == nullptr ||
+      (render_functions_[ControlState(ControlState::kHighlighted)] == NULL &&
+       default_highlighted_style_ == Style::kNone))
+    return;
+
+  // Determines the original control state.
+  ControlState previous_control_state;
+  if (control->IsSelected()) {
+    previous_control_state = control->IsHighlighted() ?
+                             ControlState::kSelected :
+                             ControlState::kHighlighted;
+  } else {
+    previous_control_state = control->IsHighlighted() ?
+                             ControlState::kNormal :
+                             ControlState::kHighlighted;
+  }
+
+  // Starts transition.
+  const double kTimestamp = Clock::GetTimestamp();
+  transition_states_.duration = IsHighlighted() ? kTransitionDragEnterDuration :
+                                                  kTransitionDragExitDuration;
+  transition_states_.previous_title_color = \
+      GetTitleColor(previous_control_state);
+  if (transition_states_.is_transitioning) {
+    transition_states_.progress = 1 - transition_states_.progress;
+    transition_states_.initial_timestamp = \
+        kTimestamp - transition_states_.progress * transition_states_.duration;
+  } else {
+    transition_states_.progress = 0;
+    transition_states_.is_transitioning = true;
+    transition_states_.initial_timestamp = kTimestamp;
+    StartAnimation();
+  }
+}
+
 void Button::UnbindRenderFunction(const ControlState state) {
   render_functions_[GetControlStateIndex(state)] = NULL;
 
@@ -286,54 +443,6 @@ void Button::UnbindRenderFunction(const ControlState state) {
   }
 }
 
-void Button::UpdateFramebuffer(NVGcontext* context,
-                               NVGLUframebuffer** framebuffer,
-                               const ControlState state,
-                               const bool renders_default_disabled_effect,
-                               const bool renders_default_highlighted_effect) {
-  float scale_factor;
-  if (!BeginFramebufferUpdates(context, framebuffer, &scale_factor))
-    return;
-
-  const float kWidth = GetWidth();
-  const float kHeight = GetHeight();
-  nvgBeginFrame(context, kWidth, kHeight, scale_factor);
-
-  if ((renders_default_disabled_effect &&
-       default_disabled_style_ == Style::kSemiTransparent) ||
-      (renders_default_highlighted_effect &&
-       default_highlighted_style_ == Style::kSemiTransparent))
-    nvgGlobalAlpha(context, kDefaultDisabledStateAlpha);
-  ExecuteRenderFunction(context, state);
-  nvgEndFrame(context);
-
-  // Blends with translucent foreground for default highlighted effect.
-  if ((renders_default_disabled_effect &&
-       default_disabled_style_ != Style::kSemiTransparent) ||
-      (renders_default_highlighted_effect &&
-       default_highlighted_style_ != Style::kSemiTransparent)) {
-    glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    nvgBeginFrame(context, kWidth, kHeight, scale_factor);
-    nvgBeginPath(context);
-    nvgRect(context, 0, 0, kWidth, kHeight);
-    if ((renders_default_disabled_effect &&
-         default_disabled_style_ == Style::kTranslucentBlack) ||
-        (renders_default_highlighted_effect &&
-         default_highlighted_style_ == Style::kTranslucentBlack))
-      nvgFillColor(context, nvgRGBA(0, 0, 0, 50));
-    else if (renders_default_disabled_effect &&
-             default_disabled_style_ == Style::kTranslucentWhite)
-      nvgFillColor(context, nvgRGBA(255, 255, 255, 200));
-    else if (renders_default_highlighted_effect &&
-             default_highlighted_style_ == Style::kTranslucentWhite)
-      nvgFillColor(context, nvgRGBA(255, 255, 255, 50));
-    nvgFill(context);
-    nvgEndFrame(context);
-  }
-
-  EndFramebufferUpdates();
-}
-
 void Button::UpdateTitleLabel() {
   const std::string title = GetCurrentTitle();
   if (title.empty()) {
@@ -341,8 +450,14 @@ void Button::UpdateTitleLabel() {
     return;
   }
 
+  NVGcolor text_color = !transition_states_.is_transitioning ?
+                        GetCurrentTitleColor() :
+                        nvgLerpRGBA(transition_states_.previous_title_color,
+                                    GetCurrentTitleColor(),
+                                    transition_states_.progress);
+
   title_label_->set_text(title);
-  title_label_->set_text_color(GetCurrentTitleColor());
+  title_label_->set_text_color(text_color);
   title_label_->SetHidden(false);
   title_label_->SetX(title_edge_insets_.left);
   title_label_->SetY(title_edge_insets_.top);
@@ -370,7 +485,19 @@ void Button::UpdateTitleLabel() {
       GetHeight() - title_edge_insets_.top - title_edge_insets_.bottom);
 }
 
+void Button::WidgetDidRender(NVGcontext* context) {
+  if (transition_states_.is_transitioning && transition_states_.progress == 1)
+    StopTransitioningBetweenControlStates(this);
+}
+
 bool Button::WidgetViewWillRender(NVGcontext* context) {
+  if (transition_states_.is_transitioning) {
+    const float kElapsedTime = \
+        Clock::GetTimestamp() - transition_states_.initial_timestamp;
+    transition_states_.progress = \
+        std::min(1.0, kElapsedTime / transition_states_.duration);
+  }
+
   UpdateTitleLabel();
   return true;
 }
