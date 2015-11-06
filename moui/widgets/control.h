@@ -169,7 +169,9 @@ class Control : public Widget {
   };
 
   // Responds to the passed control events that populated by `HandleEvent()`.
-  void HandleControlEvents(const ControlEvents events);
+  // Returns `true` if the there is at least one action binded to the passed
+  // control events.
+  bool HandleControlEvents(const ControlEvents events);
 
   // Inherited from `Widget` class.
   bool HandleEvent(Event* event) final;

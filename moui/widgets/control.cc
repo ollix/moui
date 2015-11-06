@@ -41,6 +41,7 @@ Control::Control() : Control(true) {
 Control::Control(const bool caches_rendering)
     : Widget(caches_rendering), highlighted_margin_(0), ignores_events_(false),
       state_(ControlState::kNormal), touch_down_margin_(0) {
+  set_responder_chain_identifier("moui::Control");
   if (Device::GetCategory() != Device::Category::kDesktop)
     highlighted_margin_ = kHandheldDeviceHighlightedMargin;
 }
@@ -50,7 +51,7 @@ Control::~Control() {
     delete action;
 }
 
-void Control::HandleControlEvents(const ControlEvents events) {
+bool Control::HandleControlEvents(const ControlEvents events) {
   if (IsDisabled())
     return;
 
@@ -65,10 +66,14 @@ void Control::HandleControlEvents(const ControlEvents events) {
   }
 
   // Fires callbacks with matched control events.
+  bool handles_events = false;
   for (Action* action : actions_) {
-    if (action->control_events & events)
+    if (action->control_events & events) {
       action->callback();
+      handles_events = true;
+    }
   }
+  return handles_events;
 }
 
 // Handles corresponded control events converted from the passed event.
@@ -124,9 +129,9 @@ bool Control::HandleEvent(Event* event) {
   } else if (event->type() == Event::Type::kCancel) {
     control_events |= ControlEvents::kTouchCancel;
   }
-  // Handles the populated control event.
-  HandleControlEvents(static_cast<ControlEvents>(control_events));
-  return ignores_events_;
+  // Handles the populated control event. The event will be propagated to the
+  // next responder if no control event is handled.
+  return !HandleControlEvents(static_cast<ControlEvents>(control_events));
 }
 
 bool Control::IsDisabled() const {

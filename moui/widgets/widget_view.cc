@@ -51,17 +51,23 @@ void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
     const bool kResponderIsScrollView = \
         responder->responder_chain_identifier() == "moui::ScrollView";
 
+    // Skips the responder if non scroll view responders are ignored.
     if (ignores_non_scroll_view_responders && !kResponderIsScrollView) {
       continue;
-    } else if (responder->HandleEvent(event.get())) {
+    }
+
+    if (responder->HandleEvent(event.get())) {
       if (kResponderIsScrollView)
         ignores_non_scroll_view_responders = true;
       continue;
-    } else if (!kResponderIsScrollView) {
-      ignores_non_scroll_view_responders = true;
-    } else if (kResponderIsScrollView)  {
+    }
+
+    if (kResponderIsScrollView ||
+        responder->responder_chain_identifier() == "moui::Control") {
       break;
     }
+
+    ignores_non_scroll_view_responders = true;
   }
 }
 

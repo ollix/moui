@@ -207,6 +207,9 @@ class Widget {
   Widget* parent() const { return parent_; }
   Point rendering_offset() const { return rendering_offset_; }
   void set_rendering_offset(const Point offset);
+  std::string responder_chain_identifier() const {
+    return responder_chain_identifier_;
+  }
   float scale() const { return scale_; }
   void set_scale(const float scale);
   int tag() const { return tag_; }
@@ -246,6 +249,11 @@ class Widget {
   // implemented in this base class.
   virtual void HandleMemoryWarning(NVGcontext* context);
 
+  // Setter of the responder chain identifier.
+  void set_responder_chain_identifier(const std::string& identifer) {
+    responder_chain_identifier_ = identifer;
+  }
+
  private:
   friend class Layout;
   friend class ScrollView;
@@ -257,10 +265,10 @@ class Widget {
   void ExecuteRenderFunction(NVGcontext* context);
 
   // This method gets called when the widget received an event. In order to
-  // receive an event, the `ShouldHandleEvent()` method must return true.
+  // receive an event, the `ShouldHandleEvent()` method must return `true`.
   // The actual implementation should be done in subclass and the passed event
-  // object will be deallocated automatically. If the returned value is false,
-  // the event stops propagating to the next resonder.
+  // object will be deallocated automatically. If the returned value is
+  // `false`, the event will stop propagating to the next responder.
   //
   // Note that this method should only be called in the
   // `WidgetView::HandleEvent()` method.
@@ -350,15 +358,6 @@ class Widget {
 
   // Sets the logical parent widget.
   void set_parent(Widget* parent) { parent_ = parent; }
-
-  // Setter and accessor for the responder chain. The accessor is created for
-  // the `WidgetView` class.
-  std::string responder_chain_identifier() const {
-    return responder_chain_identifier_;
-  }
-  void set_responder_chain_identifier(const std::string& identifer) {
-    responder_chain_identifier_ = identifer;
-  }
 
   // This setter should only be called by the `WidgetView` class.
   void set_widget_view(WidgetView* widget_view);
