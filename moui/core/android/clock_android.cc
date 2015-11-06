@@ -43,6 +43,10 @@ jobject GetJavaClock() {
 
 namespace moui {
 
+void Clock::DispatchAfter(const int delay, std::function<void()> callback) {
+  // TODO(olliwang): Implements the `Clock::DispatchAfter()` method for Android.
+}
+
 void Clock::ExecuteCallback(Callback* callback) {
   bool func_result = callback->func();
   if (!func_result || callback->interval < 0) {

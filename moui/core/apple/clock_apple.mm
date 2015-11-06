@@ -19,6 +19,7 @@
 
 #include <dispatch/dispatch.h>
 #import <Foundation/Foundation.h>
+#include <functional>
 
 namespace {
 
@@ -28,6 +29,12 @@ dispatch_queue_t queue = dispatch_get_global_queue(
 }  // namespace
 
 namespace moui {
+
+void Clock::DispatchAfter(const int delay, std::function<void()> callback) {
+  const dispatch_time_t kWhen = dispatch_time(DISPATCH_TIME_NOW,
+                                              delay * NSEC_PER_SEC);
+  dispatch_after(kWhen, queue, ^{ callback(); });
+}
 
 void Clock::ExecuteCallback(Callback* callback) {
   bool func_result = callback->func();

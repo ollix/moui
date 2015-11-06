@@ -39,6 +39,9 @@ class Clock {
   Clock() {}
   ~Clock() {}
 
+  // Executes the `callback` function at the specified `delay` time in seconds.
+  static void DispatchAfter(const int delay, std::function<void()> callback);
+
   // Schedules function call at a reqular interval. The callback function must
   // have the return type of bool indicating whether to stop scheduling. The
   // function will be called only once if interval is negative.
