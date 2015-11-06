@@ -289,6 +289,10 @@ bool ScrollView::GetScrollDirection(ScrollDirection* direction) const {
 
   const float kOffsetX = latest_event.location.x - previous_event.location.x;
   const float kOffsetY = latest_event.location.y - previous_event.location.y;
+  if (kOffsetX == 0 && kOffsetY == 0) {
+    return false;
+  }
+
   const float kTheta = std::atan2(kOffsetY, kOffsetX);
   float angle = (kTheta + M_PI / 2) * 180 / M_PI;
   if (angle < 0) angle += 360;
