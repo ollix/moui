@@ -52,16 +52,23 @@ void Layout::AddChild(Widget* child) {
 // its corresponded cell will contain no child. And it's a good timing to
 // free and remove the cell when this situation is detected.
 std::vector<Widget*> Layout::GetCells() {
-  std::vector<Widget*> cells;
+  std::vector<Widget*> valid_cells;
+  std::vector<Widget*> stale_cells;
   for (Widget* cell : reinterpret_cast<ScrollView*>(this)->children()) {
-    if (cell->children().size() != 1) {
-      cell->RemoveFromParent();
-      delete cell;
-      continue;
-    }
-    cells.push_back(cell);
+    if (cell->children().size() == 1)
+      valid_cells.push_back(cell);
+    else
+      stale_cells.push_back(cell);
   }
-  return cells;
+
+  // Frees stale cells.
+  for (auto it = stale_cells.begin(); it != stale_cells.end(); ++it) {
+    Widget* cell = reinterpret_cast<Widget*>(*it);
+    cell->RemoveFromParent();
+    delete cell;
+  }
+
+  return valid_cells;
 }
 
 // Checks if there is any difference between the current child widgets and the
