@@ -54,7 +54,8 @@ const double kTransitionDragExitDuration = 0.1;
 
 namespace moui {
 
-Button::Button() : adjusts_button_height_to_fit_title_label_(false),
+Button::Button() : Control(false),
+                   adjusts_button_height_to_fit_title_label_(false),
                    current_framebuffer_(nullptr),
                    default_disabled_style_(Style::kSemiTransparent),
                    default_highlighted_style_(Style::kTranslucentBlack),

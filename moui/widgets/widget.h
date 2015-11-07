@@ -205,6 +205,7 @@ class Widget {
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
   Widget* parent() const { return parent_; }
+  void set_parent(Widget* parent) { parent_ = parent; }
   Point rendering_offset() const { return rendering_offset_; }
   void set_rendering_offset(const Point offset);
   std::string responder_chain_identifier() const {
@@ -218,8 +219,8 @@ class Widget {
 
  protected:
   // Initializes the environment for rendering in the passed framebuffer.
-  // Returns false on failure. If successful, a new framebuffer will be created
-  // automatically if `*framebuffer` is `nullptr`, and
+  // Returns `false` on failure. If successful, a new framebuffer will be
+  // created automatically if `*framebuffer` is `nullptr`, and
   // `EndFramebufferUpdates()` must be called when finished rendering.
   //
   // This method returns the `scale_factor` that used to create the framebufer.
@@ -227,7 +228,14 @@ class Widget {
   // current scale that related to the corresponded widget view's coordinate
   // system. Passing this value to the `nvgBeginFrame()` function can
   // generate the best quality. If this value doesn't matter, simply passing
-  // `nullptr` can as the `scale_factor` parameter.
+  // `nullptr` as the `scale_factor` parameter.
+  bool BeginFramebufferUpdates(NVGcontext* context,
+                               NVGLUframebuffer** framebuffer,
+                               const int width, const int height,
+                               float* scale_factor);
+
+  // Initializes the environment for rendering in the passed framebuffer based
+  // on the widget's current size.
   bool BeginFramebufferUpdates(NVGcontext* context,
                                NVGLUframebuffer** framebuffer,
                                float* scale_factor);
@@ -255,8 +263,6 @@ class Widget {
   }
 
  private:
-  friend class Layout;
-  friend class ScrollView;
   friend class WidgetView;
 
   // Executes either the binded `render_function_` or `Render()` if no render
@@ -355,9 +361,6 @@ class Widget {
   // However, this method is not called if the widget is not visible on screen
   // in a refresh cycle.
   virtual void WidgetWillRender(NVGcontext* context) {}
-
-  // Sets the logical parent widget.
-  void set_parent(Widget* parent) { parent_ = parent; }
 
   // This setter should only be called by the `WidgetView` class.
   void set_widget_view(WidgetView* widget_view);

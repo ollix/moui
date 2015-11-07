@@ -137,7 +137,7 @@ void ScrollView::AnimateContentViewHorizontally(const float origin_x,
   horizontal_animation_states_.reaches_boundary_timestamp = -1;
   horizontal_animation_states_.initial_location = content_view_->GetX();
   horizontal_animation_states_.initial_velocity = initial_velocity;
-  horizontal_animation_states_.initial_timestamp = Clock::GetTimestamp();
+  horizontal_animation_states_.initial_timestamp = -1;
   if (!IsAnimating())
     StartAnimation();
 }
@@ -172,7 +172,7 @@ void ScrollView::AnimateContentViewVertically(const float origin_y,
   vertical_animation_states_.reaches_boundary_timestamp = -1;
   vertical_animation_states_.initial_location = content_view_->GetY();
   vertical_animation_states_.initial_velocity = initial_velocity;
-  vertical_animation_states_.initial_timestamp = Clock::GetTimestamp();
+  vertical_animation_states_.initial_timestamp = -1;
   if (!IsAnimating())
     StartAnimation();
 }
@@ -699,8 +699,13 @@ void ScrollView::UpdateAnimationOriginAndStates(const double timestamp,
   if (!states->is_animating)
     return;
 
-  // Updates elapsed time and the origin for the current timing.
-  states->elapsed_time = timestamp - states->initial_timestamp;
+  if (states->initial_timestamp < 0) {
+    states->initial_timestamp = Clock::GetTimestamp();
+    states->elapsed_time = 0;
+  } else {
+    // Updates elapsed time and the origin for the current timing.
+    states->elapsed_time = timestamp - states->initial_timestamp;
+  }
   // Updates the origin.
   states->is_animating = (states->elapsed_time < states->duration);
   float origin = !states->is_animating ?

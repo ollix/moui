@@ -102,11 +102,12 @@ void Widget::AddChild(Widget* child) {
 
 bool Widget::BeginFramebufferUpdates(NVGcontext* context,
                                      NVGLUframebuffer** framebuffer,
+                                     const int width, const int height,
                                      float* scale_factor) {
   const float kScaleFactor = \
       Device::GetScreenScaleFactor() * GetMeasuredScale();
-  const float kWidth = GetWidth() * kScaleFactor;
-  const float kHeight = GetHeight() * kScaleFactor;
+  const float kWidth = width * kScaleFactor;
+  const float kHeight = height * kScaleFactor;
   if (kWidth <= 0 || kHeight <= 0)
     return false;
 
@@ -134,6 +135,13 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
   return true;
+}
+
+bool Widget::BeginFramebufferUpdates(NVGcontext* context,
+                                    NVGLUframebuffer** framebuffer,
+                                    float* scale_factor) {
+  return BeginFramebufferUpdates(context, framebuffer, GetWidth(), GetHeight(),
+                                 scale_factor);
 }
 
 bool Widget::BringChildToFront(Widget* child) {
