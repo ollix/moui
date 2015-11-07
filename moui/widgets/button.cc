@@ -363,6 +363,7 @@ bool Button::RenderFunctionIsBinded(const ControlState state) const {
 }
 
 void Button::ResetFramebuffers() {
+  StopTransitioningBetweenControlStates(this);
   moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
   moui::nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
   moui::nvgDeleteFramebuffer(&normal_state_framebuffer_);
@@ -371,6 +372,10 @@ void Button::ResetFramebuffers() {
   moui::nvgDeleteFramebuffer(&selected_state_framebuffer_);
   moui::nvgDeleteFramebuffer(
       &selected_state_with_highlighted_effect_framebuffer_);
+  moui::nvgDeleteFramebuffer(&transition_states_.framebuffer);
+  current_framebuffer_ = nullptr;
+  previous_framebuffer_ = nullptr;
+  final_framebuffer_ = nullptr;
 }
 
 void Button::SetTitle(const std::string& title, const ControlState state) {
@@ -390,7 +395,7 @@ void Button::StopTransitioningBetweenControlStates(Control* control) {
 }
 
 void Button::TransitionBetweenControlStates(Control* control) {
-  if (previous_framebuffer_ == nullptr ||
+  if (previous_framebuffer_ == nullptr || *previous_framebuffer_ == nullptr ||
       (render_functions_[ControlState(ControlState::kHighlighted)] == NULL &&
        default_highlighted_style_ == Style::kNone))
     return;
@@ -486,7 +491,8 @@ void Button::UpdateTitleLabel() {
 }
 
 void Button::WidgetDidRender(NVGcontext* context) {
-  if (transition_states_.is_transitioning && transition_states_.progress == 1)
+  if (transition_states_.is_transitioning &&
+      (transition_states_.progress == 1 || IsHidden()))
     StopTransitioningBetweenControlStates(this);
 }
 
