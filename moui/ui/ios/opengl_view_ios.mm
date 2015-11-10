@@ -194,8 +194,11 @@
 
 - (void)render {
   if (self.frame.size.width == 0 || self.frame.size.height == 0 ||
-      self.isHidden)
+      self.isHidden ||
+      [UIApplication sharedApplication].applicationState == \
+          UIApplicationStateBackground) {
     return;
+  }
 
   // Binds the framebuffer and renderbuffers.
   [EAGLContext setCurrentContext:_context];
