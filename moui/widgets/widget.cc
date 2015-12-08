@@ -80,10 +80,7 @@ Widget::Widget(const bool caches_rendering)
 
 Widget::~Widget() {
   set_widget_view(nullptr);
-
-  while (IsAnimating())
-    StopAnimation();
-
+  StopAnimation(true);
   if (frees_descendants_on_destruction_)
     FreeDescendantsRecursively(this);
 }
@@ -525,13 +522,12 @@ void Widget::StartAnimation() {
   ++animation_count_;
 }
 
-void Widget::StopAnimation() {
-  if (widget_view_ == nullptr)
-    return;
-
-  if (--animation_count_ == 0)
+void Widget::StopAnimation(const bool force) {
+  const bool kShouldStopWidgetViewAnimation = IsAnimating() &&
+                                              (force || animation_count_ == 1);
+  animation_count_ = force ? 0 : std::max(0, animation_count_ - 1);
+  if (widget_view_ != nullptr && kShouldStopWidgetViewAnimation)
     widget_view_->StopAnimation();
-  animation_count_ = std::max(0, animation_count_);
 }
 
 void Widget::UnbindRenderFunction() {

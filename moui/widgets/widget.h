@@ -177,15 +177,14 @@ class Widget {
   void SetY(const float y);
 
   // Starts updating the widget synchronized to the refresh rate of the display
-  // continuously. `StopAnimation()` must be called after every
-  // `StartAnimation()` call . If the widget is not yet attached to a
-  // `WidgetView` object, nothing happened.
+  // continuously. If the widget is not yet attached to a `WidgetView` object,
+  // nothing happened.
   void StartAnimation();
 
-  // Ends previous `StartAnimation()` call. The animation will actually stop if
-  // all `StartAnimation()` calls are stopped. If the widget is not yet
-  // attached to a `WidgetView` object, nothing happened.
-  void StopAnimation();
+  // Stops animation. If `force` is `true`, animation stops immediately no
+  // matter how many times `StartAnimation()` is called. Otherwise, the same
+  // number of
+  void StopAnimation(const bool force);
 
   // Unbinds the render function.
   void UnbindRenderFunction();

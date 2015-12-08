@@ -89,7 +89,7 @@ void Scroller::Render(NVGcontext* context) {
 // Stops animation immediately before redrawing.
 void Scroller::Redraw() {
   if (hiding_in_animation_) {
-    StopAnimation();
+    StopAnimation(true);
     hiding_in_animation_ = false;
   }
   Widget::Redraw();
@@ -128,7 +128,7 @@ void Scroller::SetHidden(const bool hidden) {
 void Scroller::WidgetViewDidRender(NVGcontext* context) {
   if (animation_progress_ < 1)
     return;
-  StopAnimation();
+  StopAnimation(true);
 
   if (hiding_in_animation_) {
     SetHidden(true);

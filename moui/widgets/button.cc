@@ -390,7 +390,7 @@ void Button::SetTitleColor(const NVGcolor color, const ControlState state) {
 void Button::StopTransitioningBetweenControlStates(Control* control) {
   if (transition_states_.is_transitioning) {
     transition_states_.is_transitioning = false;
-    StopAnimation();
+    StopAnimation(true);
     Redraw();
   }
 }

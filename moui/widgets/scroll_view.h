@@ -142,7 +142,8 @@ class ScrollView : public Widget {
   // Inherited from `Widget` class.
   bool ShouldHandleEvent(const Point location) override;
 
-  // Stops the animation and resets both horizontal and vertical states.
+  // Stops the scroll view's animation immediately and hides both horizontal
+  // and vertical scrollers in animation.
   void StopAnimation();
 
   // Animates content view to stop gradually.

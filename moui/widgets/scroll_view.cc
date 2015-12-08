@@ -623,7 +623,7 @@ void ScrollView::StopAnimation() {
   if (IsAnimating()) {
     horizontal_scroller_->HideInAnimation();
     vertical_scroller_->HideInAnimation();
-    Widget::StopAnimation();
+    Widget::StopAnimation(true);
   }
 }
 
