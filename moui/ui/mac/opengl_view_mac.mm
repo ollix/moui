@@ -67,7 +67,7 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)initOpenGLContext {
-  const NSOpenGLPixelFormatAttribute attributes[] =  {
+  const NSOpenGLPixelFormatAttribute kAttributes[] =  {
       NSOpenGLPFAAccelerated,
       NSOpenGLPFAAlphaSize, 8,
       NSOpenGLPFAColorSize, 32,
@@ -77,7 +77,7 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
       NSOpenGLPFAStencilSize, 8,
       (NSOpenGLPixelFormatAttribute)0};
   NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc]
-      initWithAttributes:attributes] autorelease];
+      initWithAttributes:kAttributes] autorelease];
 
   NSOpenGLContext* context = [[[NSOpenGLContext alloc]
       initWithFormat:pixelFormat

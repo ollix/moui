@@ -119,11 +119,11 @@ void Label::UpdateWidthToFitText(NVGcontext* context) {
     return;
 
   ConfigureTextAttributes(context);
-  const char* start = text_.c_str();
-  const char* end = start + text_.size();
+  const char* kStart = text_.c_str();
+  const char* kEnd = kStart + text_.size();
   float bounds[4];
   const float kWidth = std::max(
-      nvgTextBounds(context, 0, 0, start, end, bounds),
+      nvgTextBounds(context, 0, 0, kStart, kEnd, bounds),
       bounds[2] - bounds[0]);
 
   if (kWidth != GetWidth()) {

@@ -169,10 +169,10 @@ std::string Button::GetCurrentTitle() const {
 }
 
 std::string Button::GetTitle(const ControlState state) const {
-  std::string title = titles_[GetControlStateIndex(state)];
-  if (title.empty())
+  std::string kTitle = titles_[GetControlStateIndex(state)];
+  if (kTitle.empty())
     return titles_[GetControlStateIndex(ControlState::kNormal)];
-  return title;
+  return kTitle;
 }
 
 NVGcolor Button::GetTitleColor(const ControlState state) const {
@@ -192,9 +192,9 @@ void Button::Render(NVGcontext* context) {
   const float kHeight = GetHeight();
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
-  NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
-                                   (*final_framebuffer_)->image, 1);
-  nvgFillPaint(context, paint);
+  const NVGpaint kPaint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight,
+                                          0, (*final_framebuffer_)->image, 1);
+  nvgFillPaint(context, kPaint);
   nvgFill(context);
 }
 
@@ -450,20 +450,21 @@ void Button::UnbindRenderFunction(const ControlState state) {
 }
 
 void Button::UpdateTitleLabel() {
-  const std::string title = GetCurrentTitle();
-  if (title.empty()) {
+  const std::string kTitle = GetCurrentTitle();
+  if (kTitle.empty()) {
     title_label_->SetHidden(true);
     return;
   }
 
-  NVGcolor text_color = !transition_states_.is_transitioning ?
-                        GetCurrentTitleColor() :
-                        nvgLerpRGBA(transition_states_.previous_title_color,
-                                    GetCurrentTitleColor(),
-                                    transition_states_.progress);
+  const NVGcolor kTextColor = \
+      !transition_states_.is_transitioning ?
+      GetCurrentTitleColor() :
+      nvgLerpRGBA(transition_states_.previous_title_color,
+                  GetCurrentTitleColor(),
+                  transition_states_.progress);
 
-  title_label_->set_text(title);
-  title_label_->set_text_color(text_color);
+  title_label_->set_text(kTitle);
+  title_label_->set_text_color(kTextColor);
   title_label_->SetHidden(false);
   title_label_->SetX(title_edge_insets_.left);
   title_label_->SetY(title_edge_insets_.top);
@@ -504,7 +505,6 @@ bool Button::WidgetViewWillRender(NVGcontext* context) {
     transition_states_.progress = \
         std::min(1.0, kElapsedTime / transition_states_.duration);
   }
-
   UpdateTitleLabel();
   return true;
 }
