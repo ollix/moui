@@ -42,7 +42,7 @@ class Scroller : public Widget {
   void HideInAnimation();
 
   // Inherited from `Widget` class.
-  void Redraw();
+  void Redraw() final;
 
   // Inherited from `Widget` class.
   void SetHidden(const bool hidden);

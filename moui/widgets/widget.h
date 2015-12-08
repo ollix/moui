@@ -131,10 +131,10 @@ class Widget {
   // Returns true if the widget is hidden.
   bool IsHidden() const;
 
-  // Redraws the widget view containing this widget. Note that all widgets
-  // belonged to the same widget view will be drawn by calling this method.
-  // If the current widget doesn't belong to any widget view, nothing happened.
-  void Redraw();
+  // Resets the `default_framebuffer_` and asks the corresponded `widget_view_`
+  // to redraw. This widget will actually be drawn immediately if it's
+  // currently visible.
+  virtual void Redraw();
 
   // Unlinks the widget from its real parent and removes it from the responder
   // chain. Returns `false` on failure.

@@ -154,6 +154,7 @@ void WidgetView::PopulateWidgetList(const int level, const float scale,
   }
 
   // The widget is visible. Adds it to the widget list and checks its children.
+  visible_widgets_.push_back(widget);
   const float kParentAlpha = (parent_item == nullptr ? 1 : parent_item->alpha);
   auto item = new WidgetItem{widget, {kWidgetX, kWidgetY}, kWidgetWidth,
                              kWidgetHeight, level, parent_item,
@@ -174,6 +175,14 @@ void WidgetView::Redraw() {
   }
 }
 
+void WidgetView::Redraw(Widget* widget) {
+  if (!widget->IsHidden() &&
+      std::find(visible_widgets_.begin(), visible_widgets_.end(), widget) != \
+      visible_widgets_.end()) {
+    Redraw();
+  }
+}
+
 void WidgetView::Render() {
   Render(root_widget_, nullptr);
 }
@@ -181,6 +190,7 @@ void WidgetView::Render() {
 void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
   preparing_for_rendering_ = true;
   NVGcontext* context = this->context();
+  visible_widgets_.clear();
 
   // Determines widgets to render in order and filters invisible onces.
   requests_redraw_ = true;

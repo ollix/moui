@@ -364,8 +364,8 @@ void Widget::Redraw() {
   if (caches_rendering_) {
     should_redraw_default_framebuffer_ = true;
   }
-  if (widget_view_ != nullptr && !IsHidden())
-    widget_view_->Redraw();
+  if (widget_view_ != nullptr)
+    widget_view_->Redraw(this);
 }
 
 bool Widget::RemoveChild(Widget* child) {
@@ -490,7 +490,7 @@ void Widget::SetX(const Alignment alignment, const Unit unit, const float x) {
   x_unit_ = unit;
   x_value_ = x;
   if (widget_view_ != nullptr)
-    widget_view_->Redraw();
+    widget_view_->Redraw(this);
 }
 
 void Widget::SetX(const float x) {
@@ -505,7 +505,7 @@ void Widget::SetY(const Alignment alignment, const Unit unit, const float y) {
   y_unit_ = unit;
   y_value_ = y;
   if (widget_view_ != nullptr)
-    widget_view_->Redraw();
+    widget_view_->Redraw(this);
 }
 
 void Widget::SetY(const float y) {

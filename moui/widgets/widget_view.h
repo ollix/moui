@@ -46,6 +46,10 @@ class WidgetView : public View {
   // Inherited from `View` class.
   void Redraw() final;
 
+  // Inherited from `View` class. Redraws the specified `widget` only if it's
+  // currently visible.
+  void Redraw(Widget* widget);
+
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width, const int height);
 
@@ -160,6 +164,10 @@ class WidgetView : public View {
   // `preparing_for_rendering_` are both true in the `Render()` method.
   // It won't start another round of the rendering process.
   bool requests_redraw_;
+
+  // Keeps a list of currently visible widgets. The list will be updated
+  // whenever executing the `Render()` method.
+  std::vector<Widget*> visible_widgets_;
 
   DISALLOW_COPY_AND_ASSIGN(WidgetView);
 };
