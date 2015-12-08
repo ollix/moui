@@ -44,6 +44,7 @@
     'conditions': [
       ['OS == "ios"', {
         'xcode_settings': {
+          'IPHONEOS_DEPLOYMENT_TARGET': '9.0',
           'SDKROOT': 'iphoneos',  # -isysroot
         },
       }],  # OS == "ios"
