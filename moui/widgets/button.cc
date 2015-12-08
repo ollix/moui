@@ -185,7 +185,7 @@ void Button::HandleMemoryWarning(NVGcontext* context) {
 }
 
 void Button::Render(NVGcontext* context) {
-  if (*final_framebuffer_ == nullptr)
+  if (final_framebuffer_ == nullptr || *final_framebuffer_ == nullptr)
     return;
 
   const float kWidth = GetWidth();
