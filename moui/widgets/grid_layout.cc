@@ -99,7 +99,7 @@ void GridLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
 void GridLayout::set_number_of_columns(const int number_of_columns) {
   if (number_of_columns != number_of_columns_) {
     number_of_columns_ = number_of_columns;
-    Redraw();
+    RearrangeCells();
   }
 }
 

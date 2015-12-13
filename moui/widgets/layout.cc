@@ -71,6 +71,11 @@ std::vector<Widget*> Layout::GetCells() {
   return valid_cells;
 }
 
+void Layout::RearrangeCells() {
+  should_rearrange_cells_ = true;
+  Redraw();
+}
+
 // Checks if there is any difference between the current child widgets and the
 // managed widgets. If it is, the child widgets should be rearranged.
 bool Layout::ShouldRearrangeCells() {
@@ -140,35 +145,35 @@ void Layout::set_bottom_padding(const float padding) {
   if (padding == bottom_padding_)
     return;
   bottom_padding_ = padding;
-  Redraw();
+  RearrangeCells();
 }
 
 void Layout::set_left_padding(const float padding) {
   if (padding == left_padding_)
     return;
   left_padding_ = padding;
-  Redraw();
+  RearrangeCells();
 }
 
 void Layout::set_right_padding(const float padding) {
   if (padding == right_padding_)
     return;
   right_padding_ = padding;
-  Redraw();
+  RearrangeCells();
 }
 
 void Layout::set_spacing(const float spacing) {
   if (spacing == spacing_)
     return;
   spacing_ = spacing;
-  Redraw();
+  RearrangeCells();
 }
 
 void Layout::set_top_padding(const float padding) {
   if (padding == top_padding_)
     return;
   top_padding_ = padding;
-  Redraw();
+  RearrangeCells();
 }
 
 }  // namespace moui

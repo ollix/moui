@@ -74,6 +74,9 @@ class Layout : public ScrollView {
   };
   typedef std::vector<ManagedWidget> ManagedWidgetVector;
 
+  // Rearrange managed cells.
+  void RearrangeCells();
+
   // Updates the content view's size. The specified values should be able to
   // display all managed cells. If `adjusts_size_to_fit_contents_` is set to
   // `ture`, the size of the layout itself will be changed as well.
