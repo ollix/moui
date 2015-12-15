@@ -53,7 +53,7 @@ Label::Label(const std::string& text) : Label(text, "") {
 }
 
 Label::Label(const std::string& text, const std::string& font_name)
-    : adjusts_font_size_to_fit_width_(false),
+    : Widget(false), adjusts_font_size_to_fit_width_(false),
       adjusts_label_height_to_fit_width_(false), font_name_(font_name),
       font_size_(0), minimum_scale_factor_(0), number_of_lines_(1),
       should_prepare_for_rendering_(true), text_(text),
@@ -78,6 +78,11 @@ void Label::ConfigureTextAttributes(NVGcontext* context) {
   nvgFontSize(context, font_size_to_render_);
   nvgTextAlign(context, horizontal_alignment | NVG_ALIGN_TOP);
   nvgTextLetterSpacing(context, 0);
+}
+
+void Label::Redraw() {
+  should_prepare_for_rendering_ = true;
+  Widget::Redraw();
 }
 
 void Label::Render(NVGcontext* context) {
@@ -127,7 +132,6 @@ void Label::UpdateWidthToFitText(NVGcontext* context) {
       bounds[2] - bounds[0]);
 
   if (kWidth != GetWidth()) {
-    should_prepare_for_rendering_ = true;
     SetWidth(Widget::Unit::kPoint, kWidth);
   }
 }
@@ -212,7 +216,6 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
 void Label::set_adjusts_font_size_to_fit_width(const bool value) {
   if (value != adjusts_font_size_to_fit_width_) {
     adjusts_font_size_to_fit_width_ = value;
-    should_prepare_for_rendering_ = true;
     Redraw();
   }
 }
@@ -220,7 +223,6 @@ void Label::set_adjusts_font_size_to_fit_width(const bool value) {
 void Label::set_adjusts_label_height_to_fit_width(const bool value) {
   if (value != adjusts_label_height_to_fit_width_) {
     adjusts_label_height_to_fit_width_ = value;
-    should_prepare_for_rendering_ = true;
     Redraw();
   }
 }
@@ -234,7 +236,6 @@ std::string Label::font_name() const {
 void Label::set_font_name(const std::string& name) {
   if (font_name_ != name) {
     font_name_ = name;
-    should_prepare_for_rendering_ = true;
     Redraw();
   }
 }
@@ -249,7 +250,6 @@ void Label::set_font_size(const float font_size) {
   const int kFontSize = static_cast<int>(font_size);
   if (kFontSize != font_size_) {
     font_size_ = kFontSize;
-    should_prepare_for_rendering_ = true;
     Redraw();
   }
 }
@@ -257,7 +257,6 @@ void Label::set_font_size(const float font_size) {
 void Label::set_minimum_scale_factor(const float factor) {
   if (factor != minimum_scale_factor_) {
     minimum_scale_factor_ = factor;
-    should_prepare_for_rendering_ = true;
     Redraw();
   }
 }
@@ -265,7 +264,6 @@ void Label::set_minimum_scale_factor(const float factor) {
 void Label::set_number_of_lines(const int number) {
   if (number != number_of_lines_) {
     number_of_lines_ = number;
-    should_prepare_for_rendering_ = true;
     Redraw();
   }
 }
@@ -273,7 +271,6 @@ void Label::set_number_of_lines(const int number) {
 void Label::set_text(const std::string& text) {
   if (text.size() != text_.size() || text != text_) {
     text_ = text;
-    should_prepare_for_rendering_ = true;
     Redraw();
   }
 }

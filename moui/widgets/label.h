@@ -43,6 +43,9 @@ class Label : public Widget {
   Label(const std::string& text, const std::string& font_name);
   ~Label();
 
+  // Inherited from `Widget` class;
+  void Redraw() final;
+
   // Sets the default font name.
   static void SetDefaultFontName(const std::string& name);
 
