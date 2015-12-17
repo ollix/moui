@@ -66,6 +66,7 @@ class Button : public Control {
     UnbindRenderFunction(state);
     render_functions_[GetControlStateIndex(state)] = \
         std::bind(callback, std::placeholders::_1);
+    Redraw();
   }
 
   // Binds an instance method for rendering the button with passed state.
@@ -79,6 +80,7 @@ class Button : public Control {
     UnbindRenderFunction(state);
     render_functions_[GetControlStateIndex(state)] = \
         std::bind(callback, target, std::placeholders::_1);
+    Redraw();
   }
 
   // Returns the current title color that is displayed on the button.

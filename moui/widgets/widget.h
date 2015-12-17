@@ -63,6 +63,7 @@ class Widget {
   template<class Callback>
   void BindRenderFunction(Callback&& callback) {
     render_function_ = std::bind(callback, std::placeholders::_1);
+    Redraw();
   }
 
   // Binds an instance method for rendering the widget. Calling this method
@@ -72,6 +73,7 @@ class Widget {
   template<class Callback, class TargetType>
   void BindRenderFunction(Callback&& callback, TargetType&& target) {
     render_function_ = std::bind(callback, target, std::placeholders::_1);
+    Redraw();
   }
 
   // Moves the specified child widget so that it appears on top of its siblings.
