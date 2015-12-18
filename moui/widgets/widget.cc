@@ -71,7 +71,7 @@ Widget::Widget(const bool caches_rendering)
       frees_descendants_on_destruction_(false), height_unit_(Unit::kPoint),
       height_value_(0), hidden_(false), is_opaque_(true), measured_scale_(-1),
       parent_(nullptr), real_parent_(nullptr), render_function_(NULL),
-      rendering_offset_({0, 0}), scale_(1),
+      rendering_offset_({0, 0}), rendering_scale_(1), scale_(1),
       should_redraw_default_framebuffer_(false), tag_(0),
       widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
@@ -187,6 +187,7 @@ void Widget::ExecuteRenderFunction(NVGcontext* context) {
   }
 
   nvgTranslate(context, rendering_offset_.x, rendering_offset_.y);
+  nvgScale(context, rendering_scale_, rendering_scale_);
   render_function_ == NULL ? Render(context) : render_function_(context);
 }
 
@@ -560,8 +561,15 @@ void Widget::set_rendering_offset(const Point offset) {
     return;
 
   rendering_offset_ = offset;
-  if (render_function_ != NULL)
-    Redraw();
+  Redraw();
+}
+
+void Widget::set_rendering_scale(const float rendering_scale) {
+  if (rendering_scale == rendering_scale_)
+    return;
+
+  rendering_scale_ = rendering_scale;
+  Redraw();
 }
 
 void Widget::set_scale(const float scale) {

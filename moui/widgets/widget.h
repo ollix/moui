@@ -209,6 +209,8 @@ class Widget {
   void set_parent(Widget* parent) { parent_ = parent; }
   Point rendering_offset() const { return rendering_offset_; }
   void set_rendering_offset(const Point offset);
+  float rendering_scale() const { return rendering_scale_; }
+  void set_rendering_scale(const float rendering_scale);
   std::string responder_chain_identifier() const {
     return responder_chain_identifier_;
   }
@@ -440,6 +442,10 @@ class Widget {
   // The offset related to the widget's origin as the real origin for rendering
   // the binded render function or the `Render() method.
   Point rendering_offset_;
+
+  // The scale applied when rendering the binded render function or the
+  // `Render()` method. The default value is 1.
+  float rendering_scale_;
 
   // The identifier that is used to determine which widget in the responder
   // chain should be the next one to handle the received event. The actual
