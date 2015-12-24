@@ -254,25 +254,6 @@ class Widget {
   // `BeginFramebufferUpdates()`.
   void EndFramebufferUpdates();
 
-  // This methods gets called when the application receives a memory warning.
-  // The overriding method in subclasses should always call the same method
-  // defined in its super class as there are some default behaviors
-  // implemented in this base class.
-  virtual void HandleMemoryWarning(NVGcontext* context);
-
-  // Setter of the responder chain identifier.
-  void set_responder_chain_identifier(const std::string& identifer) {
-    responder_chain_identifier_ = identifer;
-  }
-
- private:
-  friend class WidgetView;
-
-  // Executes either the binded `render_function_` or `Render()` if no render
-  // function is binded. This method respects the `rendering_offset_` and it
-  // also fills the background color if the widget is opaque.
-  void ExecuteRenderFunction(NVGcontext* context);
-
   // This method gets called when the widget received an event. In order to
   // receive an event, the `ShouldHandleEvent()` method must return `true`.
   // The actual implementation should be done in subclass and the passed event
@@ -283,20 +264,16 @@ class Widget {
   // `WidgetView::HandleEvent()` method.
   virtual bool HandleEvent(Event* event) { return false; }
 
-  // Returns `true` if the passed widget is removed from children. This method
-  // is designed for internal use. To remove a child from a parent widget.
-  // Calls the child widget's `RemoveFromParent()` method instead.
-  bool RemoveChild(Widget* child);
+  // This methods gets called when the application receives a memory warning.
+  // The overriding method in subclasses should always call the same method
+  // defined in its super class as there are some default behaviors
+  // implemented in this base class.
+  virtual void HandleMemoryWarning(NVGcontext* context);
 
   // Implements the logic for rendering the widget. The actual implementation
   // should be done in subclass. Note that this method should only be called by
   // `WidgetView::RenderWidget()`.
   virtual void Render(NVGcontext* context) {}
-
-  // Renders `Render()` in `default_framebuffer_` if `caches_rendering_` is
-  // true. Note that this method should only be called by
-  // `WidgetView::RenderWidget()`.
-  void RenderDefaultFramebuffer(NVGcontext* context);
 
   // Allows subclasses to render offscreen stuff into custom framebuffers. This
   // method gets called before executing `RenderDefaultFramebuffer()`. Note
@@ -312,18 +289,6 @@ class Widget {
   //    nvgEndFrame(context);
   //    EndFramebufferUpdates();
   virtual void RenderFramebuffer(NVGcontext* context) {}
-
-  // Either renders `Render()` directly or renders `default_framebuffer_` if
-  // `caches_rendering_` is true.
-  void RenderOnDemand(NVGcontext* context);
-
-  // Resets the `measured_scale_` property so the value will be re-calculated
-  // the next time calling `GetMeasuredScale()`.
-  void ResetMeasuredScale();
-
-  // Resets the measured scale for the passed widget and all of its descendants
-  // recursively.
-  void ResetMeasuredScaleRecursively(Widget* widget);
 
   // This method gets called when an event is about to occur. The returned
   // boolean indicates whether the widget should handle the event. By default
@@ -364,6 +329,41 @@ class Widget {
   // However, this method is not called if the widget is not visible on screen
   // in a refresh cycle.
   virtual void WidgetWillRender(NVGcontext* context) {}
+
+  // Setter of the responder chain identifier.
+  void set_responder_chain_identifier(const std::string& identifer) {
+    responder_chain_identifier_ = identifer;
+  }
+
+ private:
+  friend class WidgetView;
+
+  // Executes either the binded `render_function_` or `Render()` if no render
+  // function is binded. This method respects the `rendering_offset_` and it
+  // also fills the background color if the widget is opaque.
+  void ExecuteRenderFunction(NVGcontext* context);
+
+  // Returns `true` if the passed widget is removed from children. This method
+  // is designed for internal use. To remove a child from a parent widget.
+  // Calls the child widget's `RemoveFromParent()` method instead.
+  bool RemoveChild(Widget* child);
+
+  // Renders `Render()` in `default_framebuffer_` if `caches_rendering_` is
+  // true. Note that this method should only be called by
+  // `WidgetView::RenderWidget()`.
+  void RenderDefaultFramebuffer(NVGcontext* context);
+
+  // Either renders `Render()` directly or renders `default_framebuffer_` if
+  // `caches_rendering_` is true.
+  void RenderOnDemand(NVGcontext* context);
+
+  // Resets the `measured_scale_` property so the value will be re-calculated
+  // the next time calling `GetMeasuredScale()`.
+  void ResetMeasuredScale();
+
+  // Resets the measured scale for the passed widget and all of its descendants
+  // recursively.
+  void ResetMeasuredScaleRecursively(Widget* widget);
 
   // This setter should only be called by the `WidgetView` class.
   void set_widget_view(WidgetView* widget_view);
