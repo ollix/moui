@@ -65,7 +65,7 @@ class Button : public Control {
   void BindRenderFunction(const ControlState state, Callback&& callback) {
     UnbindRenderFunction(state);
     render_functions_[GetControlStateIndex(state)] = \
-        std::bind(callback, std::placeholders::_1);
+        std::bind(callback, std::placeholders::_1, std::placeholders::_2);
     Redraw();
   }
 
@@ -79,7 +79,8 @@ class Button : public Control {
                           TargetType&& target) {
     UnbindRenderFunction(state);
     render_functions_[GetControlStateIndex(state)] = \
-        std::bind(callback, target, std::placeholders::_1);
+        std::bind(callback, target, std::placeholders::_1,
+                  std::placeholders::_2);
     Redraw();
   }
 
@@ -255,7 +256,7 @@ class Button : public Control {
   // control states. The element position corresponded to a control state is
   // determined by `GetControlStateIndex()`. Each element could be `NULL` to
   // represent no binded render function.
-  std::vector<std::function<void(NVGcontext*)>> render_functions_;
+  std::vector<std::function<void(Button*, NVGcontext*)>> render_functions_;
 
   // The framebuffer for rendering the button in selected state.
   NVGLUframebuffer* selected_state_framebuffer_;

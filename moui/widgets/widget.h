@@ -62,7 +62,8 @@ class Widget {
   // BindRenderFunction(&Class::Method)  // class method
   template<class Callback>
   void BindRenderFunction(Callback&& callback) {
-    render_function_ = std::bind(callback, std::placeholders::_1);
+    render_function_ = std::bind(callback, std::placeholders::_1,
+                                 std::placeholders::_2);
     Redraw();
   }
 
@@ -72,7 +73,8 @@ class Widget {
   // Example: BindRenderFunction(&Class::Method, instance)
   template<class Callback, class TargetType>
   void BindRenderFunction(Callback&& callback, TargetType&& target) {
-    render_function_ = std::bind(callback, target, std::placeholders::_1);
+    render_function_ = std::bind(callback, target, std::placeholders::_1,
+                                 std::placeholders::_2);
     Redraw();
   }
 
@@ -437,7 +439,7 @@ class Widget {
 
   // Keeps the binded render function to replace `Render()`. This value can
   // be set through `BindRenderFunction()` and `UnbindRenderFunction()`.
-  std::function<void(NVGcontext*)> render_function_;
+  std::function<void(Widget*, NVGcontext*)> render_function_;
 
   // The offset related to the widget's origin as the real origin for rendering
   // the binded render function or the `Render() method.

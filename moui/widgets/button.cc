@@ -114,7 +114,7 @@ void Button::ExecuteRenderFunction(NVGcontext* context,
                                    const ControlState state) {
   auto render_function = render_functions_[GetControlStateIndex(state)];
   if (render_function != NULL) {
-    render_function(context);
+    render_function(this, context);
     return;
   }
 
