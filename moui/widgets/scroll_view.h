@@ -101,6 +101,10 @@ class ScrollView : public Widget {
            GetWidth() : page_width_;
   }
   void set_page_width(const float page_width);
+  EdgeInsets scroll_indicator_insets() const {
+    return scroll_indicator_insets_;
+  }
+  void set_scroll_indicator_insets(const EdgeInsets insets);
   bool shows_horizontal_scroll_indicator() const {
     return shows_horizontal_scroll_indicator_;
   }
@@ -242,6 +246,8 @@ class ScrollView : public Widget {
                       const float content_view_offset,
                       const float content_view_length,
                       const float content_view_padding,
+                      const float scroller_beginning_padding,
+                      const float scroller_endding_padding,
                       const bool shows_scrollers_on_both_directions,
                       Scroller* scroller);
 
@@ -349,6 +355,10 @@ class ScrollView : public Widget {
 
   // The page to move to when `enables_paging_` is `true`.
   int moves_content_view_to_page_;
+
+  // Indicates the distance the scroll indicators are inset from the edge of
+  // the scroll view.
+  EdgeInsets scroll_indicator_insets_;
 
   // Indicates whether the horizontal scroll indicator is visible.
   bool shows_horizontal_scroll_indicator_;

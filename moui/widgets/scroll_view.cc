@@ -74,6 +74,7 @@ ScrollView::ScrollView()
       deceleration_rate_(kDefaultDecelerationRate), bounces_(true),
       content_view_(new Widget(false)), enables_paging_(false),
       enables_scroll_(true), moves_content_view_to_page_(0), page_width_(0),
+      scroll_indicator_insets_({0, 0, 0, 0}),
       shows_horizontal_scroll_indicator_(true),
       shows_vertical_scroll_indicator_(true) {
   set_responder_chain_identifier("moui::ScrollView");
@@ -441,6 +442,8 @@ void ScrollView::RedrawScroller(const float scroll_view_length,
                                 const float content_view_offset,
                                 const float content_view_length,
                                 const float content_view_padding,
+                                const float scroller_beginning_padding,
+                                const float scroller_endding_padding,
                                 const bool shows_scrollers_on_both_directions,
                                 Scroller* scroller) {
   const float kContentViewOffset = content_view_offset - content_view_padding;
@@ -459,9 +462,14 @@ void ScrollView::RedrawScroller(const float scroll_view_length,
   }
 
   const float kKnobProportion = \
-      content_view_visible_length / kContentViewLength;
+      content_view_visible_length / kContentViewLength \
+      * (scroll_view_length - scroller_beginning_padding \
+         - scroller_endding_padding) / scroll_view_length;
   const float kKnobPosition = \
-      -kContentViewOffset / content_view_visible_length * kKnobProportion;
+      std::max(0.0f,
+               -kContentViewOffset / content_view_visible_length
+                   * kKnobProportion) \
+      + scroller_beginning_padding / scroll_view_length;
 
   scroller->set_knob_position(kKnobPosition);
   scroller->set_knob_proportion(kKnobProportion);
@@ -492,6 +500,8 @@ void ScrollView::RedrawScrollers() {
     horizontal_scroller_->SetHidden(false);
     RedrawScroller(kScrollViewWidth, content_view_->GetX(),
                    kContentViewWidth, (kScrollViewWidth - page_width()) / 2,
+                   scroll_indicator_insets_.left,
+                   scroll_indicator_insets_.right,
                    kShowsScrollersOnBothDirections,
                    horizontal_scroller_);
   }
@@ -499,7 +509,10 @@ void ScrollView::RedrawScrollers() {
   if (kShowsVerticalScroller) {
     vertical_scroller_->SetHidden(false);
     RedrawScroller(kScrollViewHeight, content_view_->GetY(),
-                   kContentViewHeight, 0, kShowsScrollersOnBothDirections,
+                   kContentViewHeight, 0,
+                   scroll_indicator_insets_.top,
+                   scroll_indicator_insets_.bottom,
+                   kShowsScrollersOnBothDirections,
                    vertical_scroller_);
   }
 }
@@ -807,6 +820,16 @@ bool ScrollView::WidgetViewWillRender(NVGcontext* context) {
     StopAnimation();
   }
   return true;
+}
+
+void ScrollView::set_scroll_indicator_insets(const EdgeInsets insets) {
+  if (insets.top != scroll_indicator_insets_.top ||
+      insets.left != scroll_indicator_insets_.left ||
+      insets.bottom != scroll_indicator_insets_.bottom ||
+      insets.right != scroll_indicator_insets_.right) {
+    scroll_indicator_insets_ = insets;
+    Redraw();
+  }
 }
 
 void ScrollView::set_page_width(const float page_width) {
