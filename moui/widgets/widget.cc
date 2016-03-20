@@ -99,13 +99,13 @@ void Widget::AddChild(Widget* child) {
 
 bool Widget::BeginFramebufferUpdates(NVGcontext* context,
                                      NVGLUframebuffer** framebuffer,
-                                     const int width, const int height,
+                                     const float width, const float height,
                                      float* scale_factor) {
   const float kScaleFactor = \
       Device::GetScreenScaleFactor() * GetMeasuredScale();
-  const float kWidth = width * kScaleFactor;
-  const float kHeight = height * kScaleFactor;
-  if (kWidth <= 0 || kHeight <= 0)
+  const int kWidth = static_cast<int>(width * kScaleFactor);
+  const int kHeight = static_cast<int>(height * kScaleFactor);
+  if (kWidth < 0 || kHeight < 0)
     return false;
 
   // Deletes the `framebuffer` if its size is not matched to the expected size.

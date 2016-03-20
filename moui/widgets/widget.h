@@ -236,7 +236,7 @@ class Widget {
   // `nullptr` as the `scale_factor` parameter.
   bool BeginFramebufferUpdates(NVGcontext* context,
                                NVGLUframebuffer** framebuffer,
-                               const int width, const int height,
+                               const float width, const float height,
                                float* scale_factor);
 
   // Initializes the environment for rendering in the passed framebuffer based
