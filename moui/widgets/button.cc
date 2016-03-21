@@ -280,8 +280,8 @@ bool Button::RenderFramebufferForControlState(
   if (!BeginFramebufferUpdates(context, framebuffer, &scale_factor))
     return false;
 
-  const float kWidth = GetWidth();
-  const float kHeight = GetHeight();
+  const int kWidth = static_cast<int>(GetWidth());
+  const int kHeight = static_cast<int>(GetHeight());
   nvgBeginFrame(context, kWidth, kHeight, scale_factor);
   ExecuteRenderFunction(context, control_state);
   nvgEndFrame(context);
@@ -334,8 +334,8 @@ bool Button::RenderFramebufferForTransition(NVGcontext* context,
   if (!BeginFramebufferUpdates(context, framebuffer, &scale_factor)) {
     return false;
   }
-  const float kWidth = GetWidth();
-  const float kHeight = GetHeight();
+  const int kWidth = static_cast<int>(GetWidth());
+  const int kHeight = static_cast<int>(GetHeight());
   glBlendFunc(GL_ONE, GL_ONE);
   nvgBeginFrame(context, kWidth, kHeight, scale_factor);
   // Draws for the previous control state.
