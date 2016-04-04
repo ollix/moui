@@ -54,7 +54,7 @@ void ProgressView::RenderRoundHorizontalBar(NVGcontext* context) const {
   const float kBarCircleRadius = kHeight / 2;
   const float kLineY = kBarCircleRadius;
   const float kTrackXStart = kBarCircleRadius;
-  const float kTrackXEnd = kWidth - kBarCircleRadius;
+  const float kTrackXEnd = kWidth - kBarCircleRadius * 2;
 
   // Renders the track.
   if (track_color_.a > 0) {
