@@ -45,7 +45,7 @@
 - (void)applicationDidBecomeActive;
 - (void)applicationWillResignActive;
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
-- (void) handleMemoryWarning:(NSNotification *)notification;
+- (void)handleMemoryWarning:(NSNotification *)notification;
 - (void)setupFramebuffer;
 
 @end

@@ -164,7 +164,7 @@ int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
 }
 
 void nvgDeleteFramebuffer(NVGLUframebuffer** framebuffer) {
-  if (*framebuffer == nullptr) {
+  if (framebuffer == nullptr || *framebuffer == nullptr) {
     return;
   }
   nvgluDeleteFramebuffer(*framebuffer);
