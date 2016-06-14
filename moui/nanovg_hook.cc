@@ -179,4 +179,19 @@ void nvgDeleteImage(NVGcontext* context, int* image) {
   *image = -1;
 }
 
+void nvgDrawDropShadow(NVGcontext* context, const float x, const float y,
+                       const float width, const float height,
+                       const float radius, float feather,
+                       const NVGcolor inner_color,
+                       const NVGcolor outer_color) {
+  const NVGpaint kShadowPaint = nvgBoxGradient(context, x, y, width, height,
+                                               radius, feather, inner_color,
+                                               outer_color);
+  nvgBeginPath(context);
+  nvgRect(context, x - feather, y - feather, width + feather * 2,
+          height + feather * 2);
+  nvgFillPaint(context, kShadowPaint);
+  nvgFill(context);
+}
+
 }  // namespace moui

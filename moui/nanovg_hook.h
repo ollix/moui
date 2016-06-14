@@ -60,6 +60,13 @@ void nvgDeleteFramebuffer(NVGLUframebuffer** framebuffer);
 // Deletes the passed image and set the image id to -1.
 void nvgDeleteImage(NVGcontext* context, int* image);
 
+// Draws drop shadow.
+void nvgDrawDropShadow(NVGcontext* context, const float x, const float y,
+                       const float width, const float height,
+                       const float radius, float feather,
+                       const NVGcolor inner_color,
+                       const NVGcolor outer_color);
+
 }  // namespace moui
 
 #endif  // MOUI_NANOVG_HOOK_H_
