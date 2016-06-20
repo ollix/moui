@@ -120,7 +120,11 @@ void ScrollView::AnimateContentViewHorizontally(const float origin_x,
                                                 const double duration) {
   if (duration <= 0)
     return;
+
   const float kDisplacement = origin_x - content_view_->GetX();
+  if (kDisplacement == 0)
+    return;
+
   const float kInitialVelocity = 2 * kDisplacement / duration;
   const float kDeceleration = (0 - kInitialVelocity) / duration;
   AnimateContentViewHorizontally(origin_x, kInitialVelocity, kDeceleration,
@@ -155,7 +159,11 @@ void ScrollView::AnimateContentViewVertically(const float origin_y,
                                               const double duration) {
   if (duration <= 0)
     return;
+
   const float kDisplacement = origin_y - content_view_->GetY();
+  if (kDisplacement == 0)
+    return;
+
   const float kInitialVelocity = 2 * kDisplacement / duration;
   const float kDeceleration = (0 - kInitialVelocity) / duration;
   AnimateContentViewVertically(origin_y, kInitialVelocity, kDeceleration,
