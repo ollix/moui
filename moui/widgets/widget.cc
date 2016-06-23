@@ -389,6 +389,25 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
   if (!caches_rendering_)
     return;
 
+  // Resets the default framebuffer if the widget's size has been changed.
+  const float kWidth = GetWidth();
+  const float kHeight = GetHeight();
+  if (default_framebuffer_ != nullptr) {
+    const float kScaleFactor = \
+        Device::GetScreenScaleFactor() * GetMeasuredScale();
+    const int kFramebufferWidth = static_cast<int>(kWidth * kScaleFactor);
+    const int kFramebufferHeight = static_cast<int>(kHeight * kScaleFactor);
+    int framebuffer_width = 0;
+    int framebuffer_height = 0;
+    nvgImageSize(default_framebuffer_->ctx, default_framebuffer_->image,
+                 &framebuffer_width, &framebuffer_height);
+    if (kFramebufferWidth != framebuffer_width ||
+        kFramebufferHeight != framebuffer_height) {
+      moui::nvgDeleteFramebuffer(&default_framebuffer_);
+      should_redraw_default_framebuffer_ = true;
+    }
+  }
+
   if (default_framebuffer_ != nullptr && !should_redraw_default_framebuffer_ &&
       !IsAnimating()) {
     return;
@@ -397,8 +416,6 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
 
   float scale_factor;
   if (BeginFramebufferUpdates(context, &default_framebuffer_, &scale_factor)) {
-    const float kWidth = GetWidth();
-    const float kHeight = GetHeight();
     nvgBeginFrame(context, kWidth, kHeight, scale_factor);
     ExecuteRenderFunction(context);
     nvgEndFrame(context);
