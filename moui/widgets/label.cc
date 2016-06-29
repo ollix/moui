@@ -99,7 +99,7 @@ void Label::Render(NVGcontext* context) {
       y = -bounds[1];
       break;
     case Alignment::kMiddle:
-      y = (GetHeight() - bounds[3] - bounds[1]) / 2 + kTextBoxVerticalOffset;
+      y = (GetHeight() - (bounds[3] - bounds[1])) / 2 + kTextBoxVerticalOffset;
       break;
     case Alignment::kBottom:
       y = GetHeight() - bounds[3] + kTextBoxVerticalOffset;
@@ -207,7 +207,7 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
   }
 
   // Adjusts label height to fit width.
-  if (adjusts_label_height_to_fit_width_ && text_box_height > kLabelHeight)
+  if (adjusts_label_height_to_fit_width_ && text_box_height != kLabelHeight)
     SetHeight(Widget::Unit::kPoint, text_box_height);
 
   return true;

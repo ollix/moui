@@ -115,6 +115,10 @@ class Button : public Control {
     return adjusts_button_height_to_fit_title_label_;
   }
   void set_adjusts_button_height_to_fit_title_label(const bool value);
+  bool adjusts_button_width_to_fit_title_label() const {
+    return adjusts_button_height_to_fit_title_label_;
+  }
+  void set_adjusts_button_width_to_fit_title_label(const bool value);
   Style default_disabled_style() const {
     return default_disabled_style_;
   }
@@ -204,14 +208,20 @@ class Button : public Control {
   // function for both `kTouchDragEnter` and `kTouchDragExit` control events.
   void TransitionBetweenControlStates(Control* control);
 
-  // Updates the title label's attribute based on the button's current state.
-  void UpdateTitleLabel();
+  // Updates the title label's attributes based on the button's current state.
+  // Returns `true` if the dimensions of the button or its title label are
+  // changed.
+  bool UpdateTitleLabel(NVGcontext* context);
 
   // Indicates whether the height of the button should be increased
   // automatically in order to fit the title label's vertical size.
   // The adjustment not only respects button's height but also vertical values
-  // defined in `title_edge_insets_`. The default value is false.
+  // defined in `title_edge_insets_`. The default value is `false`.
   bool adjusts_button_height_to_fit_title_label_;
+
+  // Indicates whether the width of the button should be changed automatically
+  // in order to fit the title label's text. The default value is `false`.
+  bool adjusts_button_width_to_fit_title_label_;
 
   // Keeps the reference to the framebuffer pointer of current control state.
   // This value is updated in the `RenderFramebuffer()` method.

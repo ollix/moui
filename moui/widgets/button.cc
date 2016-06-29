@@ -56,6 +56,7 @@ namespace moui {
 
 Button::Button() : Control(false),
                    adjusts_button_height_to_fit_title_label_(false),
+                   adjusts_button_width_to_fit_title_label_(false),
                    current_framebuffer_(nullptr),
                    default_disabled_style_(Style::kSemiTransparent),
                    default_highlighted_style_(Style::kTranslucentBlack),
@@ -69,10 +70,8 @@ Button::Button() : Control(false),
                    selected_state_with_highlighted_effect_framebuffer_(nullptr),
                    title_edge_insets_({0, 0, 0, 0}),
                    title_label_(new Label) {
-  title_label_->set_number_of_lines(1);
   transition_states_.is_transitioning = false;
   transition_states_.framebuffer = nullptr;
-  SetHeight(Widget::Unit::kPoint, 44);
 
   const NVGcolor kDefaultColor = nvgRGBA(0, 0, 0, 255);
   for (int i = 0; i < kNumberOfControlStates; ++i) {
@@ -85,8 +84,10 @@ Button::Button() : Control(false),
   SetTitleColor(nvgRGBA(0, 122, 255, 127.5), ControlState::kHighlighted);
   SetTitleColor(nvgRGBA(0, 122, 255, 127.5), ControlState::kDisabled);
 
+  title_label_->set_adjusts_label_height_to_fit_width(false);
   title_label_->set_font_size(18);
   title_label_->set_is_opaque(false);
+  title_label_->set_number_of_lines(1);
   title_label_->set_text_horizontal_alignment(Label::Alignment::kCenter);
   title_label_->set_text_vertical_alignment(Label::Alignment::kMiddle);
   AddChild(title_label_);
@@ -310,14 +311,15 @@ bool Button::RenderFramebufferForControlState(
     if ((renders_default_disabled_effect &&
          default_disabled_style_ == Style::kTranslucentBlack) ||
         (renders_default_highlighted_effect &&
-         default_highlighted_style_ == Style::kTranslucentBlack))
+         default_highlighted_style_ == Style::kTranslucentBlack)) {
       nvgFillColor(context, nvgRGBA(0, 0, 0, 50));
-    else if (renders_default_disabled_effect &&
-             default_disabled_style_ == Style::kTranslucentWhite)
+    } else if (renders_default_disabled_effect &&
+             default_disabled_style_ == Style::kTranslucentWhite) {
       nvgFillColor(context, nvgRGBA(255, 255, 255, 200));
-    else if (renders_default_highlighted_effect &&
-             default_highlighted_style_ == Style::kTranslucentWhite)
+    } else if (renders_default_highlighted_effect &&
+             default_highlighted_style_ == Style::kTranslucentWhite) {
       nvgFillColor(context, nvgRGBA(255, 255, 255, 50));
+    }
     nvgFill(context);
     nvgEndFrame(context);
   }
@@ -449,13 +451,14 @@ void Button::UnbindRenderFunction(const ControlState state) {
   }
 }
 
-void Button::UpdateTitleLabel() {
+bool Button::UpdateTitleLabel(NVGcontext* context) {
   const std::string kTitle = GetCurrentTitle();
   if (kTitle.empty()) {
     title_label_->SetHidden(true);
-    return;
+    return false;
   }
 
+  bool result = false;
   const NVGcolor kTextColor = \
       !transition_states_.is_transitioning ?
       GetCurrentTitleColor() :
@@ -468,28 +471,45 @@ void Button::UpdateTitleLabel() {
   title_label_->SetHidden(false);
   title_label_->SetX(title_edge_insets_.left);
   title_label_->SetY(title_edge_insets_.top);
-  // Updates the title label's width and makes sure the text can always fit no
-  // matter what the current scale is.
-  const float kExpectedTitleLabelWidth = \
-      GetWidth() - title_edge_insets_.left - title_edge_insets_.right;
-  const float kAcutalTitleLabelWidth = \
-      std::ceil(kExpectedTitleLabelWidth * GetMeasuredScale())
-      / GetMeasuredScale();
-  title_label_->SetWidth(kAcutalTitleLabelWidth);
+  // Updates the button's width to fit the title label.
+  if (adjusts_button_width_to_fit_title_label_) {
+    title_label_->UpdateWidthToFitText(context);
+    const float kButtonWidth = title_label_->GetWidth() \
+                               + title_edge_insets_.left \
+                               + title_edge_insets_.right;
+    if (kButtonWidth != GetWidth()) {
+      SetWidth(kButtonWidth);
+      result = true;
+    }
+  // Updates the title label's width to fit the button.
+  } else {
+    const float kTitleLabelWidth = \
+        GetWidth() - title_edge_insets_.left - title_edge_insets_.right;
+    if (title_label_->GetWidth() != kTitleLabelWidth) {
+      title_label_->SetWidth(kTitleLabelWidth);
+      result = true;
+    }
+  }
 
   // Adjusts the button's height to fit the title label.
   if (adjusts_button_height_to_fit_title_label_) {
     const float kRequiredButtonHeight = title_edge_insets_.top + \
                                         title_label_->GetHeight() + \
                                         title_edge_insets_.bottom;
-    if (kRequiredButtonHeight > GetHeight()) {
+    if (kRequiredButtonHeight != GetHeight()) {
       SetHeight(kRequiredButtonHeight);
-      ResetFramebuffers();
+      result = true;
+    }
+  // Updates the title label's height to fit the button.
+  } else {
+    const float kTitleLabelHeight = \
+        GetHeight() - title_edge_insets_.top - title_edge_insets_.bottom;
+    if (title_label_->GetHeight() != kTitleLabelHeight) {
+      title_label_->SetHeight(kTitleLabelHeight);
+      result = true;
     }
   }
-  // Updates the label's height to fit the button's height.
-  title_label_->SetHeight(
-      GetHeight() - title_edge_insets_.top - title_edge_insets_.bottom);
+  return result;
 }
 
 void Button::WidgetDidRender(NVGcontext* context) {
@@ -505,13 +525,26 @@ bool Button::WidgetViewWillRender(NVGcontext* context) {
     transition_states_.progress = \
         std::min(1.0, kElapsedTime / transition_states_.duration);
   }
-  UpdateTitleLabel();
+
+  // Redraws the widget view if the dimensions of the button or its title label
+  // are changed to make sure only the final result is displayed on screen.
+  if (UpdateTitleLabel(context) && widget_view() != nullptr) {
+    widget_view()->Redraw();
+  }
   return true;
 }
 
 void Button::set_adjusts_button_height_to_fit_title_label(const bool value) {
   if (value != adjusts_button_height_to_fit_title_label_) {
     adjusts_button_height_to_fit_title_label_ = value;
+    title_label_->set_adjusts_label_height_to_fit_width(value);
+    Redraw();
+  }
+}
+
+void Button::set_adjusts_button_width_to_fit_title_label(const bool value) {
+  if (value != adjusts_button_width_to_fit_title_label_) {
+    adjusts_button_width_to_fit_title_label_ = value;
     Redraw();
   }
 }
