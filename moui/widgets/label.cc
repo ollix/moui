@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <string>
 
 #include "moui/nanovg_hook.h"
@@ -127,13 +128,16 @@ void Label::UpdateWidthToFitText(NVGcontext* context) {
   const char* kStart = text_.c_str();
   const char* kEnd = kStart + text_.size();
   float bounds[4];
-  const float kWidth = std::max(
-      nvgTextBounds(context, 0, 0, kStart, kEnd, bounds),
-      bounds[2] - bounds[0]);
 
-  if (kWidth != GetWidth()) {
-    SetWidth(Widget::Unit::kPoint, kWidth);
-  }
+  // This is a workaround to fix the issue that `nvgTextBounds()` may not
+  // return a consistent result.
+  const float kExpectedWidth1 = nvgTextBounds(context, 0, 0, kStart, kEnd,
+                                             bounds);
+  const float kExpectedWidth2 = bounds[2] - bounds[0];
+  const float kWidth = kExpectedWidth1 > kExpectedWidth2 ?
+                       std::ceil(kExpectedWidth1) :
+                       kExpectedWidth2 + (kExpectedWidth2 - kExpectedWidth1);
+  SetWidth(kWidth);
 }
 
 // This method begins with determining the actual text and font size to render
