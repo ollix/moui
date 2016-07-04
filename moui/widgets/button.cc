@@ -191,10 +191,17 @@ std::string Button::GetCurrentTitle() const {
 }
 
 std::string Button::GetTitle(const ControlState state) const {
-  std::string kTitle = titles_[GetControlStateIndex(state)];
-  if (kTitle.empty())
-    return titles_[GetControlStateIndex(ControlState::kNormal)];
-  return kTitle;
+  const std::string kExpectedTitle = titles_[GetControlStateIndex(state)];
+  if (!kExpectedTitle.empty())
+    return kExpectedTitle;
+
+  if (IsSelected() && state == ControlState::kHighlighted) {
+    const std::string kSelectedTitle = \
+        titles_[GetControlStateIndex(ControlState::kSelected)];
+    if (!kSelectedTitle.empty())
+      return kSelectedTitle;
+  }
+  return titles_[GetControlStateIndex(ControlState::kNormal)];
 }
 
 NVGcolor Button::GetTitleColor(const ControlState state) const {
