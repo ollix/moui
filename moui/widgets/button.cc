@@ -106,6 +106,27 @@ Button::~Button() {
   delete title_label_;
 }
 
+void Button::BindRenderFunction(
+    const ControlState states,
+    std::function<void((Button*, NVGcontext*))> render_function) {
+  if (states & ControlState::kNormal) {
+    render_functions_[GetControlStateIndex(ControlState::kNormal)] = \
+        render_function;
+  }
+  if (states & ControlState::kHighlighted) {
+    render_functions_[GetControlStateIndex(ControlState::kHighlighted)] = \
+        render_function;
+  }
+  if (states & ControlState::kDisabled) {
+    render_functions_[GetControlStateIndex(ControlState::kDisabled)] = \
+        render_function;
+  }
+  if (states & ControlState::kSelected) {
+    render_functions_[GetControlStateIndex(ControlState::kSelected)] = \
+        render_function;
+  }
+}
+
 void Button::ContextWillChange(NVGcontext* context) {
   Control::ContextWillChange(context);
   ResetFramebuffers();
@@ -381,12 +402,26 @@ void Button::ResetFramebuffers() {
   final_framebuffer_ = nullptr;
 }
 
-void Button::SetTitle(const std::string& title, const ControlState state) {
-  titles_[GetControlStateIndex(state)] = title;
+void Button::SetTitle(const std::string& title, const ControlState states) {
+  if (states & ControlState::kNormal)
+    titles_[GetControlStateIndex(ControlState::kNormal)] = title;
+  if (states & ControlState::kHighlighted)
+    titles_[GetControlStateIndex(ControlState::kHighlighted)] = title;
+  if (states & ControlState::kDisabled)
+    titles_[GetControlStateIndex(ControlState::kDisabled)] = title;
+  if (states & ControlState::kSelected)
+    titles_[GetControlStateIndex(ControlState::kSelected)] = title;
 }
 
-void Button::SetTitleColor(const NVGcolor color, const ControlState state) {
-  title_colors_[GetControlStateIndex(state)] = color;
+void Button::SetTitleColor(const NVGcolor color, const ControlState states) {
+  if (states & ControlState::kNormal)
+    title_colors_[GetControlStateIndex(ControlState::kNormal)] = color;
+  if (states & ControlState::kHighlighted)
+    title_colors_[GetControlStateIndex(ControlState::kHighlighted)] = color;
+  if (states & ControlState::kDisabled)
+    title_colors_[GetControlStateIndex(ControlState::kDisabled)] = color;
+  if (states & ControlState::kSelected)
+    title_colors_[GetControlStateIndex(ControlState::kSelected)] = color;
 }
 
 void Button::StopTransitioningBetweenControlStates(Control* control) {
@@ -433,20 +468,22 @@ void Button::TransitionBetweenControlStates(Control* control) {
   }
 }
 
-void Button::UnbindRenderFunction(const ControlState state) {
-  render_functions_[GetControlStateIndex(state)] = NULL;
-
-  if (state == ControlState::kNormal) {
+void Button::UnbindRenderFunction(const ControlState states) {
+  if (states & ControlState::kNormal) {
+    render_functions_[GetControlStateIndex(ControlState::kNormal)] = NULL;
     moui::nvgDeleteFramebuffer(&normal_state_framebuffer_);
-  } else if (state == ControlState::kHighlighted) {
+  } else if (states & ControlState::kHighlighted) {
+    render_functions_[GetControlStateIndex(ControlState::kHighlighted)] = NULL;
     moui::nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
     moui::nvgDeleteFramebuffer(
         &normal_state_with_highlighted_effect_framebuffer_);
     moui::nvgDeleteFramebuffer(
         &selected_state_with_highlighted_effect_framebuffer_);
-  } else if (state == ControlState::kSelected) {
+  } else if (states & ControlState::kSelected) {
+    render_functions_[GetControlStateIndex(ControlState::kSelected)] = NULL;
     moui::nvgDeleteFramebuffer(&selected_state_framebuffer_);
-  } else if (state == ControlState::kDisabled) {
+  } else if (states & ControlState::kDisabled) {
+    render_functions_[GetControlStateIndex(ControlState::kDisabled)] = NULL;
     moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
   }
 }

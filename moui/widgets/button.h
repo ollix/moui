@@ -55,32 +55,34 @@ class Button : public Control {
   ~Button();
 
   // Binds a function or class method for rendering the button with passed
-  // state. Calling another `BindRenderFunction()` for the same state will
+  // states. Calling another `BindRenderFunction()` for the same state will
   // overwrite the previous one.
   //
   // Examples:
   // BindRenderFunction(state, Function)  // function
   // BindRenderFunction(state, &Class::Method)  // class method
   template<class Callback>
-  void BindRenderFunction(const ControlState state, Callback&& callback) {
-    UnbindRenderFunction(state);
-    render_functions_[GetControlStateIndex(state)] = \
+  void BindRenderFunction(const ControlState states, Callback&& callback) {
+    UnbindRenderFunction(states);
+    std::function<void(Button*, NVGcontext*)> render_function = \
         std::bind(callback, std::placeholders::_1, std::placeholders::_2);
+    BindRenderFunction(states, render_function);
     Redraw();
   }
 
-  // Binds an instance method for rendering the button with passed state.
+  // Binds an instance method for rendering the button with passed states.
   // Calling another `BindRenderFunction()` for the same state will overwrite
   // the previous one.
   //
   // Example: BindRenderFunction(state, &Class::Method, instance)
   template<class Callback, class TargetType>
-  void BindRenderFunction(const ControlState state, Callback&& callback,
+  void BindRenderFunction(const ControlState states, Callback&& callback,
                           TargetType&& target) {
-    UnbindRenderFunction(state);
-    render_functions_[GetControlStateIndex(state)] = \
+    UnbindRenderFunction(states);
+    std::function<void(Button*, NVGcontext*)> render_function = \
         std::bind(callback, target, std::placeholders::_1,
                   std::placeholders::_2);
+    BindRenderFunction(states, render_function);
     Redraw();
   }
 
@@ -101,14 +103,14 @@ class Button : public Control {
   // Resets framebuffers of every state to clear all cached renderings.
   void ResetFramebuffers();
 
-  // Sets the title to use for the specified state.
-  void SetTitle(const std::string& title, const ControlState state);
+  // Sets the title to use for the specified states.
+  void SetTitle(const std::string& title, const ControlState states);
 
-  // Sets the title color to use for the specified state.
-  void SetTitleColor(const NVGcolor color, const ControlState state);
+  // Sets the title color to use for the specified states.
+  void SetTitleColor(const NVGcolor color, const ControlState states);
 
-  // Unbinds the render function for a control state.
-  void UnbindRenderFunction(const ControlState state);
+  // Unbinds the render function for a control states.
+  void UnbindRenderFunction(const ControlState states);
 
   // Accessors and setters.
   bool adjusts_button_height_to_fit_title_label() const {
@@ -164,6 +166,11 @@ class Button : public Control {
     // Keeps the `title_label_`'s text color that should be transitioned from.
     NVGcolor previous_title_color;
   };
+
+  // Binda a render function for rendering the button with passed states.
+  void BindRenderFunction(
+      const ControlState states,
+      std::function<void(Button*, NVGcontext*)> render_function);
 
   // Executes the render function for passed state or fills white background
   // if nothing binded.
