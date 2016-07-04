@@ -37,7 +37,7 @@ const float kMinimumFontSize = 1;
 
 // The offset in points to change the vertical position for rendering text box.
 // This is a workaround to make the rendered position more as expected.
-const float kTextBoxVerticalOffset = 1;
+const float kTextBoxVerticalOffset = 2;
 
 // Default configuration for the label.
 std::string default_font_name;
