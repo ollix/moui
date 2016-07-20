@@ -234,6 +234,10 @@ void ScrollView::BounceContentViewVertically() {
   }
 }
 
+bool ScrollView::BringChildToFront(Widget* child) {
+  return content_view_->BringChildToFront(child);
+}
+
 Point ScrollView::GetContentViewOffset() const {
   return {-content_view_->GetX(), -content_view_->GetY()};
 }
@@ -446,6 +450,18 @@ bool ScrollView::HandleEvent(Event* event) {
   return false;
 }
 
+bool ScrollView::InsertChildAboveContentView(Widget* child) {
+  return Widget::InsertChildAboveSibling(child, content_view_);
+}
+
+bool ScrollView::InsertChildAboveSibling(Widget* child, Widget* sibling) {
+  return content_view_->InsertChildAboveSibling(child, sibling);
+}
+
+bool ScrollView::InsertChildBelowSibling(Widget* child, Widget* sibling) {
+  return content_view_->InsertChildBelowSibling(child, sibling);
+}
+
 void ScrollView::RedrawScroller(const float scroll_view_length,
                                 const float content_view_offset,
                                 const float content_view_length,
@@ -570,6 +586,10 @@ float ScrollView::ResolveContentViewOrigin(const float expected_origin,
   // Offset is overflowed on the right side.
   return scroll_view_length - content_view_padding - resolved_offset - \
          content_view_length;
+}
+
+bool ScrollView::SendChildToBack(Widget* child) {
+  return content_view_->SendChildToBack(child);
 }
 
 void ScrollView::SetContentViewOffset(const Point offset) {
@@ -799,6 +819,7 @@ void ScrollView::UpdateAnimationOriginAndStates(const double timestamp,
     BounceContentView(states);
   // Updates the timestamp when first time reaching the content view boundary.
   } else if (states->reaches_boundary_timestamp < 0 &&
+             origin != states->initial_location &&
              (origin >= max_boundary_origin ||
               origin <= min_boundary_origin)) {
     states->reaches_boundary_timestamp = timestamp;

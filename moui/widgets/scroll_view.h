@@ -44,6 +44,9 @@ class ScrollView : public Widget {
   // Moves the content view to the specified offset in animation.
   void AnimateContentViewOffset(const Point offset, const double duration);
 
+  // Inherited from `Widget` class.
+  bool BringChildToFront(Widget* child);
+
   // Returns the offset of the content view.
   Point GetContentViewOffset() const;
 
@@ -52,6 +55,15 @@ class ScrollView : public Widget {
 
   // Returns the number of the current page. The page number starts with 0.
   int GetCurrentPage() const;
+
+  // Inherited from `Widget` class.
+  bool InsertChildAboveSibling(Widget* child, Widget* sibling);
+
+  // Inherited from `Widget` class.
+  bool InsertChildBelowSibling(Widget* child, Widget* sibling);
+
+  // Inherited from `Widget` class.
+  bool SendChildToBack(Widget* child);
 
   // Sets content view's offset that correspondes to the scroll view's origin.
   void SetContentViewOffset(const Point offset);
@@ -135,6 +147,9 @@ class ScrollView : public Widget {
 
   // Inherited from `Widget` class. Controls the scroll behavior.
   bool HandleEvent(Event* event) override;
+
+  // Inserts a view above the content view in the view hierarchy.
+  bool InsertChildAboveContentView(Widget* child);
 
   // Redraws scrollers on both horizontal and vertical directions.
   void RedrawScrollers();

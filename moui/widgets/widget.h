@@ -129,6 +129,14 @@ class Widget {
   // Returns the vertical position in points related to its parent's top.
   float GetY() const;
 
+  // Inserts a child view above another view in the view hierarchy.
+  // Returns `false` on failure.
+  bool InsertChildAboveSibling(Widget* child, Widget* sibling);
+
+  // Inserts a child view below another view in the view hierarchy.
+  // Returns `false` on failure.
+  bool InsertChildBelowSibling(Widget* child, Widget* sibling);
+
   // Returns true if the widget is animating.
   bool IsAnimating() const;
 
@@ -146,6 +154,9 @@ class Widget {
 
   // Returns `true` if the render function is binded.
   bool RenderFunctionIsBinded() const;
+
+  // Moves the specified child so that it appears beind its siblings.
+  bool SendChildToBack(Widget* child);
 
   // Sets the bounds of the view in points.
   void SetBounds(const float x, const float y, const float width,

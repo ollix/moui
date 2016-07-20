@@ -40,7 +40,7 @@ class Clock {
   ~Clock() {}
 
   // Executes the `callback` function at the specified `delay` time in seconds.
-  static void DispatchAfter(const int delay, std::function<void()> callback);
+  static void DispatchAfter(const float delay, std::function<void()> callback);
 
   // Schedules function call at a reqular interval. The callback function must
   // have the return type of bool indicating whether to stop scheduling. The
@@ -58,6 +58,11 @@ class Clock {
   // the interval is negative. This method should be used internally only. It's
   // defined here for bridging JNI code.
   static void ExecuteCallback(Callback* callback);
+
+  // Executes the specified callback on the main thread with a delay time
+  // in seconds.
+  static void ExecuteCallbackOnMainThread(const float delay,
+                                          std::function<void()> callback);
 
   // Executes the specified callback on the main thread.
   static void ExecuteCallbackOnMainThread(std::function<void()> callback);

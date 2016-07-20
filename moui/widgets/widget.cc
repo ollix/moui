@@ -142,11 +142,20 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
 }
 
 bool Widget::BringChildToFront(Widget* child) {
-  auto iterator = std::find(children_.begin(), children_.end(), child);
-  if (iterator == children_.end())
-    return false;
-  children_.erase(iterator);
+  if (!children_.empty()) {
+    auto iterator = std::find(children_.begin(), children_.end(), child);
+    if (iterator == children_.end())
+      return false;
+
+    if (iterator == (children_.end() - 1))
+      return true;
+
+    children_.erase(iterator);
+  }
+
   children_.push_back(child);
+  if (widget_view_ != nullptr && !child->IsHidden())
+    widget_view_->Redraw();
   return true;
 }
 
@@ -350,6 +359,38 @@ void Widget::HandleMemoryWarning(NVGcontext* context) {
   moui::nvgDeleteFramebuffer(&default_framebuffer_);
 }
 
+bool Widget::InsertChildAboveSibling(Widget* child, Widget* sibling) {
+  if (child->real_parent_ == this)
+    return false;
+
+  auto iterator = std::find(children_.begin(), children_.end(), sibling);
+  if (iterator == children_.end())
+    return false;
+
+  child->parent_ = this;
+  child->real_parent_ = this;
+  child->set_widget_view(widget_view_);
+  children_.insert(iterator + 1, child);
+  if (widget_view_ != nullptr && !child->IsHidden())
+    widget_view_->Redraw();
+}
+
+bool Widget::InsertChildBelowSibling(Widget* child, Widget* sibling) {
+  if (child->real_parent_ == this)
+    return false;
+
+  auto iterator = std::find(children_.begin(), children_.end(), sibling);
+  if (iterator == children_.end())
+    return false;
+
+  child->parent_ = this;
+  child->real_parent_ = this;
+  child->set_widget_view(widget_view_);
+  children_.insert(iterator, child);
+  if (widget_view_ != nullptr && !child->IsHidden())
+    widget_view_->Redraw();
+}
+
 bool Widget::IsAnimating() const {
   return animation_count_ > 0;
 }
@@ -451,6 +492,23 @@ void Widget::ResetMeasuredScaleRecursively(Widget* widget) {
   widget->ResetMeasuredScale();
   for (Widget* child : widget->children())
     ResetMeasuredScaleRecursively(child);
+}
+
+bool Widget::SendChildToBack(Widget* child) {
+  if (!children_.empty()) {
+    auto iterator = std::find(children_.begin(), children_.end(), child);
+    if (iterator == children_.end()) {
+      return false;
+    }
+    if (iterator == children_.begin()) {
+      return true;
+    }
+    children_.erase(iterator);
+  }
+  children_.insert(children_.begin(), child);
+  if (widget_view_ != nullptr && !child->IsHidden())
+    widget_view_->Redraw();
+  return true;
 }
 
 void Widget::SetBounds(const float x, const float y, const float width,

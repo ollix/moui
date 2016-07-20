@@ -30,7 +30,7 @@ dispatch_queue_t queue = dispatch_get_global_queue(
 
 namespace moui {
 
-void Clock::DispatchAfter(const int delay, std::function<void()> callback) {
+void Clock::DispatchAfter(const float delay, std::function<void()> callback) {
   const dispatch_time_t kWhen = dispatch_time(DISPATCH_TIME_NOW,
                                               delay * NSEC_PER_SEC);
   dispatch_after(kWhen, queue, ^{ callback(); });
@@ -49,11 +49,21 @@ void Clock::ExecuteCallback(Callback* callback) {
   dispatch_after(delay, queue, ^{ Clock::ExecuteCallback(callback); });
 }
 
-void Clock::ExecuteCallbackOnMainThread(std::function<void()> callback) {
-  if ([NSThread isMainThread])
+void Clock::ExecuteCallbackOnMainThread(const float delay,
+                                        std::function<void()> callback) {
+  if ([NSThread isMainThread] && delay <= 0) {
     callback();
-  else
+  } else if (delay > 0) {
+    const dispatch_time_t kWhen = dispatch_time(DISPATCH_TIME_NOW,
+                                                delay * NSEC_PER_SEC);
+    dispatch_after(kWhen, dispatch_get_main_queue(), ^{ callback(); });
+  } else {
     dispatch_sync(dispatch_get_main_queue(), ^{ callback(); });
+  }
+}
+
+void Clock::ExecuteCallbackOnMainThread(std::function<void()> callback) {
+  ExecuteCallbackOnMainThread(0, callback);
 }
 
 }  // namespace moui
