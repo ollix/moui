@@ -18,6 +18,7 @@
 #ifndef MOUI_WIDGETS_WIDGETS_H_
 #define MOUI_WIDGETS_WIDGETS_H_
 
+#include "moui/widgets/activity_indicator_view.h"
 #include "moui/widgets/button.h"
 #include "moui/widgets/control.h"
 #include "moui/widgets/grid_layout.h"

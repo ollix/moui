@@ -46,6 +46,7 @@
         'ui/mac/native_view_mac.mm',
         'ui/mac/view_mac.mm',
         'ui/mac/window_mac.mm',
+        'widgets/activity_indicator_view.cc',
         'widgets/button.cc',
         'widgets/control.cc',
         'widgets/grid_layout.cc',
