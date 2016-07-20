@@ -17,7 +17,7 @@
 
 #import "moui/ui/ios/opengl_view_ios.h"
 
-#include <memory>
+#include <vector>
 #import <QuartzCore/QuartzCore.h>
 
 #include "moui/core/event.h"
@@ -54,27 +54,26 @@
 
 // Resumes view updates.
 - (void)applicationDidBecomeActive {
-  _is_active = YES;
+  _isActive = YES;
   if (!_stopsUpdatingView)
     [self startUpdatingView];
 }
 
 // Unregisters the display link to stops updating the view.
 - (void)applicationWillResignActive {
-  _is_active = NO;
-  [_display_link invalidate];
-  _display_link = nil;
+  _isActive = NO;
+  [_displayLink invalidate];
+  _displayLink = nil;
 }
 
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type {
-  auto mouiEvent = new moui::Event(type);
-  auto locations = mouiEvent->locations();
-  for (UITouch* touch in [event allTouches]) {
-    CGPoint location = [touch locationInView:self];
-    locations->push_back({static_cast<float>(location.x),
-                          static_cast<float>(location.y)});
+  moui::Event mouiEvent(type);
+  for (UITouch* nativeTouch in [event allTouches]) {
+    CGPoint location = [nativeTouch locationInView:self];
+    mouiEvent.locations()->push_back({static_cast<float>(location.x),
+                                      static_cast<float>(location.y)});
   }
-  _mouiView->HandleEvent(std::unique_ptr<moui::Event>(mouiEvent));
+  _mouiView->HandleEvent(&mouiEvent);
 }
 
 // This method will get called when receiving the
@@ -117,7 +116,8 @@
     _colorRenderbuffer = 0;
     _context = [[EAGLContext alloc] initWithAPI:EAGL_RENDERING_API_OPENGLES];
     _framebuffer = 0;
-    _is_active = YES;
+    _isActive = YES;
+    _isHandlingEvents = NO;
     _mouiView = mouiView;
     _needsRedraw = NO;
     _stencilAndDepthRenderbuffer = 0;
@@ -153,8 +153,8 @@
     glDeleteFramebuffers(1, &_stencilAndDepthRenderbuffer);
   if (_framebuffer != 0)
     glDeleteFramebuffers(1, &_framebuffer);
-  if (_display_link != nil)
-    [_display_link invalidate];
+  if (_displayLink != nil)
+    [_displayLink invalidate];
   [_context dealloc];
 
   [[NSNotificationCenter defaultCenter] removeObserver:self
@@ -178,7 +178,7 @@
       return;
 
     _needsRedraw = YES;
-    // Attaches `_display_link` to the run loop if it's invalidated.
+    // Attaches `_displayLink` to the run loop if it's invalidated.
     if (_stopsUpdatingView) {
       [self startUpdatingView];
       [self stopUpdatingView];
@@ -186,10 +186,26 @@
   }
 }
 
-// If this method returns NO, the event will be passed to the next responder.
+// If this method returns `NO`, the event will be passed to the next responder.
 -(BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
-  return _mouiView->ShouldHandleEvent({static_cast<float>(point.x),
-                                       static_cast<float>(point.y)});
+  if (![super pointInside:point withEvent:event])
+    return NO;
+
+  // Caches the result of last call to `ShouldHandleEvent()`.
+  static int result;
+  // Skips if the event's timestamp is not newer than the last processed one.
+  static NSTimeInterval lastEventTimestamp = -1;
+  if (event.timestamp <= lastEventTimestamp)
+    return result;
+  lastEventTimestamp = event.timestamp;
+
+  // Prevents from calling the `ShouldHandleEvent` method multiple times.
+  if (_isHandlingEvents)
+    return YES;
+
+  result = _mouiView->ShouldHandleEvent({static_cast<float>(point.x),
+                                         static_cast<float>(point.y)});
+  return result;
 }
 
 - (void)render {
@@ -219,15 +235,15 @@
   // continuously.
   @synchronized(self) {
     if (_stopsUpdatingView && !_needsRedraw) {
-      [_display_link invalidate];  // this also releases `_display_link`
-      _display_link = nil;
+      [_displayLink invalidate];  // this also releases `_displayLink`
+      _displayLink = nil;
     } else {
       _needsRedraw = NO;
     }
   }
 }
 
-// Sets `_stopsUpdatingView` to NO to make sure `_display_link` stays in the
+// Sets `_stopsUpdatingView` to NO to make sure `_displayLink` stays in the
 // run loop and keep updating the view continuously. If the updating mechanism
 // was not activated yet or stopped previously, a new `CADisplayLink` object
 // will be created and added to the run loop.
@@ -237,13 +253,13 @@
 
     // Registers the display link only if the app is active. Or the display
     // link will be registered automatically when the app becomes active again.
-    if (!_is_active || _display_link != nil)
+    if (!_isActive || _displayLink != nil)
       return;
 
-    _display_link = [CADisplayLink displayLinkWithTarget:self
+    _displayLink = [CADisplayLink displayLinkWithTarget:self
                                                 selector:@selector(render)];
-    [_display_link addToRunLoop:[NSRunLoop mainRunLoop]
-                        forMode:NSRunLoopCommonModes];
+    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
+                       forMode:NSRunLoopCommonModes];
   }
 }
 
@@ -256,15 +272,18 @@
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+  _isHandlingEvents = YES;
   [self handleEvent:event withType:moui::Event::Type::kDown];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
   [self handleEvent:event withType:moui::Event::Type::kCancel];
+  _isHandlingEvents = NO;
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
   [self handleEvent:event withType:moui::Event::Type::kUp];
+  _isHandlingEvents = NO;
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {

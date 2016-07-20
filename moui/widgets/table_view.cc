@@ -170,11 +170,7 @@ bool TableView::HandleEvent(Event* event) {
     return kResult;
 
   const Point location = static_cast<Point>(event->locations()->front());
-  if (event->type() == Event::Type::kCancel ||
-      event->locations()->size() > 1) {
-    SetCellHighlighted(down_event_cell_, false);
-    down_event_cell_ = nullptr;
-  } else if (event->type() == Event::Type::kDown) {
+  if (event->type() == Event::Type::kDown) {
     down_event_location_ = location;
     // Delay highlights the `down_event_cell_`.
     Clock::ExecuteCallbackOnMainThread(
@@ -192,6 +188,9 @@ bool TableView::HandleEvent(Event* event) {
   } else if (event->type() == Event::Type::kMove &&
              (location.x != down_event_location_.x ||
               location.y != down_event_location_.y)) {
+    SetCellHighlighted(down_event_cell_, false);
+    down_event_cell_ = nullptr;
+  } else if (event->type() == Event::Type::kCancel) {
     SetCellHighlighted(down_event_cell_, false);
     down_event_cell_ = nullptr;
   }

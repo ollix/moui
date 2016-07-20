@@ -224,9 +224,6 @@ class Widget {
   void set_rendering_offset(const Point offset);
   float rendering_scale() const { return rendering_scale_; }
   void set_rendering_scale(const float rendering_scale);
-  std::string responder_chain_identifier() const {
-    return responder_chain_identifier_;
-  }
   float scale() const { return scale_; }
   void set_scale(const float scale);
   int tag() const { return tag_; }
@@ -343,11 +340,6 @@ class Widget {
   // in a refresh cycle.
   virtual void WidgetWillRender(NVGcontext* context) {}
 
-  // Setter of the responder chain identifier.
-  void set_responder_chain_identifier(const std::string& identifer) {
-    responder_chain_identifier_ = identifer;
-  }
-
  private:
   friend class WidgetView;
 
@@ -459,11 +451,6 @@ class Widget {
   // The scale applied when rendering the binded render function or the
   // `Render()` method. The default value is 1.
   float rendering_scale_;
-
-  // The identifier that is used to determine which widget in the responder
-  // chain should be the next one to handle the received event. The actual
-  // mechanism is implemented in the `WidgetView::HandleEvent()` method.
-  std::string responder_chain_identifier_;
 
   // The scale of the widget to render. This value should always be positive.
   // The default value is 1.

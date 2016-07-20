@@ -18,7 +18,6 @@
 #ifndef MOUI_UI_BASE_VIEW_H_
 #define MOUI_UI_BASE_VIEW_H_
 
-#include <memory>
 #include <string>
 
 #include "moui/base.h"
@@ -39,7 +38,7 @@ class BaseView : public NativeView {
 
   // This method gets called when the view received an event. To receive events,
   // the `ShouldHandleEvent()` method should be overriden to return `true`.
-  virtual void HandleEvent(std::unique_ptr<Event> event) {}
+  virtual void HandleEvent(Event* event) {}
 
   // Returns `true` if the view is animating, that is, the view is keeping
   // updated continuously on the refresh rate of the display.

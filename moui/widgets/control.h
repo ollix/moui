@@ -151,6 +151,9 @@ class Control : public Widget {
                      const std::function<void()>* callback,
                      const void* target);
 
+  // Unbinds all actions.
+  void UnbindAllActions();
+
   // Accessors and setters.
   int highlighted_margin() const { return highlighted_margin_; }
   void set_highlighted_margin(const int margin) {
@@ -183,17 +186,16 @@ class Control : public Widget {
   // the list to fire callbacks with matched control events.
   std::vector<Action*> actions_;
 
+  // Records the control's origin related to the corresponded widget view's
+  // coordinate system when receiving the `Event::Type::kDown` event.
+  Point down_event_origin_;
+
   // The margin in points expanding the widget's bounding box as highlighted
   // area.
   int highlighted_margin_;
 
-  // Indicates whether all coming events should be ignored. This value is
-  // set to `false` by default and controlled in the `HandleEvent()` method.
-  bool ignores_events_;
-
-  // Records the control's origin related to the corresponded widget view's
-  // coordinate system when receiving the `Event::Type::kDown` event.
-  Point initial_origin_;
+  // Indicates whether upcoming events should be ignored.
+  bool ignores_upcoming_events_;
 
   // A bitmask value that indicates the state of a control. A control can have
   // more than one state at a time.

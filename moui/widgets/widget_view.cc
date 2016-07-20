@@ -28,6 +28,7 @@
 #include "moui/opengl_hook.h"
 #include "moui/ui/native_view.h"
 #include "moui/ui/view.h"
+#include "moui/widgets/scroll_view.h"
 #include "moui/widgets/widget.h"
 
 namespace moui {
@@ -44,31 +45,84 @@ WidgetView::~WidgetView() {
   delete root_widget_;
 }
 
-void WidgetView::HandleEvent(std::unique_ptr<Event> event) {
-  bool ignores_non_scroll_view_responders = false;
+void WidgetView::HandleEvent(Event* event) {
+  const bool kEventTypeIsDown = event->type() == Event::Type::kDown;
+  const bool kEventTypeIsUpOrCancel = event->type() == Event::Type::kUp ||
+                                      event->type() == Event::Type::kCancel;
+
+  bool ignores_scroll_view_responders = false;
+  bool scroll_view_horizontal_scrolling_is_acceptable = true;
+  bool scroll_view_vertical_scrolling_is_acceptable = true;
 
   for (Widget* responder : event_responders_) {
+    // Adds the `responder` to the `down_event_responders_` vector if the
+    // current event is down.
+    if (kEventTypeIsDown) {
+      down_event_responders_.push_back(responder);
+    // Removes the `responder` from the `down_event_responders_` vector if
+    // the current event is up or cancel.
+    } else if (kEventTypeIsUpOrCancel) {
+      auto match = std::find(down_event_responders_.begin(),
+                             down_event_responders_.end(), responder);
+      if (match != down_event_responders_.end())
+        down_event_responders_.erase(match);
+    }
+
+    // Determines if the responder is a instance of the `ScrollView` class.
     const bool kResponderIsScrollView = \
-        responder->responder_chain_identifier() == "moui::ScrollView";
-
-    // Skips the responder if non scroll view responders are ignored.
-    if (ignores_non_scroll_view_responders && !kResponderIsScrollView) {
-      continue;
+        dynamic_cast<ScrollView*>(responder) != nullptr;
+    // Skips the current scroll view responder if its acceptable scrolling
+    // directions are already handled by another scroll view responder.
+    if (kResponderIsScrollView) {
+      auto scroll_view = reinterpret_cast<ScrollView*>(responder);
+      if ((!scroll_view_horizontal_scrolling_is_acceptable &&
+           scroll_view->HorizontalScrollingIsAcceptable()) ||
+          (!scroll_view_vertical_scrolling_is_acceptable &&
+           scroll_view->VerticalScrollingIsAcceptable())) {
+        continue;
+      }
     }
 
-    if (responder->HandleEvent(event.get())) {
-      if (kResponderIsScrollView)
-        ignores_non_scroll_view_responders = true;
-      continue;
-    }
-
-    if (kResponderIsScrollView ||
-        responder->responder_chain_identifier() == "moui::Control") {
+    // Asks the `responder` to handle the current event and stops propagates
+    // event if returned `false`.
+    const bool kPropagatesEvent = responder->HandleEvent(event);
+    if (!kPropagatesEvent) {
       break;
     }
 
-    ignores_non_scroll_view_responders = true;
+    // Marks the scrolling directions of the current scroll view responder
+    // no longer acceptable.
+    if (kResponderIsScrollView) {
+      auto scroll_view = reinterpret_cast<ScrollView*>(responder);
+      if (scroll_view->HorizontalScrollingIsAcceptable())
+        scroll_view_horizontal_scrolling_is_acceptable = false;
+      if (scroll_view->VerticalScrollingIsAcceptable())
+        scroll_view_vertical_scrolling_is_acceptable = false;
+    }
   }
+
+  // Sends a `cancel` event to all responders that handled `down` event but
+  // did not handle the `up` or `cancel` event.
+  if (!kEventTypeIsUpOrCancel || down_event_responders_.empty()) {
+    return;
+  }
+  // Creates a `cancel` event if the received one is not.
+  Event* cancel_event;
+  bool creates_cancel_event = false;
+  if (event->type() == Event::Type::kCancel) {
+    cancel_event = event;
+  } else {
+    creates_cancel_event = true;
+    cancel_event = new Event(Event::Type::kCancel);
+    for (Point location : *(event->locations()))
+      cancel_event->locations()->push_back(location);
+  }
+  for (Widget* responder : down_event_responders_) {
+    responder->HandleEvent(cancel_event);
+  }
+  if (creates_cancel_event)
+    delete cancel_event;
+  down_event_responders_.clear();
 }
 
 void WidgetView::HandleMemoryWarning() {
@@ -271,10 +325,8 @@ bool WidgetView::UpdateEventResponders(const Point location, Widget* widget) {
   for (auto it = widget->children().rbegin();
        it != widget->children().rend(); it++) {
     Widget* child = reinterpret_cast<Widget*>(*it);
-    if (UpdateEventResponders(location, child)) {
+    if (UpdateEventResponders(location, child))
       result = true;
-      break;
-    }
   }
 
   if (widget->ShouldHandleEvent(location)) {

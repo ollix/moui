@@ -56,6 +56,10 @@ class ScrollView : public Widget {
   // Returns the number of the current page. The page number starts with 0.
   int GetCurrentPage() const;
 
+  // Returns `true` if horizontal scrolling is acceptable in the current
+  // configuration.
+  bool HorizontalScrollingIsAcceptable() const;
+
   // Inherited from `Widget` class.
   bool InsertChildAboveSibling(Widget* child, Widget* sibling);
 
@@ -71,9 +75,17 @@ class ScrollView : public Widget {
   // Sets the size of content view in points. Negative values will be ignored.
   void SetContentViewSize(const float width, const float height);
 
+  // Stops the scroll view's animation immediately and hides both horizontal
+  // and vertical scrollers in animation.
+  void StopAnimation();
+
   // Moves the content view to the specified page. If the specified duration
   // is greater than 0, the content view will be moved in animation.
   void ShowPage(const int page, const double duration);
+
+  // Returns `true` if vertical scrolling is acceptable in the current
+  // configuration.
+  bool VerticalScrollingIsAcceptable() const;
 
   // Accessors and setters.
   bool always_bounce_horizontal() const { return always_bounce_horizontal_; }
@@ -120,15 +132,11 @@ class ScrollView : public Widget {
   bool shows_horizontal_scroll_indicator() const {
     return shows_horizontal_scroll_indicator_;
   }
-  void set_shows_horizontal_scroll_indicator(const bool value) {
-    shows_horizontal_scroll_indicator_ = value;
-  }
+  void set_shows_horizontal_scroll_indicator(const bool value);
   bool shows_vertical_scroll_indicator() const {
     return shows_vertical_scroll_indicator_;
   }
-  void set_shows_vertical_scroll_indicator(const bool value) {
-    shows_vertical_scroll_indicator_ = value;
-  }
+  void set_shows_vertical_scroll_indicator(const bool value);
 
  protected:
   // Animates the content view to the passed location horizontally in
@@ -160,10 +168,6 @@ class ScrollView : public Widget {
 
   // Inherited from `Widget` class.
   bool ShouldHandleEvent(const Point location) override;
-
-  // Stops the scroll view's animation immediately and hides both horizontal
-  // and vertical scrollers in animation.
-  void StopAnimation();
 
   // Animates content view to stop gradually.
   void StopScrollingGradually();

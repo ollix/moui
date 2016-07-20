@@ -16,7 +16,7 @@
 // Author: olliwang@ollix.com (Olli Wang)
 
 #include <cassert>
-#include <memory>
+#include <vector>
 
 #include "jni.h"
 
@@ -42,11 +42,11 @@ JNIEXPORT void JNICALL Java_com_ollix_moui_OpenGLView_handleEvent
     default: assert(false);
   }
   // Initializes the event object and asks moui view to handle the event.
-  auto moui_event = new moui::Event(event_type);
-  moui_event->locations()->push_back({static_cast<float>(x),
-                                      static_cast<float>(y)});
+  moui::Event moui_event(event_type);
+  moui_event.locations()->push_back({static_cast<float>(x),
+                                     static_cast<float>(y)});
   moui::View* moui_view = (moui::View*)moui_view_pointer;
-  moui_view->HandleEvent(std::unique_ptr<moui::Event>(moui_event));
+  moui_view->HandleEvent(&moui_event);
 }
 
 // Asks moui view if the event should be handled.

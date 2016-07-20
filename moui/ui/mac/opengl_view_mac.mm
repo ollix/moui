@@ -17,7 +17,7 @@
 
 #import "moui/ui/mac/opengl_view_mac.h"
 
-#include <memory>
+#include <vector>
 #include <OpenGL/gl.h>
 
 #include "moui/ui/view.h"
@@ -56,14 +56,14 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)handleEvent:(NSEvent *)event withType:(moui::Event::Type)type {
-  auto mouiEvent = new moui::Event(type);
+  moui::Event mouiEvent(type);
   // Adds the event location.
   NSPoint locationInWindow = [event locationInWindow];
   NSPoint locationInView = [self convertPoint:locationInWindow fromView:self];
   NSPoint location = [self convertToInternalPoint:locationInView];
-  mouiEvent->locations()->push_back({static_cast<float>(location.x),
-                                     static_cast<float>(location.y)});
-  _mouiView->HandleEvent(std::unique_ptr<moui::Event>(mouiEvent));
+  mouiEvent.locations()->push_back({static_cast<float>(location.x),
+                                    static_cast<float>(location.y)});
+  _mouiView->HandleEvent(&mouiEvent);
 }
 
 - (void)initOpenGLContext {

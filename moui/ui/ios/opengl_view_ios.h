@@ -34,9 +34,10 @@ class View;
  @private
   GLuint _colorRenderbuffer;
   EAGLContext* _context;
-  CADisplayLink* _display_link;
+  CADisplayLink* _displayLink;
   GLuint _framebuffer;
-  bool _is_active;  // indicates whether the app is active
+  BOOL _isActive;  // indicates whether the app is active
+  BOOL _isHandlingEvents;
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
   GLuint _stencilAndDepthRenderbuffer;

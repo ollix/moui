@@ -102,7 +102,7 @@ class WidgetView : public View {
   typedef std::vector<WidgetItem*> WidgetList;
 
   // Inherited from `BaseView` class.
-  void HandleEvent(std::unique_ptr<Event> event) final;
+  void HandleEvent(Event* event) final;
 
   // Calls the `HandleMemoryWarning()` method for the specified `widget` and
   // all of its descendants.
@@ -147,6 +147,9 @@ class WidgetView : public View {
 
   // The nanovg context for rendering.
   NVGcontext* context_;
+
+  // Keeps a list of widgets that handles the latest down event.
+  std::vector<Widget*> down_event_responders_;
 
   // Keeps a list of widgets to handle events passed to the `HandleEvent()`
   // method. The list could be updated by `UpdateEventResponders()`.

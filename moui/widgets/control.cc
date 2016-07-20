@@ -17,6 +17,7 @@
 
 #include "moui/widgets/control.h"
 
+#include <cstdint>
 #include <vector>
 
 #include "moui/base.h"
@@ -39,9 +40,9 @@ Control::Control() : Control(true) {
 }
 
 Control::Control(const bool caches_rendering)
-    : Widget(caches_rendering), highlighted_margin_(0), ignores_events_(false),
-      state_(ControlState::kNormal), touch_down_margin_(0) {
-  set_responder_chain_identifier("moui::Control");
+    : Widget(caches_rendering), highlighted_margin_(0),
+      ignores_upcoming_events_(true), state_(ControlState::kNormal),
+      touch_down_margin_(0) {
   if (Device::GetCategory() != Device::Category::kDesktop)
     highlighted_margin_ = kHandheldDeviceHighlightedMargin;
 }
@@ -53,7 +54,7 @@ Control::~Control() {
 
 bool Control::HandleControlEvents(const ControlEvents events) {
   if (IsDisabled())
-    return;
+    return false;
 
   // Updates the highlighted state and redraw the widget if the state changed.
   if (events & ControlEvents::kTouchDown ||
@@ -78,7 +79,7 @@ bool Control::HandleControlEvents(const ControlEvents events) {
 
 // Handles corresponded control events converted from the passed event.
 bool Control::HandleEvent(Event* event) {
-  if (IsDisabled() || ignores_events_) {
+  if (IsDisabled() || ignores_upcoming_events_) {
     return true;
   }
 
@@ -91,17 +92,19 @@ bool Control::HandleEvent(Event* event) {
   // Down.
   if (event->type() == Event::Type::kDown) {
     control_events |= ControlEvents::kTouchDown;
-    initial_origin_ = origin;
-  // Starts ignoring upcoming events if the button's origin has been changed.
-  // This situation happens when underlying scroll view is scrolling.
-  } else if (origin.x != initial_origin_.x ||
-             origin.y != initial_origin_.y) {
-    ignores_events_ = true;
+    down_event_origin_ = origin;
+  // Cancels if the control's initial origin has been changed. This situation
+  // happens when underlying scroll view is scrolling.
+  } else if (down_event_origin_.x != INT_MIN &&
+             down_event_origin_.y != INT_MIN &&
+             (origin.x != down_event_origin_.x ||
+              origin.y != down_event_origin_.y)) {
     control_events |= ControlEvents::kTouchCancel;
+    ignores_upcoming_events_ = true;
   // Move.
   } else if (event->type() == Event::Type::kMove) {
     const bool kTouchOutside = !CollidePoint(
-        static_cast<Point>(event->locations()->front()),  // location
+        static_cast<Point>(event->locations()->at(0)),  // location
         highlighted_margin_);
     if (IsHighlighted()) {
       if (kTouchOutside) {
@@ -196,8 +199,12 @@ void Control::SetSelected(const bool selected) {
 // Returns `true` if the widget's bounding box plus the disired margin size
 // collides the passed location.
 bool Control::ShouldHandleEvent(const Point location) {
-  ignores_events_ = false;
-  return CollidePoint(location, touch_down_margin_);
+  if (!CollidePoint(location, touch_down_margin_)) {
+    return false;
+  }
+  ignores_upcoming_events_ = false;
+  down_event_origin_ = {INT_MIN, INT_MIN};
+  return true;
 }
 
 void Control::UnbindActions(const ControlEvents events,
@@ -206,7 +213,9 @@ void Control::UnbindActions(const ControlEvents events,
   auto action_iterator = actions_.begin();
   while (action_iterator != actions_.end()) {
     Action* action = *action_iterator;
-    if (action->control_events == events &&
+    if ((action->target != this) &&
+        (action->control_events == events ||
+         events == ControlEvents::kAllTouchEvents) &&
         (target == nullptr || action->target == target) &&
         (callback == nullptr ||
          action->callback.target_type() == callback->target_type())) {
@@ -216,6 +225,10 @@ void Control::UnbindActions(const ControlEvents events,
     }
     ++action_iterator;
   }
+}
+
+void Control::UnbindAllActions() {
+  UnbindActions(ControlEvents::kAllTouchEvents, nullptr, nullptr);
 }
 
 }  // namespace moui
