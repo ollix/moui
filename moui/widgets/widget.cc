@@ -79,8 +79,8 @@ Widget::Widget(const bool caches_rendering)
 }
 
 Widget::~Widget() {
-  set_widget_view(nullptr);
   StopAnimation(true);
+  set_widget_view(nullptr);
   if (frees_descendants_on_destruction_)
     FreeDescendantsRecursively(this);
 }
@@ -590,10 +590,7 @@ bool Widget::ShouldHandleEvent(const Point location) {
 }
 
 void Widget::StartAnimation() {
-  if (widget_view_ == nullptr)
-    return;
-
-  if (animation_count_ == 0)
+  if (animation_count_ == 0 && widget_view_ != nullptr)
     widget_view_->StartAnimation();
   ++animation_count_;
 }
@@ -659,6 +656,18 @@ void Widget::set_scale(const float scale) {
 void Widget::set_widget_view(WidgetView* widget_view) {
   if (widget_view_ == widget_view)
     return;
+
+  // Updates the animation state for the current and previous widget views.
+  if (IsAnimating()) {
+    if (widget_view == nullptr) {
+      widget_view_->StopAnimation();
+    } else if (widget_view_ == nullptr) {
+      widget_view->StartAnimation();
+    } else {
+      widget_view_->StopAnimation();
+      widget_view->StartAnimation();
+    }
+  }
 
   if (widget_view_ != nullptr) {
     NVGcontext* context = widget_view_->context();
