@@ -54,8 +54,8 @@ void Layout::AddChild(Widget* child) {
 std::vector<Widget*> Layout::GetCells() {
   std::vector<Widget*> valid_cells;
   std::vector<Widget*> stale_cells;
-  for (Widget* cell : reinterpret_cast<ScrollView*>(this)->children()) {
-    if (cell->children().size() == 1)
+  for (Widget* cell : *reinterpret_cast<ScrollView*>(this)->children()) {
+    if (cell->children()->size() == 1)
       valid_cells.push_back(cell);
     else
       stale_cells.push_back(cell);
@@ -90,7 +90,7 @@ bool Layout::ShouldRearrangeCells() {
 
   int index = 0;
   for (Widget* cell : cells) {
-    Widget* widget = cell->children().at(0);
+    auto widget = reinterpret_cast<Widget*>(cell->children()->front());
     Size occupied_size;
     widget->GetOccupiedSpace(&occupied_size);
 
@@ -123,7 +123,7 @@ bool Layout::WidgetViewWillRender(NVGcontext* context) {
   // Updates managed widgets.
   managed_widgets_.clear();
   for (Widget* cell : GetCells()) {
-    Widget* widget = cell->children().at(0);
+    auto widget = reinterpret_cast<Widget*>(cell->children()->front());
     Size occupied_size;
     widget->GetOccupiedSpace(&occupied_size);
     managed_widgets_.push_back({widget, occupied_size, cell});
@@ -132,13 +132,13 @@ bool Layout::WidgetViewWillRender(NVGcontext* context) {
   return false;
 }
 
-std::vector<Widget*>& Layout::children() {
+std::vector<Widget*>* Layout::children() {
   managed_children_.clear();
   for (Widget* cell : GetCells()) {
-    if (cell->children().size() == 1)
-      managed_children_.push_back(cell->children().at(0));
+    if (cell->children()->size() == 1)
+      managed_children_.push_back(cell->children()->front());
   }
-  return managed_children_;
+  return &managed_children_;
 }
 
 void Layout::set_bottom_padding(const float padding) {

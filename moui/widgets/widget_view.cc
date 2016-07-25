@@ -131,7 +131,7 @@ void WidgetView::HandleMemoryWarning() {
 
 void WidgetView::HandleMemoryWarningRecursively(moui::Widget* widget) {
   widget->HandleMemoryWarning(context_);
-  for (Widget* child_widget : widget->children())
+  for (Widget* child_widget : *(widget->children()))
     HandleMemoryWarningRecursively(child_widget);
 }
 
@@ -217,7 +217,7 @@ void WidgetView::PopulateWidgetList(const int level, const float scale,
                              scissor_height};
   widget_list->push_back(item);
   const float kChildWidgetScale = scale * widget->scale();
-  for (Widget* child : widget->children())
+  for (Widget* child : *(widget->children()))
     PopulateWidgetList(level + 1, kChildWidgetScale, widget_list, child, item);
 }
 
@@ -322,8 +322,8 @@ bool WidgetView::UpdateEventResponders(const Point location, Widget* widget) {
   }
 
   bool result = false;
-  for (auto it = widget->children().rbegin();
-       it != widget->children().rend(); it++) {
+  for (auto it = widget->children()->rbegin();
+       it != widget->children()->rend(); it++) {
     Widget* child = reinterpret_cast<Widget*>(*it);
     if (UpdateEventResponders(location, child))
       result = true;
@@ -341,7 +341,7 @@ void WidgetView::WidgetViewDidRender(Widget* widget) {
   nvgSave(context);
   widget->WidgetViewDidRender(context);
   nvgRestore(context);
-  for (Widget* child : widget->children())
+  for (Widget* child : *(widget->children()))
     WidgetViewDidRender(child);
 }
 
@@ -353,7 +353,7 @@ void WidgetView::WidgetViewWillRender(Widget* widget) {
     result = widget->WidgetViewWillRender(context);
     nvgRestore(context);
 
-    for (Widget* child : widget->children())
+    for (Widget* child : *(widget->children()))
       WidgetViewWillRender(child);
   }
 }

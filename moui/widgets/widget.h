@@ -140,6 +140,9 @@ class Widget {
   // Returns true if the widget is animating.
   bool IsAnimating() const;
 
+  // Returns `true` if the widget is a child of a given `parent` widget.
+  bool IsChild(Widget* parent);
+
   // Returns true if the widget is hidden.
   bool IsHidden() const;
 
@@ -209,7 +212,7 @@ class Widget {
   void set_alpha(const float alpha);
   NVGcolor background_color() const { return background_color_; }
   void set_background_color(const NVGcolor background_color);
-  std::vector<Widget*>& children() { return children_; }
+  std::vector<Widget*>* children() { return &children_; }
   bool frees_descendants_on_destruction() const {
     return frees_descendants_on_destruction_;
   }

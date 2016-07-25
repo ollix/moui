@@ -110,7 +110,7 @@ class ScrollView : public Widget {
   }
   bool bounces() const { return bounces_; }
   void set_bounces(const bool value) { bounces_ = value; }
-  std::vector<Widget*>& children() { return content_view_->children(); }
+  std::vector<Widget*>* children() { return content_view_->children(); }
   float deceleration_rate() const { return deceleration_rate_; }
   void set_deceleration_rate(const float deceleration_rate) {
     deceleration_rate_ = std::abs(deceleration_rate);

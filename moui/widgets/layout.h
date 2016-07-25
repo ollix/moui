@@ -52,7 +52,7 @@ class Layout : public ScrollView {
   }
   float bottom_padding() const { return bottom_padding_; }
   void set_bottom_padding(const float padding);
-  std::vector<Widget*>& children();
+  std::vector<Widget*>* children();
   float left_padding() const { return left_padding_; }
   void set_left_padding(const float padding);
   float right_padding() const { return right_padding_; }

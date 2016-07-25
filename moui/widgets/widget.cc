@@ -51,7 +51,7 @@ float CalculatePoints(const moui::Widget::Unit unit, const float value,
 // function is created for the widget's destructor. Note that the passed
 // root widget itself is not freed.
 void FreeDescendantsRecursively(moui::Widget* widget) {
-  for (moui::Widget* child : widget->children()) {
+  for (moui::Widget* child : *(widget->children())) {
     FreeDescendantsRecursively(child);
     delete child;
   }
@@ -395,6 +395,17 @@ bool Widget::IsAnimating() const {
   return animation_count_ > 0;
 }
 
+bool Widget::IsChild(Widget* parent) {
+  if (parent == nullptr || real_parent_ == nullptr)
+    return false;
+
+  for (Widget* candidate : *(parent->children())) {
+    if (this == candidate)
+      return true;
+  }
+  return false;
+}
+
 bool Widget::IsHidden() const {
   return hidden_;
 }
@@ -490,7 +501,7 @@ void Widget::ResetMeasuredScale() {
 
 void Widget::ResetMeasuredScaleRecursively(Widget* widget) {
   widget->ResetMeasuredScale();
-  for (Widget* child : widget->children())
+  for (Widget* child : *(widget->children()))
     ResetMeasuredScaleRecursively(child);
 }
 
