@@ -24,9 +24,9 @@
 
 #include "moui/core/device.h"
 #include "moui/core/event.h"
+#include "moui/native/native_view.h"
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
 #include "moui/ui/view.h"
 #include "moui/widgets/scroll_view.h"
 #include "moui/widgets/widget.h"

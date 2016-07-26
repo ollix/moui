@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2016 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,16 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_UI_UI_H_
-#define MOUI_UI_UI_H_
+#include "moui/native/native_window.h"
 
-#include "moui/ui/base_view.h"
-#include "moui/ui/base_window.h"
-#include "moui/ui/view.h"
-#include "moui/ui/window.h"
+#include "moui/native/native_view.h"
 
-#endif  // MOUI_UI_UI_H_
+namespace moui {
+
+NativeWindow::NativeWindow(void* native_handle) : NativeView(native_handle) {
+}
+
+NativeWindow::~NativeWindow() {
+}
+
+}  // namespace moui

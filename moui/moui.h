@@ -20,6 +20,7 @@
 
 #include "moui/base.h"
 #include "moui/core/core.h"
+#include "moui/native/native.h"
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
 #include "moui/ui/ui.h"

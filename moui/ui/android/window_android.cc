@@ -20,8 +20,8 @@
 #include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
+#include "moui/native/native_view.h"
 #include "moui/ui/base_window.h"
-#include "moui/ui/native_view.h"
 
 namespace {
 
@@ -48,12 +48,11 @@ namespace moui {
 // Instantiates the JAVA OpenGLView class and sets it as the native handle.
 Window::Window(void* native_handle) : BaseWindow(nullptr) {
   JNIEnv* env = Application::GetJNIEnv();
-  native_handle_ = env->NewGlobalRef(reinterpret_cast<jobject>(native_handle));
+  SetNativeHandle(env->NewGlobalRef(reinterpret_cast<jobject>(native_handle)),
+                  true);
 }
 
 Window::~Window() {
-  JNIEnv* env = Application::GetJNIEnv();
-  env->DeleteGlobalRef(reinterpret_cast<jobject>(native_handle_));
 }
 
 // Calls com.ollix.moui.Window.getMainWindow() on the Java side.
@@ -69,7 +68,7 @@ std::unique_ptr<Window> Window::GetMainWindow() {
 
 // Calls com.ollix.moui.Window.getRootView() on the Java side.
 std::unique_ptr<NativeView> Window::GetRootView() const {
-  jobject native_window = reinterpret_cast<jobject>(native_handle_);
+  jobject native_window = reinterpret_cast<jobject>(native_handle());
   jobject java_window = GetJavaWindow();
   JNIEnv* env = moui::Application::GetJNIEnv();
   jclass window_class = env->GetObjectClass(java_window);

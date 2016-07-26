@@ -15,30 +15,41 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#include "moui/ui/native_view.h"
+#include "moui/native/native_view.h"
 
 #include <cstdlib>
 
 #import <Cocoa/Cocoa.h>
 
 #include "moui/core/device.h"
+#include "moui/native/native_object.h"
 
 namespace moui {
 
-NativeView::NativeView(void* native_handle) : native_handle_(native_handle) {
+NativeView::NativeView(void* native_handle) : NativeObject(native_handle) {
+}
+
+NativeView::NativeView() : NativeView(nullptr) {
+  NSView* view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
+  SetNativeHandle((__bridge void*)view, true);
 }
 
 NativeView::~NativeView() {
 }
 
 void NativeView::AddSubview(const NativeView* subview) {
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   NSView* native_subview = (__bridge NSView*)subview->native_handle();
   [native_view addSubview:native_subview];
 }
 
+bool NativeView::BecomeFirstResponder() const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  return [native_view becomeFirstResponder];
+}
+
 int NativeView::GetHeight() const {
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   return native_view.frame.size.height;
 }
 
@@ -59,25 +70,40 @@ unsigned char* NativeView::GetSnapshot() const {
       color_space,
       kCGBitmapAlphaInfoMask & kCGImageAlphaPremultipliedLast);
   CGColorSpaceRelease(color_space);
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   CGContextScaleCTM(context, kScreenScaleFactor, kScreenScaleFactor);
   [native_view.layer renderInContext:context];
   CGContextRelease(context);
   return image;
 }
 
+NativeView* NativeView::GetSuperview() const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  return new NativeView(native_view.superview);
+}
+
 int NativeView::GetWidth() const {
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   return native_view.frame.size.width;
 }
 
 bool NativeView::IsHidden() const {
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   return native_view.hidden;
 }
 
+void NativeView::RemoveFromSuperview() const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  [native_view removeFromSuperview];
+}
+
+void NativeView::ResignFirstResponder() const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  [native_view resignFirstResponder];
+}
+
 void NativeView::SendSubviewToBack(const NativeView* subview) {
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   NSView* native_subview = (__bridge NSView*)subview->native_handle();
   [native_subview removeFromSuperview];
   [native_view addSubview:native_subview
@@ -87,12 +113,12 @@ void NativeView::SendSubviewToBack(const NativeView* subview) {
 
 void NativeView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   native_view.frame = CGRectMake(x, y, width, height);
 }
 
 bool NativeView::SetHidden(const bool hidden) const {
-  NSView* native_view = (__bridge NSView*)native_handle_;
+  NSView* native_view = (__bridge NSView*)native_handle();
   native_view.hidden = hidden;
 }
 

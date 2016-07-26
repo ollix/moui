@@ -34,7 +34,7 @@ View::View() : BaseView() {
                                             opengl_view_constructor,
                                             Application::GetMainActivity(),
                                             (jlong)this);
-  native_handle_ = env->NewGlobalRef(java_opengl_view);
+  SetNativeHandle(env->NewGlobalRef(java_opengl_view), true);
 }
 
 View::~View() {
@@ -42,7 +42,7 @@ View::~View() {
 
 // Calls com.ollix.OpenGLView.requestRender() on the Java side.
 void View::Redraw() {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  jobject native_view = reinterpret_cast<jobject>(native_handle());
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID request_render_method = env->GetMethodID(view_class,
@@ -52,7 +52,7 @@ void View::Redraw() {
 
 // Calls com.ollix.OpenGLView.startUpdatingView() on the Java side.
 void View::StartUpdatingNativeView() {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  jobject native_view = reinterpret_cast<jobject>(native_handle());
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID start_updating_view_method = env->GetMethodID(
@@ -62,7 +62,7 @@ void View::StartUpdatingNativeView() {
 
 // Calls com.ollix.OpenGLView.stopUpdatingView() on the Java side.
 void View::StopUpdatingNativeView() {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  jobject native_view = reinterpret_cast<jobject>(native_handle());
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID stop_updating_view_method = env->GetMethodID(

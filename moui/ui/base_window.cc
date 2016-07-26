@@ -5,6 +5,8 @@
 
 #include "moui/ui/base_window.h"
 
+#include "moui/native/native_window.h"
+
 namespace {
 
 void* main_native_handle = nullptr;
@@ -13,7 +15,7 @@ void* main_native_handle = nullptr;
 
 namespace moui {
 
-BaseWindow::BaseWindow(void* native_handle) : native_handle_(native_handle) {
+BaseWindow::BaseWindow(void* native_handle) : NativeWindow(native_handle) {
 }
 
 BaseWindow::~BaseWindow() {

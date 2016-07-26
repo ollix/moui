@@ -22,8 +22,8 @@
 
 #include "moui/base.h"
 #include "moui/core/event.h"
+#include "moui/native/native_view.h"
 #include "moui/opengl_hook.h"
-#include "moui/ui/native_view.h"
 
 namespace moui {
 

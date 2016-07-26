@@ -15,24 +15,38 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_UI_NATIVE_VIEW_H_
-#define MOUI_UI_NATIVE_VIEW_H_
+#ifndef MOUI_NATIVE_NATIVE_VIEW_H_
+#define MOUI_NATIVE_NATIVE_VIEW_H_
 
 #include "moui/base.h"
+#include "moui/native/native_object.h"
 
 namespace moui {
 
-// The `NativeView` behaves as a bridge to the platform-specific native view.
-// In iOS, the native view would be `UIView` or its subclasses. In Android, the
-// native view would be `android.view.View` or its subclasses. The
-// `native_handle_` class member stores the pointer to the real native view.
-class NativeView {
+// The `NativeView` class behaves as a bridge to the platform-specific native
+// view. In iOS, the native view would be `UIView` or its subclasses.
+// In Android, the native view would be `android.view.View` or its subclasses.
+class NativeView : public NativeObject {
  public:
   explicit NativeView(void* native_handle);
+  NativeView();
   ~NativeView();
 
   // Adds a subview to the current view.
-  void AddSubview(const NativeView* subview);
+  void AddSubview(const NativeView* subview) const;
+
+#ifdef MOUI_APPLE
+  // Notifies that it is about to become first responder in its window.
+  bool BecomeFirstResponder() const;
+#endif
+
+#ifdef MOUI_IOS
+  // Moves the specified subview so that it appears on top of its siblings.
+  void BringSubviewToFront(const NativeView* view) const;
+
+  // Returns the view's alpha value.
+  float GetAlpha() const;
+#endif
 
   // Returns the height of the view.
   int GetHeight() const;
@@ -42,6 +56,9 @@ class NativeView {
   // bitmap data with the width and height matched to the screen sacle,
   // and each pixel is represented by 4 consective bytes in the RGBA format.
   unsigned char* GetSnapshot() const;
+
+  // Returns the view that is the parent of the current view.
+  NativeView* GetSuperview() const;
 #endif
 
   // Returns the width of the view.
@@ -51,8 +68,20 @@ class NativeView {
   // Returns `true` if the view is hidden.
   bool IsHidden() const;
 
+  // Unlinks the view from its superview and its window, removes it from the
+  // responder chain and invalidates its cursor rectangles.
+  void RemoveFromSuperview() const;
+
+  // Asks to relinquish the status as first responder in its window.
+  void ResignFirstResponder() const;
+
   // Moves the specified subview so that it appears behind its siblings.
-  void SendSubviewToBack(const NativeView* subview);
+  void SendSubviewToBack(const NativeView* subview) const;
+#endif
+
+#ifdef MOUI_IOS
+  // Sets the view's alpha value.
+  void SetAlpha(const float alpha) const;
 #endif
 
   // Sets the bounds of the view.
@@ -64,17 +93,10 @@ class NativeView {
   bool SetHidden(const bool hidden) const;
 #endif
 
-  // Returns the pointer to the platform-specifc native view.
-  void* native_handle() const { return native_handle_; }
-
- protected:
-  // The pointer to the platform-sepcific native view.
-  void* native_handle_;
-
  private:
   DISALLOW_COPY_AND_ASSIGN(NativeView);
 };
 
 }  // namespace moui
 
-#endif  // MOUI_UI_NATIVE_VIEW_H_
+#endif  // MOUI_NATIVE_NATIVE_VIEW_H_

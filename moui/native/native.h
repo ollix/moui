@@ -15,12 +15,16 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_UI_UI_H_
-#define MOUI_UI_UI_H_
+#ifndef MOUI_NATIVE_NATIVE_H_
+#define MOUI_NATIVE_NATIVE_H_
 
-#include "moui/ui/base_view.h"
-#include "moui/ui/base_window.h"
-#include "moui/ui/view.h"
-#include "moui/ui/window.h"
+#include "moui/native/native_object.h"
+#include "moui/native/native_view.h"
+#include "moui/native/native_window.h"
 
-#endif  // MOUI_UI_UI_H_
+#ifdef MOUI_IOS
+#include "moui/native/ios/native_application.h"
+#include "moui/native/ios/native_view_controller.h"
+#endif
+
+#endif  // MOUI_NATIVE_NATIVE_H_

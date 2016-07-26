@@ -25,26 +25,24 @@ namespace moui {
 // Instantiates the `MOOpenGLView` class and uses it as the native handle.
 View::View() : BaseView() {
   MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
-  native_handle_ = (__bridge void*)view;
+  SetNativeHandle((__bridge void*)view, true);
 }
 
 View::~View() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
-  [native_view dealloc];
 }
 
 void View::Redraw() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
+  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
   [native_view setNeedsRedraw];
 }
 
 void View::StartUpdatingNativeView() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
+  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
   [native_view startUpdatingView];
 }
 
 void View::StopUpdatingNativeView() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle_;
+  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
   [native_view stopUpdatingView];
 }
 

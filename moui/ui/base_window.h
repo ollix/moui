@@ -7,6 +7,7 @@
 #define MOUI_UI_BASE_WINDOW_H_
 
 #include "moui/base.h"
+#include "moui/native/native_window.h"
 
 namespace moui {
 
@@ -14,7 +15,7 @@ namespace moui {
 // should only be inherited by the `Window` class and never instantiated
 // directly. The purpose of this class is to provide a way for registering and
 // retrieving the main window.
-class BaseWindow {
+class BaseWindow : public NativeWindow {
  public:
   explicit BaseWindow(void* native_handle);
   ~BaseWindow();
@@ -27,9 +28,6 @@ class BaseWindow {
   // Returns the native handle previously registered through the
   // `RegisterMainNativeHandle()` method.
   static void* GetMainNativeHandle();
-
-  // The pointer to the platform-specific window instance.
-  void* native_handle_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseWindow);

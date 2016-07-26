@@ -15,11 +15,12 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#include "moui/ui/base_view.h"
+#include "moui/native/native_view.h"
 
 #include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
+#include "moui/native/native_object.h"
 
 namespace {
 
@@ -43,20 +44,16 @@ jobject GetJavaNativeView() {
 
 namespace moui {
 
-NativeView::NativeView(void* native_handle) {
-  if (native_handle == nullptr)
-    return;
+NativeView::NativeView(void* native_handle) : NativeObject(native_handle) {
+}
 
+NativeView::NativeView() {
   JNIEnv* env = Application::GetJNIEnv();
-  native_handle_ = env->NewGlobalRef(reinterpret_cast<jobject>(native_handle));
+  SetNativeHandle(env->NewGlobalRef(reinterpret_cast<jobject>(native_handle)),
+                  true);  // releases on demand
 }
 
 NativeView::~NativeView() {
-  if (native_handle_ == nullptr)
-    return;
-
-  JNIEnv* env = Application::GetJNIEnv();
-  env->DeleteGlobalRef(reinterpret_cast<jobject>(native_handle_));
 }
 
 // Calls com.ollix.moui.NativeView.addSubview() on the Java side.
@@ -68,13 +65,13 @@ void NativeView::AddSubview(const NativeView* subview) {
       native_view_class, "addSubview",
       "(Landroid/view/View;Landroid/view/View;)V");
   env->CallVoidMethod(native_view, add_subview_method,
-                      reinterpret_cast<jobject>(native_handle_),
+                      reinterpret_cast<jobject>(native_handle()),
                       reinterpret_cast<jobject>(subview->native_handle()));
 }
 
 // Calls android.view.View.getHeight() on the Java side.
 int NativeView::GetHeight() const {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  jobject native_view = reinterpret_cast<jobject>(native_handle());
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID get_height_method = env->GetMethodID(
@@ -84,7 +81,7 @@ int NativeView::GetHeight() const {
 
 // Calls android.view.View.getWidth() on the Java side.
 int NativeView::GetWidth() const {
-  jobject native_view = reinterpret_cast<jobject>(native_handle_);
+  jobject native_view = reinterpret_cast<jobject>(native_handle());
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID get_width_method = env->GetMethodID(
@@ -101,7 +98,7 @@ void NativeView::SetBounds(const int x, const int y, const int width,
   jmethodID set_bounds_method = env->GetMethodID(
       native_view_class, "setBounds", "(Landroid/view/View;IIII)V");
   env->CallVoidMethod(native_view, set_bounds_method,
-                      reinterpret_cast<jobject>(native_handle_),
+                      reinterpret_cast<jobject>(native_handle()),
                       x, y, width, height);
 }
 

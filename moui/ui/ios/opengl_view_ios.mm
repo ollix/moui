@@ -155,7 +155,7 @@
     glDeleteFramebuffers(1, &_framebuffer);
   if (_displayLink != nil)
     [_displayLink invalidate];
-  [_context dealloc];
+  [_context release];
 
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:UIApplicationDidBecomeActiveNotification

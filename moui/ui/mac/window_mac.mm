@@ -20,8 +20,8 @@
 #import <Cocoa/Cocoa.h>
 #include <memory>
 
+#include "moui/native/native_view.h"
 #include "moui/ui/base_window.h"
-#include "moui/ui/native_view.h"
 
 namespace moui {
 
@@ -37,7 +37,7 @@ std::unique_ptr<Window> Window::GetMainWindow() {
 }
 
 std::unique_ptr<NativeView> Window::GetRootView() const {
-  NSWindow* native_window = (__bridge NSWindow*)native_handle_;
+  NSWindow* native_window = (__bridge NSWindow*)native_handle();
   NSView* native_view = (NSView*)[native_window contentView];
   return std::unique_ptr<NativeView>(
       new NativeView((__bridge void*)native_view));

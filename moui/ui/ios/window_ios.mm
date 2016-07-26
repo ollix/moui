@@ -20,8 +20,8 @@
 #include <memory>
 #import <UIKit/UIKit.h>
 
+#include "moui/native/native_view.h"
 #include "moui/ui/base_window.h"
-#include "moui/ui/native_view.h"
 
 namespace moui {
 
@@ -38,7 +38,7 @@ std::unique_ptr<Window> Window::GetMainWindow() {
 }
 
 std::unique_ptr<NativeView> Window::GetRootView() const {
-  UIWindow* native_window = (__bridge UIWindow*)native_handle_;
+  UIWindow* native_window = (__bridge UIWindow*)native_handle();
   UIViewController* root_view_controller = [native_window rootViewController];
   UIView* native_view = (UIView*)[root_view_controller view];
   return std::unique_ptr<NativeView>(

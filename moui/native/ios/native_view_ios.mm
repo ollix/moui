@@ -15,7 +15,7 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#include "moui/ui/native_view.h"
+#include "moui/native/native_view.h"
 
 #include <cstdlib>
 
@@ -23,23 +23,44 @@
 #import <UIKit/UIKit.h>
 
 #include "moui/core/device.h"
+#include "moui/native/native_object.h"
 
 namespace moui {
 
-NativeView::NativeView(void* native_handle) : native_handle_(native_handle) {
+NativeView::NativeView(void* native_handle) : NativeObject(native_handle) {
+}
+
+NativeView::NativeView() : NativeView(nullptr) {
+  UIView* view = [[UIView alloc] initWithFrame:CGRectZero];
+  SetNativeHandle((__bridge void*)view, true);
 }
 
 NativeView::~NativeView() {
 }
 
-void NativeView::AddSubview(const NativeView* subview) {
-  UIView* native_view = (__bridge UIView*)native_handle_;
+void NativeView::AddSubview(const NativeView* subview) const {
+  UIView* native_view = (__bridge UIView*)native_handle();
   UIView* native_subview = (__bridge UIView*)subview->native_handle();
   [native_view addSubview:native_subview];
 }
 
+bool NativeView::BecomeFirstResponder() const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  return [native_view becomeFirstResponder];
+}
+
+void NativeView::BringSubviewToFront(const NativeView* view) const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  [native_view bringSubviewToFront:native_view];
+}
+
+float NativeView::GetAlpha() const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  return native_view.alpha;
+}
+
 int NativeView::GetHeight() const {
-  UIView* native_view = (__bridge UIView*)native_handle_;
+  UIView* native_view = (__bridge UIView*)native_handle();
   return native_view.frame.size.height;
 }
 
@@ -60,37 +81,57 @@ unsigned char* NativeView::GetSnapshot() const {
       color_space,
       kCGBitmapAlphaInfoMask & kCGImageAlphaPremultipliedLast);
   CGColorSpaceRelease(color_space);
-  UIView* native_view = (__bridge UIView*)native_handle_;
+  UIView* native_view = (__bridge UIView*)native_handle();
   CGContextScaleCTM(context, kScreenScaleFactor, kScreenScaleFactor);
   [native_view.layer renderInContext:context];
   CGContextRelease(context);
   return image;
 }
 
+NativeView* NativeView::GetSuperview() const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  return new NativeView(native_view.superview);
+}
+
 int NativeView::GetWidth() const {
-  UIView* native_view = (__bridge UIView*)native_handle_;
+  UIView* native_view = (__bridge UIView*)native_handle();
   return native_view.frame.size.width;
 }
 
 bool NativeView::IsHidden() const {
-  UIView* native_view = (__bridge UIView*)native_handle_;
+  UIView* native_view = (__bridge UIView*)native_handle();
   return native_view.hidden;
 }
 
-void NativeView::SendSubviewToBack(const NativeView* subview) {
-  UIView* native_view = (__bridge UIView*)native_handle_;
+void NativeView::RemoveFromSuperview() const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  [native_view removeFromSuperview];
+}
+
+void NativeView::ResignFirstResponder() const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  [native_view resignFirstResponder];
+}
+
+void NativeView::SendSubviewToBack(const NativeView* subview) const {
+  UIView* native_view = (__bridge UIView*)native_handle();
   UIView* native_subview = (__bridge UIView*)subview->native_handle();
   [native_view sendSubviewToBack:native_subview];
 }
 
+void NativeView::SetAlpha(const float alpha) const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  native_view.alpha = alpha;
+}
+
 void NativeView::SetBounds(const int x, const int y, const int width,
                            const int height) const {
-  UIView* native_view = (__bridge UIView*)native_handle_;
+  UIView* native_view = (__bridge UIView*)native_handle();
   native_view.frame = CGRectMake(x, y, width, height);
 }
 
 bool NativeView::SetHidden(const bool hidden) const {
-  UIView* native_view = (__bridge UIView*)native_handle_;
+  UIView* native_view = (__bridge UIView*)native_handle();
   native_view.hidden = hidden;
 }
 
