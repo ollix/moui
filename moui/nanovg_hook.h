@@ -67,6 +67,10 @@ void nvgDrawDropShadow(NVGcontext* context, const float x, const float y,
                        const NVGcolor inner_color,
                        const NVGcolor outer_color);
 
+// Updates the specified `image` data to unpremultiply its alpha values.
+void nvgUnpremultiplyImageAlpha(unsigned char* image, const int width,
+                                const int height);
+
 }  // namespace moui
 
 #endif  // MOUI_NANOVG_HOOK_H_

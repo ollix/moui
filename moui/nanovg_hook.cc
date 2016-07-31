@@ -76,67 +76,6 @@ void FlipImageVertically(const int width, const int height,
   }
 }
 
-// Unpremultiplies the alpha value of every pixel of the passed image.
-void UnpremultiplyImageAlpha(const int width, const int height,
-                             unsigned char* image) {
-  const int kStride = width * 4;
-  int x, y;
-
-  // Unpremultiply
-  for (y = 0; y < height; y++) {
-    unsigned char* row = &image[y * kStride];
-    for (x = 0; x < width; x++) {
-      int r = row[0], g = row[1], b = row[2], a = row[3];
-      if (a != 0) {
-        row[0] = static_cast<int>(std::min(r * 255 / a, 255));
-        row[1] = static_cast<int>(std::min(g * 255 / a, 255));
-        row[2] = static_cast<int>(std::min(b * 255 / a, 255));
-      }
-      row += 4;
-    }
-  }
-
-  // Defringe
-  for (y = 0; y < height; y++) {
-    unsigned char* row = &image[y * kStride];
-    for (x = 0; x < width; x++) {
-      int r = 0, g = 0, b = 0, a = row[3], n = 0;
-      if (a == 0) {
-        if (x-1 > 0 && row[-1] != 0) {
-          r += row[-4];
-          g += row[-3];
-          b += row[-2];
-          n++;
-        }
-        if (x+1 < width && row[7] != 0) {
-          r += row[4];
-          g += row[5];
-          b += row[6];
-          n++;
-        }
-        if (y-1 > 0 && row[-kStride + 3] != 0) {
-          r += row[-kStride];
-          g += row[-kStride + 1];
-          b += row[-kStride + 2];
-          n++;
-        }
-        if (y+1 < height && row[kStride + 3] != 0) {
-          r += row[kStride];
-          g += row[kStride + 1];
-          b += row[kStride + 2];
-          n++;
-        }
-        if (n > 0) {
-          row[0] = r / n;
-          row[1] = g / n;
-          row[2] = b / n;
-        }
-      }
-      row += 4;
-    }
-  }
-}
-
 }  // namespace
 
 namespace moui {
@@ -192,6 +131,66 @@ void nvgDrawDropShadow(NVGcontext* context, const float x, const float y,
           height + feather * 2);
   nvgFillPaint(context, kShadowPaint);
   nvgFill(context);
+}
+
+void nvgUnpremultiplyImageAlpha(unsigned char* image, const int width,
+                                const int height) {
+  const int kStride = width * 4;
+
+  // Unpremultiply.
+  for (int y = 0; y < height; y++) {
+    unsigned char *row = &image[y * kStride];
+    for (int x = 0; x < width; x++) {
+      const int kRed = row[0], kGreen = row[1], kBlue = row[2], kAlpha = row[3];
+      if (kAlpha != 0) {
+        row[0] = static_cast<int>(std::min(kRed * 255 / kAlpha, 255));
+        row[1] = static_cast<int>(std::min(kGreen * 255 / kAlpha, 255));
+        row[2] = static_cast<int>(std::min(kBlue * 255 / kAlpha, 255));
+      }
+      row += 4;
+    }
+  }
+
+  // Defringe.
+  for (int y = 0; y < height; y++) {
+    unsigned char *row = &image[y * kStride];
+    for (int x = 0; x < width; x++) {
+      const int kAlpha = row[3];
+      int red = 0, green = 0, blue = 0, n = 0;
+      if (kAlpha == 0) {
+        if (x-1 > 0 && row[-1] != 0) {
+          red += row[-4];
+          green += row[-3];
+          blue += row[-2];
+          n++;
+        }
+        if (x + 1 < width && row[7] != 0) {
+          red += row[4];
+          green += row[5];
+          blue += row[6];
+          n++;
+        }
+        if (y - 1 > 0 && row[-kStride + 3] != 0) {
+          red += row[-kStride];
+          green += row[-kStride + 1];
+          blue += row[-kStride + 2];
+          n++;
+        }
+        if (y + 1 < height && row[kStride + 3] != 0) {
+          red += row[kStride];
+          green += row[kStride + 1];
+          blue += row[kStride + 2];
+          n++;
+        }
+        if (n > 0) {
+          row[0] = red / n;
+          row[1] = green / n;
+          row[2] = blue / n;
+        }
+      }
+      row += 4;
+    }
+  }
 }
 
 }  // namespace moui
