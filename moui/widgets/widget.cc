@@ -205,6 +205,16 @@ float Widget::GetHeight() const {
   return CalculatePoints(height_unit_, height_value_, kParentHeight);
 }
 
+float Widget::GetMeasuredAlpha() {
+  float measure_alpha = alpha_;
+  Widget* parent = parent_;
+  while (parent != nullptr) {
+    measure_alpha *= parent->alpha();
+    parent = parent->parent();
+  }
+  return measure_alpha;
+}
+
 void Widget::GetMeasuredBounds(Point* origin, Size* size) {
   if (origin == nullptr && size == nullptr)
     return;

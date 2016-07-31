@@ -95,6 +95,9 @@ class Widget {
   // Returns the height in points.
   float GetHeight() const;
 
+  // Returns the widget's alpha value related to the corresponded widget view.
+  float GetMeasuredAlpha();
+
   // Determines the widget's origin and size that related to the corresponded
   // widget view's coordinate system. `nullptr` could be passed as parameter
   // if the value doesn't matter.
