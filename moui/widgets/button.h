@@ -232,7 +232,7 @@ class Button : public Control {
 
   // Keeps the reference to the framebuffer pointer of current control state.
   // This value is updated in the `RenderFramebuffer()` method.
-  NVGLUframebuffer** current_framebuffer_;
+  NVGLUframebuffer* current_framebuffer_;
 
   // The style used to render default disabled state when no corresponded
   // render function is binded. The default style is `kSemiTransparent`. Note
@@ -252,7 +252,7 @@ class Button : public Control {
   // The reference to the framebuffer pointer that will be actually rendered
   // in the `Render()` method. This value is updated in the
   // `RenderFramebuffer()` method.
-  NVGLUframebuffer** final_framebuffer_;
+  NVGLUframebuffer* final_framebuffer_;
 
   // The framebuffer for rendering the button in highlighted state.
   NVGLUframebuffer* highlighted_state_framebuffer_;
@@ -266,7 +266,7 @@ class Button : public Control {
 
   // Keeps the reference to the framebuffer pointer of previous control state.
   // This value is updated in the `RenderFramebuffer()` method.
-  NVGLUframebuffer** previous_framebuffer_;
+  NVGLUframebuffer* previous_framebuffer_;
 
   // Keeps the binded render functions for different control states. The vector
   // will be initialized in constructor to have the same number of elemens as

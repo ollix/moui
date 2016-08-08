@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2016 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,41 +15,32 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#if defined(MOUI_GLES2) || defined(MOUI_GLES3)
+#if defined MOUI_METAL
 
+#import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
-
-#if defined MOUI_GLES2
-#include <OpenGLES/ES2/gl.h>
-#elif defined MOUI_GLES3
-#include <OpenGLES/ES3/gl.h>
-#endif
-
 
 namespace moui {
 class View;
 }  // namespace moui
 
 // The native iOS view for rendering OpenGL stuff.
-@interface MOOpenGLView : UIView {
+@interface MOMetalView : UIView {
  @private
-  GLuint _colorRenderbuffer;
-  EAGLContext* _context;
+  BOOL _applicationIsActive;
+  id<MTLDevice> _device;
   CADisplayLink* _displayLink;
-  GLuint _framebuffer;
   BOOL _initializedBGFX;
-  BOOL _isActive;  // indicates whether the app is active
   BOOL _isHandlingEvents;
+  BOOL _isUpdatingView;
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
-  GLuint _stencilAndDepthRenderbuffer;
-  BOOL _stopsUpdatingView;
 }
 
 - (id)initWithMouiView:(moui::View *)mouiView;
 
-// Sets up the OpenGL context and asks corresponded moui view to render.
+// Sets up the bgfx context and asks corresponded moui view to render.
 // This method should never be called directly. Instead, calling
 // `startUpdatingView` to execute this method automatically.
 - (void)render;

@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2016 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,61 +15,42 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#if defined(MOUI_GLES2) || defined(MOUI_GLES3)
+#if defined MOUI_METAL
 
-#import "moui/ui/ios/opengl_view_ios.h"
+#import "moui/ui/ios/metal_view_ios.h"
 
-#include <vector>
+#import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 
+#include "bgfx/bgfx.h"
+#include "bgfx/bgfxplatform.h"
+
 #include "moui/core/event.h"
-#include "moui/defines.h"
 #include "moui/ui/view.h"
 #include "moui/widgets/widget.h"
 
-#ifdef MOUI_BGFX
-#  include "bgfx/bgfx.h"
-#  include "bgfx/bgfxplatform.h"
-#elif defined(MOUI_GLES2)
-#  include <OpenGLES/ES2/gl.h>
-#  include <OpenGLES/ES2/glext.h>
-#elif defined(MOUI_GLES3)
-#  include <OpenGLES/ES3/gl.h>
-#  include <OpenGLES/ES3/glext.h>
-#endif
-
-#if defined MOUI_GLES2
-#  define EAGL_RENDERING_API_OPENGLES kEAGLRenderingAPIOpenGLES2
-#  define GL_DEPTH24_STENCIL8 GL_DEPTH24_STENCIL8_OES
-#elif defined MOUI_GLES3
-#  define EAGL_RENDERING_API_OPENGLES kEAGLRenderingAPIOpenGLES3
-#endif
-
-
-@interface MOOpenGLView (PrivateDelegateHandling)
+@interface MOMetalView (PrivateDelegateHandling)
 
 - (void)applicationDidBecomeActive;
 - (void)applicationWillResignActive;
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
 - (void)handleMemoryWarning:(NSNotification *)notification;
-- (void)setupFramebuffer;
 
 @end
 
-@implementation MOOpenGLView (PrivateDelegateHandling)
+@implementation MOMetalView (PrivateDelegateHandling)
 
 // Resumes view updates.
 - (void)applicationDidBecomeActive {
-  _isActive = YES;
-  if (!_stopsUpdatingView)
+  _applicationIsActive = YES;
+  if (_isUpdatingView)
     [self startUpdatingView];
 }
 
-// Unregisters the display link to stops updating the view.
+// Stops updating the view.
 - (void)applicationWillResignActive {
-  _isActive = NO;
-  [_displayLink invalidate];
-  _displayLink = nil;
+  _applicationIsActive = NO;
+  _displayLink.paused = YES;
 }
 
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type {
@@ -88,67 +69,40 @@
   _mouiView->HandleMemoryWarning();
 }
 
-- (void)setupFramebuffer {
-  [EAGLContext setCurrentContext:_context];
-
-  glGenFramebuffers(1, &_framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-
-  // Creates the color render buffer.
-  glGenRenderbuffers(1, &_colorRenderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                            GL_RENDERBUFFER, _colorRenderbuffer);
-
-  // Creates both stencil and depth render buffers.
-  glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-}
-
 @end
 
-@implementation MOOpenGLView
+@implementation MOMetalView
 
 + (Class)layerClass {
-  return [CAEAGLLayer class];
+  return [CAMetalLayer class];
 }
 
 - (id)initWithMouiView:(moui::View *)mouiView {
-  if((self = [super initWithFrame:CGRectMake(0, 0, 0, 0)])) {
-    _colorRenderbuffer = 0;
-#ifndef MOUI_BGFX
-    _context = [[EAGLContext alloc] initWithAPI:EAGL_RENDERING_API_OPENGLES];
-#endif
-    _framebuffer = 0;
+  if((self = [super initWithFrame:CGRectZero])) {
     _initializedBGFX = NO;
-    _isActive = YES;
     _isHandlingEvents = NO;
+    _isUpdatingView = NO;
     _mouiView = mouiView;
     _needsRedraw = NO;
-    _stencilAndDepthRenderbuffer = 0;
-    _stopsUpdatingView = YES;
 
-    // Initializes the CAEAGLLayer.
-    CAEAGLLayer* eaglLayer = (CAEAGLLayer *)self.layer;
-    eaglLayer.contentsScale = [UIScreen mainScreen].scale;
-    eaglLayer.opaque = NO;
+    // Initializes the display link.
+    _displayLink = [CADisplayLink displayLinkWithTarget:self
+                                                selector:@selector(render)];
+    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
+                       forMode:NSRunLoopCommonModes];
+    _displayLink.paused = YES;
 
-#ifdef MOUI_BGFX
-    eaglLayer.style = @{@"opaque": @NO};  // for bgfx
+    CAMetalLayer* metalLayer = (CAMetalLayer*)self.layer;
+    metalLayer.opaque = NO;
+    metalLayer.contentsScale = [UIScreen mainScreen].scale;
+
     bgfx::PlatformData platformData;
     platformData.ndt = NULL;
-    platformData.nwh = eaglLayer;
-    platformData.context = NULL;
+    platformData.nwh = metalLayer;
+    platformData.context = MTLCreateSystemDefaultDevice();
     platformData.backBuffer = NULL;
     platformData.backBufferDS = NULL;
     bgfx::setPlatformData(platformData);
-#else
-    [self setupFramebuffer];
-#endif
 
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(applicationDidBecomeActive)
@@ -167,20 +121,9 @@
 }
 
 - (void)dealloc {
-#ifdef MOUI_BGFX
   if (_initializedBGFX)
     bgfx::shutdown();
-#endif
-  if (_colorRenderbuffer != 0)
-    glDeleteRenderbuffers(1, &_colorRenderbuffer);
-  if (_stencilAndDepthRenderbuffer != 0)
-    glDeleteFramebuffers(1, &_stencilAndDepthRenderbuffer);
-  if (_framebuffer != 0)
-    glDeleteFramebuffers(1, &_framebuffer);
-  if (_displayLink != nil)
-    [_displayLink invalidate];
-  [_context release];
-
+  [_displayLink invalidate];
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:UIApplicationDidBecomeActiveNotification
       object:[UIApplication sharedApplication]];
@@ -198,15 +141,11 @@
 // guarantees the view will be updated in the next refresh cycle of the display.
 - (void)displayLayer:(CALayer *)layer {
   @synchronized(self) {
-    if (!_stopsUpdatingView && _needsRedraw)
-      return;
-
     _needsRedraw = YES;
-    // Attaches `_displayLink` to the run loop if it's invalidated.
-    if (_stopsUpdatingView) {
-      [self startUpdatingView];
-      [self stopUpdatingView];
-    }
+    if (_isUpdatingView)
+      return;
+    [self startUpdatingView];
+    [self stopUpdatingView];
   }
 }
 
@@ -240,81 +179,43 @@
     return;
   }
 
-  const float kWidth = self.bounds.size.width * self.layer.contentsScale;
-  const float kHeight = self.bounds.size.height * self.layer.contentsScale;
-#ifdef MOUI_BGFX
   if (!_initializedBGFX) {
-    _initializedBGFX = bgfx::init(bgfx::RendererType::OpenGLES,
-                                  BGFX_PCI_ID_NONE);
+    bgfx::renderFrame();
+    _initializedBGFX = bgfx::init(bgfx::RendererType::Metal, BGFX_PCI_ID_NONE);
     if (!_initializedBGFX)
       return;
 
-    bgfx::reset(kWidth, kHeight, BGFX_RESET_VSYNC);
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x00000000,
+    bgfx::reset(self.bounds.size.width * self.layer.contentsScale,
+                self.bounds.size.height * self.layer.contentsScale,
+                BGFX_RESET_VSYNC | BGFX_RESET_HIDPI);
+  	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x00000000,
                        1.0f, 0);
+    bgfx::setViewSeq(0, true);
   }
-  bgfx::setViewRect(0, 0, 0, kWidth, kHeight);
-
-  // This dummy draw call is here to make sure that view 0 is cleared
-  // if no other draw calls are submitted to view 0.
-  bgfx::touch(0);
-#else
-  [EAGLContext setCurrentContext:_context];
-  glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, kWidth, kHeight);
-  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
-  [_context renderbufferStorage:GL_RENDERBUFFER
-                   fromDrawable:(CAEAGLLayer *)self.layer];
-#endif
-
   // Rendering.
   _mouiView->Render();
-
-  // Swaps framebuffer.
-#ifdef MOUI_BGFX
   bgfx::frame();
-#else
-  [_context presentRenderbuffer:GL_RENDERBUFFER];
-#endif
 
-  // Removes the display link from the run loop if no need to update the view
-  // continuously.
+  // Pauses display link if stopped updating view and no redraw request.
   @synchronized(self) {
-    if (_stopsUpdatingView && !_needsRedraw) {
-      [_displayLink invalidate];  // this also releases `_displayLink`
-      _displayLink = nil;
-    } else {
+    if (_needsRedraw)
       _needsRedraw = NO;
-    }
+    else if (!_isUpdatingView)
+      _displayLink.paused = YES;
   }
 }
 
-// Sets `_stopsUpdatingView` to NO to make sure `_displayLink` stays in the
-// run loop and keep updating the view continuously. If the updating mechanism
-// was not activated yet or stopped previously, a new `CADisplayLink` object
-// will be created and added to the run loop.
 - (void)startUpdatingView {
   @synchronized(self) {
-    _stopsUpdatingView = NO;
-
-    // Registers the display link only if the app is active. Or the display
-    // link will be registered automatically when the app becomes active again.
-    if (!_isActive || _displayLink != nil)
-      return;
-
-    _displayLink = [CADisplayLink displayLinkWithTarget:self
-                                                selector:@selector(render)];
-    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
-                       forMode:NSRunLoopCommonModes];
+    _isUpdatingView = YES;
+    if (_applicationIsActive)
+      _displayLink.paused = NO;
   }
 }
 
-// Simply sets `_stopsUpdatingView` to YES to stop updating when the latest
-// rendering is done.
 - (void)stopUpdatingView {
   @synchronized(self) {
-    _stopsUpdatingView = YES;
+    _isUpdatingView = NO;
   }
 }
 

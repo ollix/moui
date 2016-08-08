@@ -21,6 +21,7 @@
 #include <string>
 
 #include "moui/base.h"
+#include "moui/defines.h"
 
 namespace moui {
 

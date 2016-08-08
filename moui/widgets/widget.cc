@@ -127,10 +127,11 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
   if (scale_factor != nullptr)
     *scale_factor = kScaleFactor;
   nvgluBindFramebuffer(*framebuffer);
+#ifndef MOUI_BGFX
   glViewport(0, 0, kWidth, kHeight);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+#endif
   return true;
 }
 
@@ -310,8 +311,10 @@ unsigned char* Widget::GetSnapshot() {
   unsigned char* snapshot = reinterpret_cast<unsigned char*>(
       std::malloc(framebuffer_width * framebuffer_height * 4));
   if (snapshot != nullptr) {
+#ifndef MOUI_BGFX
     glReadPixels(0, 0, framebuffer_width, framebuffer_height, GL_RGBA,
                  GL_UNSIGNED_BYTE, snapshot);
+#endif
   }
   EndFramebufferUpdates();
   moui::nvgDeleteFramebuffer(&framebuffer);

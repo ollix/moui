@@ -18,28 +18,40 @@
 #ifndef MOUI_NANOVG_HOOK_H_
 #define MOUI_NANOVG_HOOK_H_
 
-#if defined MOUI_GL2
-#  define NANOVG_GL2 1
-#  define nvgCreateGL(flags) nvgCreateGL2(flags)
-#  define nvgDeleteGL(context) nvgDeleteGL2(context)
-#elif defined MOUI_GLES2
-#  define NANOVG_GLES2 1
-#  define nvgCreateGL(flags) nvgCreateGLES2(flags)
-#  define nvgDeleteGL(context) nvgDeleteGLES2(context)
-#elif defined MOUI_GL3
-#  define NANOVG_GL3 1
-#  define nvgCreateGL(flags) nvgCreateGL3(flags)
-#  define nvgDeleteGL(context) nvgDeleteGL3(context)
-#elif defined MOUI_GLES3
-#  define NANOVG_GLES3 1
-#  define nvgCreateGL(flags) nvgCreateGLES3(flags)
-#  define nvgDeleteGL(context) nvgDeleteGLES3(context)
+#include "moui/defines.h"
+#include "moui/opengl_hook.h"
+
+#include "nanovg/src/nanovg.h"
+
+#ifdef MOUI_BGFX
+#  include "bx/bx.h"
+#  include "bgfx/bgfx.h"
+#  include "bgfx/examples/common/nanovg/nanovg_bgfx.h"
+#else
+#  include "nanovg/src/nanovg_gl.h"
+#  include "nanovg/src/nanovg_gl_utils.h"
 #endif
 
-#include "moui/opengl_hook.h"
-#include "nanovg/src/nanovg.h"
-#include "nanovg/src/nanovg_gl.h"
-#include "nanovg/src/nanovg_gl_utils.h"
+#if defined MOUI_BGFX
+#  define nvgCreateContext(flags) nvgCreate(1, 0, NULL)
+#  define nvgDeleteContext(context) nvgDelete(context)
+#elif defined MOUI_GL2
+#  define NANOVG_GL2 1
+#  define nvgCreateContext(flags) nvgCreateGL2(flags)
+#  define nvgDeleteContext(context) nvgDeleteGL2(context)
+#elif defined MOUI_GLES2
+#  define NANOVG_GLES2 1
+#  define nvgCreateContext(flags) nvgCreateGLES2(flags)
+#  define nvgDeleteContext(context) nvgDeleteGLES2(context)
+#elif defined MOUI_GL3
+#  define NANOVG_GL3 1
+#  define nvgCreateContext(flags) nvgCreateGL3(flags)
+#  define nvgDeleteContext(context) nvgDeleteGL3(context)
+#elif defined MOUI_GLES3
+#  define NANOVG_GLES3 1
+#  define nvgCreateContext(flags) nvgCreateGLES3(flags)
+#  define nvgDeleteContext(context) nvgDeleteGLES3(context)
+#endif
 
 // Additonal APIs for nanovg.
 namespace moui {

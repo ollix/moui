@@ -214,7 +214,7 @@ void Button::HandleMemoryWarning(NVGcontext* context) {
 }
 
 void Button::Render(NVGcontext* context) {
-  if (final_framebuffer_ == nullptr || *final_framebuffer_ == nullptr)
+  if (final_framebuffer_ == nullptr)
     return;
 
   const float kWidth = GetWidth();
@@ -222,7 +222,7 @@ void Button::Render(NVGcontext* context) {
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
   const NVGpaint kPaint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight,
-                                          0, (*final_framebuffer_)->image, 1);
+                                          0, final_framebuffer_->image, 1);
   nvgFillPaint(context, kPaint);
   nvgFill(context);
 }
@@ -288,14 +288,14 @@ void Button::RenderFramebuffer(NVGcontext* context) {
                                      renders_default_highlighted_effect);
   }
   // Updates the `current_framebuffer_` and `previous_framebuffer_` properties.
-  if (framebuffer != current_framebuffer_) {
+  if (*framebuffer != current_framebuffer_) {
     previous_framebuffer_ = current_framebuffer_;
-    current_framebuffer_ = framebuffer;
+    current_framebuffer_ = *framebuffer;
   }
 
   if (transition_states_.is_transitioning &&
       RenderFramebufferForTransition(context, &transition_states_.framebuffer))
-    final_framebuffer_ = &transition_states_.framebuffer;
+    final_framebuffer_ = transition_states_.framebuffer;
   else
     final_framebuffer_ = current_framebuffer_;
 }
@@ -320,8 +320,8 @@ bool Button::RenderFramebufferForControlState(
        default_disabled_style_ == Style::kSemiTransparent) ||
       (renders_default_highlighted_effect &&
        default_highlighted_style_ == Style::kSemiTransparent)) {
-    glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
     nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+    nvgGlobalCompositeOperation(context, NVG_DESTINATION_IN);
     nvgBeginPath(context);
     nvgRect(context, 0, 0, kWidth, kHeight);
     nvgFillColor(context, nvgRGBAf(0, 0, 0, 0.5));
@@ -332,8 +332,8 @@ bool Button::RenderFramebufferForControlState(
               default_disabled_style_ != Style::kSemiTransparent) ||
              (renders_default_highlighted_effect &&
               default_highlighted_style_ != Style::kSemiTransparent)) {
-    glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+    nvgGlobalCompositeOperation(context, NVG_ATOP);
     nvgBeginPath(context);
     nvgRect(context, 0, 0, kWidth, kHeight);
     if ((renders_default_disabled_effect &&
@@ -366,13 +366,13 @@ bool Button::RenderFramebufferForTransition(NVGcontext* context,
   }
   const int kWidth = static_cast<int>(GetWidth());
   const int kHeight = static_cast<int>(GetHeight());
-  glBlendFunc(GL_ONE, GL_ONE);
   nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+  nvgGlobalCompositeOperation(context, NVG_LIGHTER);
   // Draws for the previous control state.
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
   NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
-                                   (*previous_framebuffer_)->image,
+                                   previous_framebuffer_->image,
                                    1 - transition_states_.progress);
   nvgFillPaint(context, paint);
   nvgFill(context);
@@ -380,7 +380,7 @@ bool Button::RenderFramebufferForTransition(NVGcontext* context,
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
   paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
-                          (*current_framebuffer_)->image,
+                          current_framebuffer_->image,
                           transition_states_.progress);
   nvgFillPaint(context, paint);
   nvgFill(context);
@@ -440,7 +440,7 @@ void Button::StopTransitioningBetweenControlStates(Control* control) {
 }
 
 void Button::TransitionBetweenControlStates(Control* control) {
-  if (previous_framebuffer_ == nullptr || *previous_framebuffer_ == nullptr ||
+  if (previous_framebuffer_ == nullptr ||
       (render_functions_[ControlState(ControlState::kHighlighted)] == NULL &&
        default_highlighted_style_ == Style::kNone))
     return;

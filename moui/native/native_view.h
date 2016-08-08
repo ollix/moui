@@ -19,6 +19,7 @@
 #define MOUI_NATIVE_NATIVE_VIEW_H_
 
 #include "moui/base.h"
+#include "moui/defines.h"
 #include "moui/native/native_object.h"
 
 namespace moui {

@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2016 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,21 +15,26 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#ifndef MOUI_CORE_LOG_H_
-#define MOUI_CORE_LOG_H_
+#ifndef MOUI_DEFINES_H_
+#define MOUI_DEFINES_H_
 
-#include "moui/defines.h"
-
-#if defined MOUI_APPLE
-#include <cstdio>
-#elif defined MOUI_ANDROID
-#include <android/log.h>
+#if defined(MOUI_IOS) || defined(MOUI_MAC)
+#  define MOUI_APPLE
 #endif
 
-#if defined MOUI_APPLE
-#define MO_LOG(...) std::printf(__VA_ARGS__);
-#elif defined MOUI_ANDROID
-#define MO_LOG(...) __android_log_print(ANDROID_LOG_INFO, "moui", __VA_ARGS__)
+#ifdef MOUI_METAL
+#  define MOUI_BGFX
 #endif
 
-#endif  // MOUI_CORE_LOG_H_
+#if defined(MOUI_BGFX)
+#elif defined MOUI_GL2
+#  define NANOVG_GL2_IMPLEMENTATION
+#elif defined MOUI_GLES2
+#  define NANOVG_GLES2_IMPLEMENTATION
+#elif defined MOUI_GL3
+#  define NANOVG_GL3_IMPLEMENTATION
+#elif defined MOUI_GLES3
+#  define NANOVG_GLES3_IMPLEMENTATION
+#endif
+
+#endif  // MOUI_DEFINES_H_

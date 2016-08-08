@@ -48,6 +48,7 @@
         'ui/base_window.cc',
         'ui/android/view_android.cc',
         'ui/android/window_android.cc',
+        'ui/ios/metal_view_ios.mm',
         'ui/ios/opengl_view_ios.mm',
         'ui/ios/view_ios.mm',
         'ui/ios/window_ios.mm',
@@ -76,10 +77,12 @@
       ],
       'conditions': [
         ['OS == "android"', {
-          'defines': [
+          'variables': {
+            'defines': [
             'MOUI_GLES2',
             'MOUI_ANDROID',
-          ],
+            ],
+          },
           'ldflags': [
             '-lGLESv2',
             '-llog',
@@ -103,15 +106,19 @@
           ],
         }],
         ['OS == "ios"', {
-          'defines': [
-            'MOUI_APPLE',
-            'MOUI_GLES2',
-            'MOUI_IOS',
-          ],
+          'variables': {
+            'defines': [
+              # 'MOUI_BGFX',
+              # 'MOUI_METAL',
+              'MOUI_GLES2',
+              'MOUI_IOS',
+            ],
+          },
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
               '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+              '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
               '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
               '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
@@ -124,17 +131,19 @@
             'native/ios/native_view_ios.mm',
             'native/ios/native_view_controller_ios.mm',
             'native/ios/native_window_ios.mm',
+            'ui/ios/metal_view_ios.mm',
             'ui/ios/opengl_view_ios.mm',
             'ui/ios/view_ios.mm',
             'ui/ios/window_ios.mm',
           ],
         }],
         ['OS == "mac"', {
-          'defines': [
-            'MOUI_APPLE',
+          'variables': {
+            'defines': [
             'MOUI_GL2',
             'MOUI_MAC',
-          ],
+            ],
+          },
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
@@ -152,7 +161,11 @@
           ],
         }],
         ['OS == "win"', {
-          'defines': [ 'MOUI_WINDOWS' ],
+          'variables': {
+            'defines': [
+              'MOUI_WINDOWS',
+            ],
+          },
         }],
         ['OS != "mac" and OS != "ios"', {
           'sources!': [
@@ -162,44 +175,25 @@
           ],
         }],
       ],  # conditions
+      'defines': [
+        '<@(defines)',
+      ],
       'dependencies': [
+        'bgfx.gyp:libbgfx',
         'nanovg.gyp:libnanovg',
       ],
       'export_dependent_settings': [
+        'bgfx.gyp:libbgfx',
         'nanovg.gyp:libnanovg',
       ],
       'direct_dependent_settings': {
+        'defines': [
+          '<@(defines)',
+        ],
         'include_dirs': [
           '..',
           'deps',
         ],
-        'conditions': [
-          ['OS == "android"', {
-            'defines': [
-              'MOUI_GLES2',
-              'MOUI_ANDROID',
-            ],
-          }],
-          ['OS == "ios"', {
-            'defines': [
-              'MOUI_APPLE',
-              'MOUI_GLES2',
-              'MOUI_IOS',
-            ],
-          }],
-          ['OS == "mac"', {
-            'defines': [
-              'MOUI_APPLE',
-              'MOUI_GL2',
-              'MOUI_MAC',
-            ],
-          }],
-          ['OS == "win"', {
-            'defines': [
-              'MOUI_WINDOWS',
-            ],
-          }],
-        ],  # conditions
       },  # direct_dependent_settings
     },  # libmoui target
   ],  # targets

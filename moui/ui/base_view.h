@@ -66,17 +66,6 @@ class BaseView : public NativeView {
   // implemented in the subclass to change the default behavior.
   virtual bool ShouldHandleEvent(const Point location) { return false; }
 
- protected:
-  // Compiles the shader string of the specified type. Returns the shader
-  // handle on success or 0 on failure.
-  GLuint CompileShader(const GLenum shader_type,
-                       const std::string& source) const;
-
-  // Compiles the shader file of the specified type. Returns the shader handle
-  // on success or 0 on failure.
-  GLuint CompileShaderAtPath(const GLenum shader_type,
-                             const std::string& source_path) const;
-
  private:
   // This is a bridge method for calling the corresponded function implemented
   // in native OpenGL view. This method is implemented in the `View` subclass

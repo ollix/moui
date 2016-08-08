@@ -30,6 +30,8 @@
 #include <algorithm>
 #include <cstdlib>
 
+#include "nanovg/src/nanovg.h"
+
 namespace {
 
 // Returns the data of the image snapshot from the current framebuffer.
@@ -42,7 +44,9 @@ unsigned char* CreateImageSnapshot(const int x, const int y, const int width,
   if (image == NULL)
     return NULL;
 
+#ifndef MOUI_BGFX
   glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image);
+#endif
   return image;
 }
 

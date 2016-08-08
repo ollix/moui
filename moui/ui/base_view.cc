@@ -32,47 +32,6 @@ BaseView::BaseView() : NativeView(nullptr), animation_count_(0) {
 BaseView::~BaseView() {
 }
 
-GLuint BaseView::CompileShader(const GLenum shader_type,
-                               const std::string& source) const {
-  // Compiles the shader.
-  GLuint shader_handle = glCreateShader(shader_type);
-  const GLchar* source_string = static_cast<const GLchar*>(source.c_str());
-  const int source_length = static_cast<int>(source.length());
-  glShaderSource(shader_handle, 1, &source_string, &source_length);
-  glCompileShader(shader_handle);
-  GLint compile_result;
-  glGetShaderiv(shader_handle, GL_COMPILE_STATUS, &compile_result);
-  if (compile_result == GL_FALSE) {
-#if DEBUG
-    GLchar message[256];
-    glGetShaderInfoLog(shader_handle, sizeof(message), 0, &message[0]);
-    fprintf(stderr, "Failed to compile shader: %s\n", message);
-#endif
-    glDeleteShader(shader_handle);
-    shader_handle = 0;
-  }
-  return shader_handle;
-}
-
-GLuint BaseView::CompileShaderAtPath(const GLenum shader_type,
-                                     const std::string& source_path) const {
-  std::FILE* file = std::fopen(source_path.c_str(), "r");
-  if (file == NULL)
-    return 0;
-  GLuint shader_handle = 0;
-  if (std::fseek(file, 0, SEEK_END) == 0) {
-    const int kFileSize = static_cast<int>(std::ftell(file));
-    std::fseek(file, 0, SEEK_SET);
-    char source_buffer[kFileSize];
-    if (std::fread(source_buffer, 1, kFileSize, file) == kFileSize) {
-      shader_handle = CompileShader(shader_type,
-                                    std::string(source_buffer, kFileSize));
-    }
-  }
-  std::fclose(file);
-  return shader_handle;
-}
-
 bool BaseView::IsAnimating() const {
   return animation_count_ > 0;
 }

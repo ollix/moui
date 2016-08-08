@@ -24,12 +24,17 @@
 
 #include "moui/core/device.h"
 #include "moui/core/event.h"
+#include "moui/defines.h"
 #include "moui/native/native_view.h"
 #include "moui/nanovg_hook.h"
 #include "moui/opengl_hook.h"
 #include "moui/ui/view.h"
 #include "moui/widgets/scroll_view.h"
 #include "moui/widgets/widget.h"
+
+#ifdef MOUI_BGFX
+#  include "bgfx/bgfx.h"
+#endif
 
 namespace moui {
 
@@ -40,7 +45,7 @@ WidgetView::WidgetView() : context_(nullptr), preparing_for_rendering_(false),
 
 WidgetView::~WidgetView() {
   if (context_ != nullptr) {
-    nvgDeleteGL(context_);
+    nvgDeleteContext(context_);
   }
   delete root_widget_;
 }
@@ -273,11 +278,12 @@ void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
   const float kScreenScaleFactor = \
       Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
 
+#ifndef MOUI_BGFX
   glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  nvgBeginFrame(context, kWidth, kHeight, kScreenScaleFactor);
+#endif  // MOUI_BGFX
+  nvgBeginFrame(context, kWidth , kHeight, kScreenScaleFactor);
   WidgetItemStack rendering_stack;
   for (WidgetItem* item : widget_list) {
     PopAndFinalizeWidgetItems(item->level, &rendering_stack);
@@ -359,8 +365,12 @@ void WidgetView::WidgetViewWillRender(Widget* widget) {
 }
 
 NVGcontext* WidgetView::context() {
-  if (context_ == nullptr)
-    context_ = nvgCreateGL(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+  if (context_ == nullptr) {
+    context_ = nvgCreateContext(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+#ifdef MOUI_BGFX
+    bgfx::setViewSeq(nvgViewId(context_), true);
+#endif
+  }
   return context_;
 }
 

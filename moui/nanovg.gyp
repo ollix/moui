@@ -20,14 +20,20 @@
       'target_name': 'libnanovg',
       'type': 'static_library',
       'sources': [
+        'deps/bgfx/examples/common/nanovg/nanovg_bgfx.cpp',
         'deps/nanovg/src/nanovg.c',
       ],
       'include_dirs': [
         'deps/nanovg/src',
+        'deps/bgfx/3rdparty',
+        'deps/bgfx/examples/common/nanovg',
+      ],
+      'dependencies': [
+        'bgfx.gyp:libbgfx',
       ],
       "direct_dependent_settings": {
         "include_dirs": [
-          'deps/nanovg/src',
+          'deps/nanovg/src'
         ],
       },
     },

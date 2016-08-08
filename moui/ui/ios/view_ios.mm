@@ -17,15 +17,23 @@
 
 #include "moui/ui/view.h"
 
+#include "moui/defines.h"
 #include "moui/ui/base_view.h"
-#import "moui/ui/ios/opengl_view_ios.h"
+
+#if defined(MOUI_METAL)
+#  import "moui/ui/ios/metal_view_ios.h"
+#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
+#  import "moui/ui/ios/opengl_view_ios.h"
+#endif
 
 namespace moui {
 
-// Instantiates the `MOOpenGLViewController` class and uses its view as the
-// native handle.
 View::View() : BaseView() {
+#if defined(MOUI_METAL)
+  MOMetalView* view = [[MOMetalView alloc] initWithMouiView:this];
+#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
   MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
+#endif
   SetNativeHandle((__bridge void*)view, true);
 }
 
@@ -33,19 +41,31 @@ View::~View() {
 }
 
 // Calls `CALayer`'s `setNeedsDisplay` method to trigger the `displayLayer:`
-// method defined in `MOOpenGLView`.
+// method defined in `MOMetalView`.
 void View::Redraw() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+#if defined(MOUI_METAL)
+	MOMetalView* native_view = (__bridge MOMetalView*)native_handle();
+#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
+	MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+#endif
   [[native_view layer] setNeedsDisplay];
 }
 
 void View::StartUpdatingNativeView() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+#if defined(MOUI_METAL)
+	MOMetalView* native_view = (__bridge MOMetalView*)native_handle();
+#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
+	MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+#endif
   [native_view startUpdatingView];
 }
 
 void View::StopUpdatingNativeView() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+#if defined(MOUI_METAL)
+	MOMetalView* native_view = (__bridge MOMetalView*)native_handle();
+#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
+	MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+#endif
   [native_view stopUpdatingView];
 }
 

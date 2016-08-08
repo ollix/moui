@@ -1,3 +1,9 @@
 [submodule "moui/deps/nanovg"]
 	path = moui/deps/nanovg
 	url = git@github.com:memononen/nanovg.git
+[submodule "moui/deps/bx"]
+	path = moui/deps/bx
+	url = git@github.com:bkaradzic/bx.git
+[submodule "moui/deps/bgfx"]
+	path = moui/deps/bgfx
+	url = git@github.com:bkaradzic/bgfx.git
