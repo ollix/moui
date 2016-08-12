@@ -56,8 +56,8 @@ Label::Label(const std::string& text) : Label(text, "") {
 Label::Label(const std::string& text, const std::string& font_name)
     : Widget(false), adjusts_font_size_to_fit_width_(false),
       adjusts_label_height_to_fit_width_(false), font_name_(font_name),
-      font_size_(0), minimum_scale_factor_(0), number_of_lines_(1),
-      should_prepare_for_rendering_(true), text_(text),
+      font_size_(0), line_height_(1), minimum_scale_factor_(0),
+      number_of_lines_(1), should_prepare_for_rendering_(true), text_(text),
       text_horizontal_alignment_(Alignment::kLeft),
       text_vertical_alignment_(Alignment::kTop) {
   set_text_color(nvgRGBA(0, 0, 0, 255));
@@ -78,6 +78,7 @@ void Label::ConfigureTextAttributes(NVGcontext* context) {
   nvgFontFace(context, font_name().c_str());
   nvgFontSize(context, font_size_to_render_);
   nvgTextAlign(context, horizontal_alignment | NVG_ALIGN_TOP);
+  nvgTextLineHeight(context, line_height_);
   nvgTextLetterSpacing(context, 0);
 }
 
@@ -188,7 +189,7 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
       // Updates the height of text box.
       float bounds[4];  // bounds of the row string
       nvgTextBounds(context, 0, 0, row->start, row->end, bounds);
-      text_box_height += bounds[3] - bounds[1];
+      text_box_height += (bounds[3] - bounds[1]) * line_height_;
 
       // Stops populating the text to render if it's known the label's bounding
       // box is not big enough.
@@ -254,6 +255,13 @@ void Label::set_font_size(const float font_size) {
   const int kFontSize = static_cast<int>(font_size);
   if (kFontSize != font_size_) {
     font_size_ = kFontSize;
+    Redraw();
+  }
+}
+
+void Label::set_line_height(const float line_height) {
+  if (line_height != line_height_) {
+    line_height_ = line_height;
     Redraw();
   }
 }

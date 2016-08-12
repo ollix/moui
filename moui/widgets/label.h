@@ -69,6 +69,8 @@ class Label : public Widget {
   float font_size() const;
   void set_font_size(const float font_size);
   float font_size_to_render() const { return font_size_to_render_; }
+  float line_height() const { return line_height_; }
+  void set_line_height(const float line_height);
   float minimum_scale_factor() const { return minimum_scale_factor_; }
   void set_minimum_scale_factor(const float factor);
   int number_of_lines() const { return number_of_lines_; }
@@ -119,6 +121,10 @@ class Label : public Widget {
   // automatically in `WidgetViewWillRender()` according to various
   // configurations.
   float font_size_to_render_;
+
+  // Indicates the proportional line height of current text style. The line
+  // height is specified as multiple of font size.
+  float line_height_;
 
   // The minimum scale factor supported for the label's text. The value
   // indicates the smallest multiplier for the current font size that yields
