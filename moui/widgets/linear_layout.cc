@@ -36,14 +36,13 @@ void LinearLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
   // Determines the maximum cell length. For horizontal orientation, the length
   // represents the cell's height. For vertical orientation, the length
   // represents the cell's width.
-  float max_cell_length = 0;
+  float cell_length = orientation_ == Layout::Orientation::kHorizontal ?
+                      GetHeight() : GetWidth();
   for (ManagedWidget managed_widget : managed_widgets) {
     if (orientation_ == Layout::Orientation::kHorizontal) {
-      max_cell_length = std::max(max_cell_length,
-                                 managed_widget.occupied_size.height);
+      cell_length = std::max(cell_length, managed_widget.occupied_size.height);
     } else if (orientation_ == Layout::Orientation::kVertical) {
-      max_cell_length = std::max(max_cell_length,
-                                 managed_widget.occupied_size.width);
+      cell_length = std::max(cell_length, managed_widget.occupied_size.width);
     }
   }
 
@@ -62,12 +61,12 @@ void LinearLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
       cell->SetX(offset);
       cell->SetY(top_padding());
       cell->SetWidth(managed_widget.occupied_size.width);
-      cell->SetHeight(max_cell_length);
+      cell->SetHeight(cell_length);
       offset += managed_widget.occupied_size.width;
     } else if (orientation_ == Layout::Orientation::kVertical) {
       cell->SetX(left_padding());
       cell->SetY(offset);
-      cell->SetWidth(max_cell_length);
+      cell->SetWidth(cell_length);
       cell->SetHeight(managed_widget.occupied_size.height);
       offset += managed_widget.occupied_size.height;
     }
@@ -76,9 +75,9 @@ void LinearLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
   // Updates the size of content view.
   if (orientation_ == Layout::Orientation::kHorizontal) {
     UpdateContentSize(offset + right_padding(),
-                      max_cell_length + top_padding() + bottom_padding());
+                      cell_length + top_padding() + bottom_padding());
   } else if (orientation_ == Layout::Orientation::kVertical) {
-    UpdateContentSize(max_cell_length + left_padding() + right_padding(),
+    UpdateContentSize(cell_length + left_padding() + right_padding(),
                       offset + bottom_padding());
   }
 }
