@@ -29,8 +29,11 @@ namespace {
 // The duration measured in seconds for hiding the scroller in animation.
 const double kAnimatingHideDuration = 0.2;
 
+// The default color of the scroller's knob.
+const NVGcolor kKnobColor = nvgRGBA(0, 0, 0, 95);
+
 // The default width of the scroller's knob.
-const float kKnobWidth = 5;
+const float kKnobWidth = 3;
 
 // The default padding on both sides of the scroller's track .
 const float kTrackPadding = 3;
@@ -72,7 +75,7 @@ void Scroller::Render(NVGcontext* context) {
   }
 
   nvgLineCap(context, NVG_ROUND);
-  nvgStrokeColor(context, nvgRGBA(0, 0, 0, 132));
+  nvgStrokeColor(context, kKnobColor);
   nvgStrokeWidth(context, kKnobWidth);
 
   const int kWidgetLength = direction_ == Direction::kHorizontal ?
