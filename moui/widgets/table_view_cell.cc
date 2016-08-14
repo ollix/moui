@@ -24,14 +24,21 @@
 
 namespace {
 
+// The vector width of the checkmark accessory.
+const float kAccessoryCheckmarkVectorWidth = 13;
 // The default horizontal padding in points of a cell.
 const float kDefaultCellHorizontalPadding = 20;
-
+// The default text color of the detail text label.
+const NVGcolor kDefaultDetailTextLabelTextColor = nvgRGB(170, 170, 170);
 // The default width and height of the cell's image view.
 const float kDefaultImageViewLength = 30;
-
-// The default font fsize of the text label.
+// The default padding in points between accessory indicator and detail text
+// label.
+const float kDefaultTextLabelMargin = 10;
+// The default font size of the text label.
 const float kDefaultTextLabelFontSize = 18;
+// The vector width of the disclosure indicator accessory.
+const float kAccessoryDisclosureIndicatorVectorWidth = 8;
 
 }  // namespace
 
@@ -39,34 +46,93 @@ namespace moui {
 
 TableViewCell::TableViewCell(const Style style,
                              const std::string& reuse_identifier)
-    : highlighted_(false), selected_(false), style_(style),
-      reuse_identifier_(reuse_identifier) {
+    : Widget(false), accessory_type_(AccessoryType::kNone),
+      detail_text_label_(nullptr), highlighted_(false), selected_(false),
+      style_(style), reuse_identifier_(reuse_identifier) {
+  set_frees_descendants_on_destruction(true);
+
+  // Initializes content view.
   content_view_ = new moui::Widget(false);
+  content_view_->BindRenderFunction(&TableViewCell::RenderContentView, this);
   AddChild(content_view_);
 
+  // Initializes text label.
   text_label_ = new Label();
+  text_label_->set_font_size(kDefaultTextLabelFontSize);
+  text_label_->set_is_opaque(false);
   content_view_->AddChild(text_label_);
 
+  // Initializes image view.
   image_view_ = new Widget();
   image_view_->SetWidth(kDefaultImageViewLength);
   image_view_->SetHeight(kDefaultImageViewLength);
   image_view_->SetHidden(true);
   content_view_->AddChild(image_view_);
+
+  // Initializes detail text label.
+  if (style == Style::kValue1) {
+    detail_text_label_ = new Label();
+    detail_text_label_->set_font_size(kDefaultTextLabelFontSize);
+    detail_text_label_->set_is_opaque(false);
+    detail_text_label_->set_text_color(kDefaultDetailTextLabelTextColor);
+    content_view_->AddChild(detail_text_label_);
+  }
 }
 
 TableViewCell::TableViewCell(const Style style) : TableViewCell(style, "") {
 }
 
 TableViewCell::~TableViewCell() {
+  if (frees_descendants_on_destruction())
+    return;
+
   delete content_view_;
   delete image_view_;
   delete text_label_;
+  delete detail_text_label_;
 }
 
 void TableViewCell::PrepareForReuse() {
 }
 
-void TableViewCell::UpdateLayout() {
+void TableViewCell::RenderContentView(moui::Widget* widget,
+                                      NVGcontext* context) {
+  if (accessory_type_ == AccessoryType::kCheckmark) {
+    const int kVectorHeight = 10;
+    nvgTranslate(context,
+                 GetWidth() - kDefaultCellHorizontalPadding
+                     - kAccessoryCheckmarkVectorWidth,
+                 (GetHeight() - kVectorHeight) / 2);
+    nvgBeginPath(context);
+    nvgMoveTo(context, 11.401, 0.067);
+    nvgLineTo(context, 4.346, 7.186);
+    nvgLineTo(context, 1.474, 4.313);
+    nvgLineTo(context, 0.1, 5.812);
+    nvgLineTo(context, 4.346, 9.933);
+    nvgLineTo(context, 12.9, 1.441);
+    nvgClosePath(context);
+    nvgFillColor(context, nvgRGBA(0, 122, 255, 255));
+    nvgFill(context);
+  } else if (accessory_type_ == AccessoryType::kDisclosureIndicator) {
+    const int kVectorHeight = 13;
+    nvgTranslate(context,
+                 GetWidth() - kDefaultCellHorizontalPadding
+                     - kAccessoryDisclosureIndicatorVectorWidth,
+                 (GetHeight() - kVectorHeight) / 2);
+    nvgBeginPath(context);
+    nvgMoveTo(context, 1, 0);
+    nvgLineTo(context, 0, 1);
+    nvgLineTo(context, 5.75, 6.5);
+    nvgLineTo(context, 0, 12);
+    nvgLineTo(context, 1, 13);
+    nvgLineTo(context, 8, 6.5);
+    nvgClosePath(context);
+    nvgFillColor(context, nvgRGB(200, 200, 200));
+    nvgFill(context);
+  }
+}
+
+void TableViewCell::UpdateLayout(NVGcontext* context) {
   // Updates the bounds of `content_view_` widget.
   content_view_->SetX(0);
   content_view_->SetY(0);
@@ -83,20 +149,52 @@ void TableViewCell::UpdateLayout() {
   }
 
   // Updates the attributes of the `text_label_` widget.
+  const float kMaximumLabelWidth = \
+      GetWidth()
+      - left_offset  // left side
+      - kDefaultCellHorizontalPadding;  // right side
+  text_label_->UpdateWidthToFitText(context);
+  const float kLabelWidth = std::min(kMaximumLabelWidth,
+                                     text_label_->GetWidth());
   text_label_->SetX(left_offset);
-  text_label_->SetWidth(GetWidth()
-                        - left_offset  // left side
-                        - kDefaultCellHorizontalPadding);  // right side
   text_label_->SetHeight(Widget::Unit::kPercent, 100);
-  text_label_->set_font_size(kDefaultTextLabelFontSize);
-  text_label_->set_is_opaque(false);
+  text_label_->SetWidth(kLabelWidth);
   text_label_->set_text_vertical_alignment(Label::Alignment::kMiddle);
+
+  // Updates the attributes of the `detail_text_label_` widget.
+  if (detail_text_label_ != nullptr) {
+    float offset = kDefaultCellHorizontalPadding;
+    if (accessory_type_ == AccessoryType::kDisclosureIndicator) {
+      offset += kAccessoryDisclosureIndicatorVectorWidth
+                + kDefaultTextLabelMargin;
+    } else if (accessory_type_ == AccessoryType::kCheckmark) {
+      offset += kAccessoryCheckmarkVectorWidth + kDefaultTextLabelMargin;
+    }
+
+    detail_text_label_->UpdateWidthToFitText(context);
+    detail_text_label_->SetX(Widget::Alignment::kRight, Widget::Unit::kPoint,
+                             offset);
+    detail_text_label_->SetHeight(Widget::Unit::kPercent, 100);
+    detail_text_label_->set_text_horizontal_alignment(Label::Alignment::kRight);
+    detail_text_label_->set_text_vertical_alignment(Label::Alignment::kMiddle);
+    const float kRevisedWidth = \
+        detail_text_label_->GetX() + detail_text_label_->GetWidth()
+        - (text_label_->GetX() + kLabelWidth + kDefaultTextLabelMargin);
+    detail_text_label_->SetWidth(kRevisedWidth);
+  }
 }
 
 bool TableViewCell::WidgetViewWillRender(NVGcontext* context) {
   const bool kResult = Widget::WidgetViewWillRender(context);
-  UpdateLayout();
+  UpdateLayout(context);
   return kResult;
+}
+
+void TableViewCell::set_accessory_type(const AccessoryType accessory_type) {
+  if (accessory_type == accessory_type_)
+    return;
+  accessory_type_ = accessory_type;
+  Redraw();
 }
 
 void TableViewCell::set_highlighted(const bool highlighted) {

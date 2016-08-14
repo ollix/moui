@@ -32,11 +32,28 @@ class Label;
 // that appear in `TableView` objects.
 class TableViewCell : public Widget {
  public:
+  // The type of standard accessory control used by a cell.
+  enum class AccessoryType {
+    // The cell does not have any accessory view. This is the default value.
+    kNone,
+    // The cell has a check mark on its right side. This control does not
+    // track touches.
+    kCheckmark,
+    // The cell has an accessory control shaped like a chevron. This control
+    // indicates that tapping the cell triggers a push action. The control
+    // does not track touches.
+    kDisclosureIndicator,
+  };
+
   // An enumeration for the various styles of cells.
   enum class Style {
     // A simple style for a cell with a text label (balck and left-aligned) and
     // an optional image view.
     kDefault,
+    // A style for a cell with label on the left side of the cell with
+    // left-aligned and black text; on the right side is a label that has
+    // smaller gray text and is right-aligned.
+    kValue1,
   };
 
   TableViewCell(const Style style, const std::string& reuse_identifier);
@@ -50,7 +67,10 @@ class TableViewCell : public Widget {
   virtual void PrepareForReuse();
 
   // Setters and accessors.
+  AccessoryType accessory_type() const { return accessory_type_; }
+  void set_accessory_type(const AccessoryType accessory_type);
   Widget* content_view() const { return content_view_; }
+  Label* detail_text_label() const { return detail_text_label_; }
   bool highlighted() const { return highlighted_; }
   void set_highlighted(const bool highlighted);
   Widget* image_view() const { return image_view_; }
@@ -65,12 +85,22 @@ class TableViewCell : public Widget {
   bool WidgetViewWillRender(NVGcontext* context) override;
 
  private:
+  // Renders the content view.
+  void RenderContentView(moui::Widget* widget, NVGcontext* context);
+
   // Updates the cell's layout with the configured style.
-  void UpdateLayout();
+  void UpdateLayout(NVGcontext* context);
+
+  // Indicates the type of standard accessory view the cell should use.
+  AccessoryType accessory_type_;
 
   // The strong reference to the default superview for content displayed by the
   // cell.
   Widget* content_view_;
+
+  // The strong reference to the secondary label of the table cell if one
+  // exists.
+  Label* detail_text_label_;
 
   // Indicates whether the cell is highlighted.
   bool highlighted_;

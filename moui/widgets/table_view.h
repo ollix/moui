@@ -108,10 +108,18 @@ class TableView : public ScrollView {
   void set_data_source(TableViewDataSource* data_source);
   TableViewDelegate* delegate() const { return delegate_; }
   void set_delegate(TableViewDelegate* delegate) { delegate_ = delegate; }
+  float height_between_sections() const { return height_between_sections_; }
+  void set_height_between_sections(const float height_between_sections);
   float row_height() const { return row_height_; }
   void set_row_height(const float row_height);
   NVGcolor separator_color() const { return separator_color_; }
-  void set_separator_color(const NVGcolor color) { separator_color_ = color; }
+  void set_separator_color(const NVGcolor separator_color);
+  EdgeInsets separator_insets() const { return separator_insets_; }
+  void set_separator_insets(const EdgeInsets separator_insets);
+  moui::Widget* table_footer_view() const { return table_footer_view_; }
+  void set_table_footer_view(moui::Widget* table_footer_view);
+  moui::Widget* table_header_view() const { return table_header_view_; }
+  void set_table_header_view(moui::Widget* table_header_view);
   std::vector<TableViewCell*>* visible_cells() { return &visible_cells_; }
 
  protected:
@@ -168,9 +176,28 @@ class TableView : public ScrollView {
   // Keeps the location of the last down event.
   Point down_event_location_;
 
+  // Indicates the height in points between sections.
+  float height_between_sections_;
+
+  // Keeps the bottommost content view offset last time updated layout.
+  float last_bottommost_content_view_offset_;
+
+  // Keeps the topmost content view offset last time updated layout.
+  float last_topmost_content_view_offset_;
+
   // The strong reference to the view sitting above the content view to display
   // the layout such as separators.
   moui::Widget* layout_view_;
+
+  // The weak reference to the accessory view that is displayed below the table.
+  // The default value is `nullptr`. The table view is different from a section
+  // footer.
+  moui::Widget* table_footer_view_;
+
+  // The weak reference to the accessory view that is displayed above the table.
+  // The default value is `nullptr`. The table view is different from a section
+  // header.
+  moui::Widget* table_header_view_;
 
   // Keeps strong reference to the cell objects that are marked as reusable.
   // The key indicates the cells' `reuse_identifier` property.
@@ -231,6 +258,36 @@ class TableViewDelegate {
   TableViewDelegate() {}
   ~TableViewDelegate() {}
 
+  // Asks the delegate for a footer widget to display in the footer of the
+  // specified section of the table view. This method only works correctly
+  // when `GetTableViewSectionFooterHeight()` is also implemented.
+  virtual moui::Widget* GetTableViewSectionFooter(TableView* table_view,
+                                                  const int section_index) {
+    return nullptr;
+  }
+
+  // Asks the delegate for the height to use for the footer of a particular
+  // section.
+  virtual float GetTableViewSectionFooterHeight(TableView* table_view,
+                                                const int section_index) {
+    return 0;
+  }
+
+  // Asks the delegate for a header widget to display in the header of the
+  // specified section of the table view. This method only works correctly
+  // when `GetTableViewSectionHeaderHeight()` is also implemented.
+  virtual moui::Widget* GetTableViewSectionHeader(TableView* table_view,
+                                                  const int section_index) {
+    return nullptr;
+  }
+
+  // Asks the delegate for the height to use for the header of a particular
+  // section.
+  virtual float GetTableViewSectionHeaderHeight(TableView* table_view,
+                                                const int section_index) {
+    return 0;
+  }
+
   // Asks the delegate for the height to use for a row in a specified location.
   virtual float GetTableViewRowHeight(TableView* table_view,
                                       const TableView::CellIndex cell_index) {
@@ -245,7 +302,7 @@ class TableViewDelegate {
   virtual void TableViewDidHighlightRow(
       TableView* table_view, const TableView::CellIndex cell_index) {}
 
-  // Tells the delegate that the specified row is now not selected.
+  // Tells the delegate that the specified row is now selected.
   virtual void TableViewDidSelectRow(TableView* table_view,
                                      const TableView::CellIndex cell_index) {}
 

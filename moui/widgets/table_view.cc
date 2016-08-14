@@ -33,23 +33,27 @@
 
 namespace {
 
+// The default height in points between sections.
+const float kDefaultHeightBetweenSections = 35;
 // The default row height in points.
 const float kDefaultRowHeight = 44;
-// The height in points between sections.
-const float kHeightBetweenSections = 35;
 
 }  // namespace
 
 namespace moui {
 
-TableView::TableView() : ScrollView(),
-                         data_source_(nullptr),
-                         delegate_(nullptr),
-                         down_event_cell_(nullptr),
-                         row_height_(TableView::kAutomaticDimenstion),
-                         should_update_layout_(true),
-                         separator_color_(nvgRGB(234, 234, 234)),
-                         separator_insets_({0, 20, 0, 20}) {
+TableView::TableView() :
+    ScrollView(), data_source_(nullptr), delegate_(nullptr),
+    down_event_cell_(nullptr),
+    height_between_sections_(kDefaultHeightBetweenSections),
+    last_bottommost_content_view_offset_(-1),
+    last_topmost_content_view_offset_(-1),
+    row_height_(TableView::kAutomaticDimenstion),
+    should_update_layout_(true),
+    separator_color_(nvgRGB(234, 234, 234)),
+    separator_insets_({0, 20, 0, 20}),
+    table_footer_view_(nullptr),
+    table_header_view_(nullptr) {
   set_always_bounce_vertical(true);
   set_always_scroll_both_directions(false);
   set_background_color(nvgRGBA(240, 239, 245, 255));
@@ -102,17 +106,18 @@ void TableView::DeselectRow(const CellIndex cell_index) {
     }
   }  // end of `cell_indexes_for_selected_rows_` iterator.
 
+  // Updates the sates of the corresopnded cell.
+  TableViewCell* cell = GetCell(cell_index);
+  if (cell != nullptr) {
+    cell->set_selected(false);
+  }
+
   // Removes the cell index from `cell_indexes_for_selected_rows_`.
   if (iterator != cell_indexes_for_selected_rows_.end()) {
     cell_indexes_for_selected_rows_.erase(iterator);
     if (delegate_ != nullptr)
       delegate_->TableViewDidDeselectRow(this, cell_index);
   }
-
-  // Updates the sates of the corresopnded cell.
-  TableViewCell* cell = GetCell(cell_index);
-  if (cell != nullptr)
-    cell->set_selected(false);
 }
 
 TableViewCell* TableView::DequeueReusableCell(const std::string identifier) {
@@ -311,6 +316,12 @@ void TableView::ScrollToCellIndex(const CellIndex cell_index,
   } else {
     float content_view_offset = -1;
     bool finished = false;
+
+    // Table header view.
+    if (table_header_view_ != nullptr) {
+      content_view_offset = table_header_view_->GetHeight();
+    }
+
     const int kNumberOfSections = data_source_->GetNumberOfSections(this);
     for (int section_index = 0;
          section_index < kNumberOfSections;
@@ -323,8 +334,19 @@ void TableView::ScrollToCellIndex(const CellIndex cell_index,
         break;
       }
       if (section_index > 0) {
-        content_view_offset += kHeightBetweenSections;
+        content_view_offset += height_between_sections_;
       }
+
+      // Section header.
+      if (delegate_ != nullptr) {
+        const float kHeaderHeight = delegate_->GetTableViewSectionHeaderHeight(
+            this, section_index);
+        content_view_offset = content_view_offset < 0 ?
+                              kHeaderHeight :
+                              content_view_offset + kHeaderHeight;
+      }
+
+      // Rows.
       for (int row_index = 0; row_index < kNumberOfRows; ++row_index) {
         cell_offset = content_view_offset < 0 ? 0 : content_view_offset - 1;
         cell_height = GetRowHeight({section_index, row_index});
@@ -337,6 +359,13 @@ void TableView::ScrollToCellIndex(const CellIndex cell_index,
       }
       if (finished)
         break;
+
+      // Section footer.
+      if (delegate_ != nullptr) {
+        const float kFooterHeight = delegate_->GetTableViewSectionFooterHeight(
+            this, section_index);
+        content_view_offset += kFooterHeight;
+      }
     }
   }
   if (cell_offset < 0 || cell_height < 0)
@@ -405,18 +434,18 @@ void TableView::SelectRow(const CellIndex cell_index) {
     }
   }  // end of `cell_indexes_for_selected_rows_` iterator.
 
-  // Inserts the cell index to `cell_indexes_for_selected_rows_`.
-  cell_indexes_for_selected_rows_.insert(
-      cell_indexes_for_selected_rows_.begin() + position, cell_index);
-  if (delegate_ != nullptr)
-    delegate_->TableViewDidSelectRow(this, cell_index);
-
   // Updates the states of the corresponded cell.
   TableViewCell* cell = GetCell(cell_index);
   if (cell != nullptr) {
     cell->set_selected(true);
     BringChildToFront(cell);
   }
+
+  // Inserts the cell index to `cell_indexes_for_selected_rows_`.
+  cell_indexes_for_selected_rows_.insert(
+      cell_indexes_for_selected_rows_.begin() + position, cell_index);
+  if (delegate_ != nullptr)
+    delegate_->TableViewDidSelectRow(this, cell_index);
 }
 
 void TableView::SetCellHighlighted(TableViewCell* cell,
@@ -458,32 +487,39 @@ bool TableView::ShouldHandleEvent(const Point location) {
 }
 
 bool TableView::UpdateLayout() {
-  if (data_source_ == nullptr || IsHidden() ||
+  if (data_source_ == nullptr || IsHidden() || widget_view() == nullptr ||
       (GetWidth() == 0 && GetHeight() == 0)) {
     return;
   }
 
-  static float last_minimum_content_view_offset = -1;
-  static float last_maximum_content_view_offset = -1;
-
   const Point kContentViewOffset = GetContentViewOffset();
-  const float kMinimumContentViewOffset = kContentViewOffset.y;
-  const float kMaximumContentViewOffset = \
-      kMinimumContentViewOffset + GetHeight();
+  const float kTopmostContentViewOffset = kContentViewOffset.y;
+  const float kBottommostContentViewOffset = \
+      kTopmostContentViewOffset + GetHeight();
 
   if (!should_update_layout_ &&
-      kMinimumContentViewOffset == last_minimum_content_view_offset &&
-      kMaximumContentViewOffset == last_maximum_content_view_offset) {
+      kTopmostContentViewOffset == last_topmost_content_view_offset_ &&
+      kBottommostContentViewOffset == last_bottommost_content_view_offset_) {
     return false;
   }
   should_update_layout_ = false;
-  last_minimum_content_view_offset = kMinimumContentViewOffset;
-  last_maximum_content_view_offset = kMaximumContentViewOffset;
+  last_topmost_content_view_offset_ = kTopmostContentViewOffset;
+  last_bottommost_content_view_offset_ = kBottommostContentViewOffset;
 
   float content_view_offset = -1;
   int index_of_visible_cells = -1;
   bool previous_cell_is_visible = false;
   bool done_processing_visible_cells = false;
+  const float kTableWidth = GetWidth();
+
+  // Table header view.
+  if (table_header_view_ != nullptr) {
+    table_header_view_->SetX(0);
+    table_header_view_->SetY(0);
+    table_header_view_->SetWidth(kTableWidth);
+    AddChild(table_header_view_);
+    content_view_offset = table_header_view_->GetHeight();
+  }
 
   const int kNumberOfSections = data_source_->GetNumberOfSections(this);
   for (int section_index = 0;
@@ -495,8 +531,25 @@ bool TableView::UpdateLayout() {
       continue;
     }
     if (section_index > 0) {
-      content_view_offset += kHeightBetweenSections;
+      content_view_offset += height_between_sections_;
     }
+
+    // Section header.
+    if (delegate_ != nullptr) {
+      const float kHeaderHeight = delegate_->GetTableViewSectionHeaderHeight(
+          this, section_index);
+      moui::Widget* header = delegate_->GetTableViewSectionHeader(
+          this, section_index);
+      if (header != nullptr) {
+        header->SetBounds(0, content_view_offset, kTableWidth, kHeaderHeight);
+        AddChild(header);
+      }
+      content_view_offset = content_view_offset < 0 ?
+                            kHeaderHeight :
+                            content_view_offset + kHeaderHeight;
+    }
+
+    // Rows.
     for (int row_index = 0; row_index < kNumberOfRows; ++row_index) {
       const float kRowHeight = GetRowHeight({section_index, row_index});
       const float kCellTopOffset = content_view_offset < 0 ?
@@ -508,8 +561,8 @@ bool TableView::UpdateLayout() {
         continue;
 
       const bool kCellIsVisible = \
-          kCellBottomOffset >= kMinimumContentViewOffset &&
-          kMaximumContentViewOffset > kCellTopOffset;
+          kCellBottomOffset >= kTopmostContentViewOffset &&
+          kBottommostContentViewOffset > kCellTopOffset;
 
       // Skips if the both the current and previous cells are invisible.
       if (!kCellIsVisible && !previous_cell_is_visible) {
@@ -569,19 +622,38 @@ bool TableView::UpdateLayout() {
         BringChildToFront(cell);
       else
         SendChildToBack(cell);
-      cell->SetX(0);
-      cell->SetY(kCellTopOffset);
-      cell->SetHeight(kRowHeight);
-      cell->SetWidth(GetWidth());
+      cell->SetBounds(0, kCellTopOffset, kTableWidth, kRowHeight);
 
-      if (kCellBottomOffset >= kMaximumContentViewOffset) {
+      if (kCellBottomOffset >= kBottommostContentViewOffset) {
         ReuseVisibleCells(
             index_of_visible_cells + 1,
             static_cast<int>(cell_indexes_for_visible_rows_.size()));
         done_processing_visible_cells = true;
       }
     }  // end of row
+
+    // Section footer.
+    if (delegate_ != nullptr) {
+      const float kFooterHeight = delegate_->GetTableViewSectionFooterHeight(
+          this, section_index);
+      moui::Widget* footer = delegate_->GetTableViewSectionFooter(
+          this, section_index);
+      if (footer != nullptr) {
+        footer->SetBounds(0, content_view_offset, kTableWidth, kFooterHeight);
+        AddChild(footer);
+      }
+      content_view_offset += kFooterHeight;
+    }
   }  // end of section
+
+  // Table footer view.
+  if (table_footer_view_ != nullptr) {
+    table_footer_view_->SetX(0);
+    table_footer_view_->SetY(content_view_offset);
+    table_footer_view_->SetWidth(kTableWidth);
+    content_view_offset += table_footer_view_->GetHeight();
+    AddChild(table_footer_view_);
+  }
 
   SetContentViewSize(-1, content_view_offset);
   layout_view_->Redraw();
@@ -620,6 +692,14 @@ void TableView::set_data_source(TableViewDataSource* data_source) {
   }
 }
 
+void TableView::set_height_between_sections(
+    const float height_between_sections) {
+  if (height_between_sections != height_between_sections_) {
+    height_between_sections_ = height_between_sections;
+    ReloadData();
+  }
+}
+
 void TableView::set_row_height(const float row_height) {
   if (row_height == row_height_) {
     return;
@@ -628,6 +708,41 @@ void TableView::set_row_height(const float row_height) {
   should_update_layout_ = true;
   if (widget_view() != nullptr)
     widget_view()->Redraw();
+}
+
+void TableView::set_separator_color(const NVGcolor separator_color) {
+  if (!nvgCompareColor(separator_color, separator_color_)) {
+    separator_color_ = separator_color;
+    layout_view_->Redraw();
+  }
+}
+
+void TableView::set_separator_insets(const EdgeInsets separator_insets) {
+  if (separator_insets.top == separator_insets_.top &&
+      separator_insets.left == separator_insets_.left &&
+      separator_insets.bottom == separator_insets_.bottom &&
+      separator_insets.right == separator_insets_.right) {
+    return;
+  }
+  separator_insets_ = separator_insets;
+  should_update_layout_ = true;
+  UpdateLayout();
+}
+
+void TableView::set_table_footer_view(moui::Widget* table_footer_view) {
+  if (table_footer_view != table_footer_view_) {
+    table_footer_view_ = table_footer_view;
+    should_update_layout_ = true;
+    UpdateLayout();
+  }
+}
+
+void TableView::set_table_header_view(moui::Widget* table_header_view) {
+  if (table_header_view != table_header_view_) {
+    table_header_view_ = table_header_view;
+    should_update_layout_ = true;
+    UpdateLayout();
+  }
 }
 
 }  // namespace moui
