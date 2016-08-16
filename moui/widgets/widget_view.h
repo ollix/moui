@@ -50,6 +50,10 @@ class WidgetView : public View {
   // currently visible.
   void Redraw(Widget* widget);
 
+  // Removes the specified widget from responder chain or do nothing if not
+  // exists in the chain.
+  void RemoveResponder(Widget* widget);
+
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const int x, const int y, const int width, const int height);
 

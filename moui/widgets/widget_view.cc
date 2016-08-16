@@ -242,6 +242,25 @@ void WidgetView::Redraw(Widget* widget) {
   }
 }
 
+void WidgetView::RemoveResponder(Widget* widget) {
+  for (auto iterator = event_responders_.begin();
+       iterator != event_responders_.end();
+       ++iterator) {
+    if (*iterator == widget) {
+      event_responders_.erase(iterator);
+      break;
+    }
+  }
+  for (auto iterator = down_event_responders_.begin();
+       iterator != down_event_responders_.end();
+       ++iterator) {
+    if (*iterator == widget) {
+      down_event_responders_.erase(iterator);
+      break;
+    }
+  }
+}
+
 void WidgetView::Render() {
   Render(root_widget_, nullptr);
 }

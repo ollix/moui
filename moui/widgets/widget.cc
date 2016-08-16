@@ -694,6 +694,7 @@ void Widget::set_widget_view(WidgetView* widget_view) {
   }
 
   if (widget_view_ != nullptr) {
+    widget_view_->RemoveResponder(this);
     NVGcontext* context = widget_view_->context();
     if (context != nullptr)
       ContextWillChange(context);
