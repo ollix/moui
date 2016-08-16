@@ -66,6 +66,7 @@
         'widgets/progress_view.cc',
         'widgets/scroll_view.cc',
         'widgets/scroller.cc',
+        'widgets/switch.cc',
         'widgets/table_view.cc',
         'widgets/table_view_cell.cc',
         'widgets/widget.cc',
