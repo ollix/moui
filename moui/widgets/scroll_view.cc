@@ -865,6 +865,18 @@ bool ScrollView::WidgetViewWillRender(NVGcontext* context) {
   return true;
 }
 
+void ScrollView::set_bottom_padding(const float padding) {
+  if (padding != content_view_->bottom_padding()) {
+    content_view_->set_bottom_padding(padding);
+  }
+}
+
+void ScrollView::set_left_padding(const float padding) {
+  if (padding != content_view_->left_padding()) {
+    content_view_->set_left_padding(padding);
+  }
+}
+
 void ScrollView::set_scroll_indicator_insets(const EdgeInsets insets) {
   if (insets.top != scroll_indicator_insets_.top ||
       insets.left != scroll_indicator_insets_.left ||
@@ -883,6 +895,12 @@ void ScrollView::set_page_width(const float page_width) {
   }
 }
 
+void ScrollView::set_right_padding(const float padding) {
+  if (padding != content_view_->right_padding()) {
+    content_view_->set_right_padding(padding);
+  }
+}
+
 void ScrollView::set_shows_horizontal_scroll_indicator(const bool value) {
   shows_horizontal_scroll_indicator_ = value;
   if (!shows_horizontal_scroll_indicator_)
@@ -893,6 +911,12 @@ void ScrollView::set_shows_vertical_scroll_indicator(const bool value) {
   shows_vertical_scroll_indicator_ = value;
   if (!shows_vertical_scroll_indicator_)
     vertical_scroller_->SetHidden(true);
+}
+
+void ScrollView::set_top_padding(const float padding) {
+  if (padding != content_view_->top_padding()) {
+    content_view_->set_top_padding(padding);
+  }
 }
 
 }  // namespace moui

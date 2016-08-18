@@ -256,8 +256,9 @@ void TableView::RenderLayoutView(moui::Widget* widget, NVGcontext* context) {
   if (data_source_ == nullptr)
     return;
 
-  const float kCellWidth = GetWidth();
   const Point kContentViewOffset = GetContentViewOffset();
+  const float kLeftPadding = left_padding();
+  const float kCellWidth = GetWidth() - kLeftPadding - right_padding();
 
   int current_section = -1;
   int last_row_of_the_current_section = -1;
@@ -276,7 +277,7 @@ void TableView::RenderLayoutView(moui::Widget* widget, NVGcontext* context) {
 
     // Draws the top separator.
     if (cell_index.row_index == 0) {
-      nvgRect(context, 0, kCellTopOffset, kCellWidth, 1);
+      nvgRect(context, kLeftPadding, kCellTopOffset, kCellWidth, 1);
     }
 
     // Draws the bottom separator.
@@ -290,7 +291,8 @@ void TableView::RenderLayoutView(moui::Widget* widget, NVGcontext* context) {
         kCellWidth - separator_insets_.right;
     const float kBottomSeparatorVerticalOffset = \
         kCellTopOffset + cell->GetHeight() - 1;
-    nvgRect(context, kBttomSeparatorLeftOffset, kBottomSeparatorVerticalOffset,
+    nvgRect(context, kLeftPadding + kBttomSeparatorLeftOffset,
+            kBottomSeparatorVerticalOffset,
             kBttomSeparatorRightOffset - kBttomSeparatorLeftOffset + 1, 1);
     ++vector_index;
   }
@@ -510,11 +512,12 @@ bool TableView::UpdateLayout() {
   int index_of_visible_cells = -1;
   bool previous_cell_is_visible = false;
   bool done_processing_visible_cells = false;
-  const float kTableWidth = GetWidth();
+  const float kLeftPadding = left_padding();
+  const float kTableWidth = GetWidth() - kLeftPadding - right_padding();
 
   // Table header view.
   if (table_header_view_ != nullptr) {
-    table_header_view_->SetX(0);
+    table_header_view_->SetX(kLeftPadding);
     table_header_view_->SetY(0);
     table_header_view_->SetWidth(kTableWidth);
     AddChild(table_header_view_);
@@ -541,7 +544,8 @@ bool TableView::UpdateLayout() {
       moui::Widget* header = delegate_->GetTableViewSectionHeader(
           this, section_index);
       if (header != nullptr) {
-        header->SetBounds(0, content_view_offset, kTableWidth, kHeaderHeight);
+        header->SetBounds(kLeftPadding, content_view_offset, kTableWidth,
+                          kHeaderHeight);
         AddChild(header);
       }
       content_view_offset = content_view_offset < 0 ?
@@ -622,7 +626,7 @@ bool TableView::UpdateLayout() {
         BringChildToFront(cell);
       else
         SendChildToBack(cell);
-      cell->SetBounds(0, kCellTopOffset, kTableWidth, kRowHeight);
+      cell->SetBounds(kLeftPadding, kCellTopOffset, kTableWidth, kRowHeight);
 
       if (kCellBottomOffset >= kBottommostContentViewOffset) {
         ReuseVisibleCells(
@@ -639,7 +643,8 @@ bool TableView::UpdateLayout() {
       moui::Widget* footer = delegate_->GetTableViewSectionFooter(
           this, section_index);
       if (footer != nullptr) {
-        footer->SetBounds(0, content_view_offset, kTableWidth, kFooterHeight);
+        footer->SetBounds(kLeftPadding, content_view_offset, kTableWidth,
+                          kFooterHeight);
         AddChild(footer);
       }
       content_view_offset += kFooterHeight;
@@ -648,7 +653,7 @@ bool TableView::UpdateLayout() {
 
   // Table footer view.
   if (table_footer_view_ != nullptr) {
-    table_footer_view_->SetX(0);
+    table_footer_view_->SetX(kLeftPadding);
     table_footer_view_->SetY(content_view_offset);
     table_footer_view_->SetWidth(kTableWidth);
     content_view_offset += table_footer_view_->GetHeight();

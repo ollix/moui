@@ -51,8 +51,9 @@ float CalculatePoints(const moui::Widget::Unit unit, const float value,
 // function is created for the widget's destructor. Note that the passed
 // root widget itself is not freed.
 void FreeDescendantsRecursively(moui::Widget* widget) {
-  for (moui::Widget* child : *(widget->children())) {
-    FreeDescendantsRecursively(child);
+  for (moui::Widget* child : *widget->children()) {
+    if (child->frees_descendants_on_destruction())
+      FreeDescendantsRecursively(child);
     delete child;
   }
 }
@@ -66,16 +67,18 @@ Widget::Widget() : Widget(true) {
 
 Widget::Widget(const bool caches_rendering)
     : alpha_(1), animation_count_(0),
-      background_color_(nvgRGBA(255, 255, 255, 255)),
-      caches_rendering_(caches_rendering), default_framebuffer_(nullptr),
-      frees_descendants_on_destruction_(false), height_unit_(Unit::kPoint),
-      height_value_(0), hidden_(false), is_opaque_(true), measured_scale_(-1),
+      background_color_(nvgRGBA(255, 255, 255, 255)), bottom_padding_(0),
+      box_sizing_(BoxSizing::kContentBox), caches_rendering_(caches_rendering),
+      default_framebuffer_(nullptr), frees_descendants_on_destruction_(false),
+      height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
+      left_padding_(0), is_opaque_(true), measured_scale_(-1),
       parent_(nullptr), real_parent_(nullptr), render_function_(NULL),
-      rendering_offset_({0, 0}), rendering_scale_(1), scale_(1),
-      should_redraw_default_framebuffer_(false), tag_(0),
-      widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
-      x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
-      y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
+      rendering_offset_({0, 0}), rendering_scale_(1), right_padding_(0),
+      scale_(1), should_redraw_default_framebuffer_(false), tag_(0),
+      top_padding_(0), widget_view_(nullptr), width_unit_(Unit::kPoint),
+      width_value_(0), x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint),
+      x_value_(0), y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint),
+      y_value_(0) {
 }
 
 Widget::~Widget() {
@@ -202,8 +205,11 @@ void Widget::ExecuteRenderFunction(NVGcontext* context) {
 }
 
 float Widget::GetHeight() const {
-  const float kParentHeight = parent_ == nullptr ? 0 : parent_->GetHeight();
-  return CalculatePoints(height_unit_, height_value_, kParentHeight);
+  float parent_height = parent_ == nullptr ? 0 : parent_->GetHeight();
+  if (box_sizing_ == BoxSizing::kBorderBox) {
+    parent_height -= (parent_->top_padding() + parent_->bottom_padding());
+  }
+  return CalculatePoints(height_unit_, height_value_, parent_height);
 }
 
 float Widget::GetMeasuredAlpha() {
@@ -322,8 +328,11 @@ unsigned char* Widget::GetSnapshot() {
 }
 
 float Widget::GetWidth() const {
-  const float kParentWidth = parent_ == nullptr ? 0 : parent_->GetWidth();
-  return CalculatePoints(width_unit_, width_value_, kParentWidth);
+  float parent_width = parent_ == nullptr ? 0 : parent_->GetWidth();
+  if (box_sizing_ == BoxSizing::kBorderBox) {
+    parent_width -= (parent_->left_padding() + parent_->right_padding());
+  }
+  return CalculatePoints(width_unit_, width_value_, parent_width);
 }
 
 float Widget::GetX() const {
@@ -412,7 +421,7 @@ bool Widget::IsChild(Widget* parent) {
   if (parent == nullptr || real_parent_ == nullptr)
     return false;
 
-  for (Widget* candidate : *(parent->children())) {
+  for (Widget* candidate : *parent->children()) {
     if (this == candidate)
       return true;
   }
@@ -514,7 +523,7 @@ void Widget::ResetMeasuredScale() {
 
 void Widget::ResetMeasuredScaleRecursively(Widget* widget) {
   widget->ResetMeasuredScale();
-  for (Widget* child : *(widget->children()))
+  for (Widget* child : *widget->children())
     ResetMeasuredScaleRecursively(child);
 }
 
@@ -563,6 +572,18 @@ void Widget::SetHidden(const bool hidden) {
     if (widget_view_ != nullptr)
       widget_view_->Redraw();
   }
+}
+
+void Widget::SetPadding(const float vertical_padding,
+                        const float horizontal_padding) {
+  set_left_padding(horizontal_padding);
+  set_right_padding(horizontal_padding);
+  set_top_padding(vertical_padding);
+  set_bottom_padding(vertical_padding);
+}
+
+void Widget::SetPadding(const float padding) {
+  SetPadding(padding, padding);
 }
 
 void Widget::SetWidth(const float width) {
@@ -652,6 +673,30 @@ void Widget::set_background_color(const NVGcolor background_color) {
   }
 }
 
+void Widget::set_bottom_padding(const float padding) {
+  if (padding != bottom_padding_) {
+    bottom_padding_ = padding;
+    if (widget_view_ != nullptr)
+      widget_view_->Redraw(this);
+  }
+}
+
+void Widget::set_box_sizing(const BoxSizing box_sizing) {
+  if (box_sizing != box_sizing_) {
+    box_sizing_ = box_sizing;
+    if (widget_view_ != nullptr)
+      widget_view_->Redraw(this);
+  }
+}
+
+void Widget::set_left_padding(const float padding) {
+  if (padding != left_padding_) {
+    left_padding_ = padding;
+    if (widget_view_ != nullptr)
+      widget_view_->Redraw(this);
+  }
+}
+
 void Widget::set_rendering_offset(const Point offset) {
   if (offset.x == rendering_offset_.x && offset.y == rendering_offset_.y)
     return;
@@ -668,6 +713,14 @@ void Widget::set_rendering_scale(const float rendering_scale) {
   Redraw();
 }
 
+void Widget::set_right_padding(const float padding) {
+  if (padding != right_padding_) {
+    right_padding_ = padding;
+    if (widget_view_ != nullptr)
+      widget_view_->Redraw(this);
+  }
+}
+
 void Widget::set_scale(const float scale) {
   if (scale == scale_)
     return;
@@ -675,6 +728,14 @@ void Widget::set_scale(const float scale) {
   scale_ = scale;
   ResetMeasuredScaleRecursively(this);
   Redraw();
+}
+
+void Widget::set_top_padding(const float padding) {
+  if (padding != top_padding_) {
+    top_padding_ = padding;
+    if (widget_view_ != nullptr)
+      widget_view_->Redraw(this);
+  }
 }
 
 void Widget::set_widget_view(WidgetView* widget_view) {

@@ -47,12 +47,22 @@ class Widget {
     kPoint,
   };
 
+  // The constants to alter the default way to calculate width and height of
+  // the widgets.
+  enum class BoxSizing {
+    // The width and height are measureed in consideration of only the content,
+    // but not the padding. This is the default value.
+    kContentBox,
+    // The width and height are measured in consideratino of the padding.
+    kBorderBox,
+  };
+
   Widget();
   explicit Widget(const bool caches_rendering);
-  ~Widget();
+  virtual ~Widget();
 
   // Adds child widget.
-  void AddChild(Widget* child);
+  virtual void AddChild(Widget* child);
 
   // Binds a function or class method for rendering the widget. Calling this
   // method repeatedly will replace the previous binded one.
@@ -177,6 +187,12 @@ class Widget {
   // Sets whether the widget should be visible.
   void SetHidden(const bool hidden);
 
+  // Sets the padding for horizontal and vertical sides.
+  void SetPadding(const float vertical_padding, const float horizontal_padding);
+
+  // Sets the padding at every side.
+  void SetPadding(const float padding);
+
   // Sets the width in points.
   void SetWidth(const float width);
 
@@ -215,6 +231,10 @@ class Widget {
   void set_alpha(const float alpha);
   NVGcolor background_color() const { return background_color_; }
   void set_background_color(const NVGcolor background_color);
+  virtual float bottom_padding() const { return bottom_padding_; }
+  virtual void set_bottom_padding(const float padding);
+  BoxSizing box_sizing() const { return box_sizing_; }
+  void set_box_sizing(const BoxSizing box_sizing);
   std::vector<Widget*>* children() { return &children_; }
   bool frees_descendants_on_destruction() const {
     return frees_descendants_on_destruction_;
@@ -222,6 +242,8 @@ class Widget {
   void set_frees_descendants_on_destruction(const bool value) {
     frees_descendants_on_destruction_ = value;
   }
+  virtual float left_padding() const { return left_padding_; }
+  virtual void set_left_padding(const float padding);
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
   Widget* parent() const { return parent_; }
@@ -230,10 +252,14 @@ class Widget {
   void set_rendering_offset(const Point offset);
   float rendering_scale() const { return rendering_scale_; }
   void set_rendering_scale(const float rendering_scale);
+  virtual float right_padding() const { return right_padding_; }
+  virtual void set_right_padding(const float padding);
   float scale() const { return scale_; }
   void set_scale(const float scale);
   int tag() const { return tag_; }
   void set_tag(const int tag) { tag_ = tag; }
+  virtual float top_padding() const { return top_padding_; }
+  virtual void set_top_padding(const float padding);
   WidgetView* widget_view() const { return widget_view_; }
 
  protected:
@@ -392,6 +418,13 @@ class Widget {
   // `is_opaque_` is true. The default color is white.
   NVGcolor background_color_;
 
+  // The padding in points on the bottom side of the widget.
+  float bottom_padding_;
+
+  // Indicators the behavior used when calculating the width and height of the
+  // widget.
+  BoxSizing box_sizing_;
+
   // Indicates whether the rendering logic implemented in `Render()` should be
   // rendered in `default_framebuffer_` to cache the rendering result. If
   // `true`, `Render()` won't be executed every time the corresponded
@@ -420,6 +453,9 @@ class Widget {
 
   // Indicates whether the widget is hidden.
   bool hidden_;
+
+  // The padding in points on the left side of the widget.
+  float left_padding_;
 
   // This property can be set to an arbitrary integer and use that number to
   // identify the widget later. The default value is 0.
@@ -458,12 +494,18 @@ class Widget {
   // `Render()` method. The default value is 1.
   float rendering_scale_;
 
+  // The padding in points on the right side of the widget.
+  float right_padding_;
+
   // The scale of the widget to render. This value should always be positive.
   // The default value is 1.
   float scale_;
 
   // Indicates whether the `default_framebuffer_` should be drawn.
   bool should_redraw_default_framebuffer_;
+
+  // The padding in points on the top side of the widget.
+  float top_padding_;
 
   // The `WidgetView` that manages this widget instance.
   WidgetView* widget_view_;

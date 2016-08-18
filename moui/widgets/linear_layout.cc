@@ -74,11 +74,9 @@ void LinearLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
 
   // Updates the size of content view.
   if (orientation_ == Layout::Orientation::kHorizontal) {
-    UpdateContentSize(offset + right_padding(),
-                      cell_length + top_padding() + bottom_padding());
+    UpdateContentSize(offset + right_padding(), cell_length);
   } else if (orientation_ == Layout::Orientation::kVertical) {
-    UpdateContentSize(cell_length + left_padding() + right_padding(),
-                      offset + bottom_padding());
+    UpdateContentSize(cell_length, offset + bottom_padding());
   }
 }
 

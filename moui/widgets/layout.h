@@ -40,8 +40,11 @@ class Layout : public ScrollView {
   Layout();
   ~Layout();
 
-  // Overrides
-  void AddChild(Widget* child);
+  // Overrides `Widget` class.
+  void AddChild(Widget* child) override;
+
+  // Inherited from `Widget` class.
+  void Redraw() override;
 
   // Accessors and setters.
   bool adjusts_size_to_fit_contents() const {
@@ -50,17 +53,9 @@ class Layout : public ScrollView {
   void set_adjusts_size_to_fit_contents(const bool value) {
     adjusts_size_to_fit_contents_ = value;
   }
-  float bottom_padding() const { return bottom_padding_; }
-  void set_bottom_padding(const float padding);
   std::vector<Widget*>* children();
-  float left_padding() const { return left_padding_; }
-  void set_left_padding(const float padding);
-  float right_padding() const { return right_padding_; }
-  void set_right_padding(const float padding);
   float spacing() const { return spacing_; }
   void set_spacing(const float spacing);
-  float top_padding() const { return top_padding_; }
-  void set_top_padding(const float padding);
 
  protected:
   // The state of managed widget.
@@ -73,9 +68,6 @@ class Layout : public ScrollView {
     Widget* cell;
   };
   typedef std::vector<ManagedWidget> ManagedWidgetVector;
-
-  // Rearrange managed cells.
-  void RearrangeCells();
 
   // Updates the content view's size. The specified values should be able to
   // display all managed cells. If `adjusts_size_to_fit_contents_` is set to

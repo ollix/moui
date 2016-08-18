@@ -39,7 +39,7 @@ class ScrollView : public Widget {
   ~ScrollView();
 
   // Adds a child widget to the scroll view.
-  void AddChild(Widget* child);
+  void AddChild(Widget* child) override;
 
   // Moves the content view to the specified offset in animation.
   void AnimateContentViewOffset(const Point offset, const double duration);
@@ -108,6 +108,10 @@ class ScrollView : public Widget {
   void set_always_scroll_to_next_page(const bool value) {
     always_scroll_to_next_page_ = value;
   }
+  float bottom_padding() const override {
+    return content_view_->bottom_padding();
+  }
+  void set_bottom_padding(const float padding) override;
   bool bounces() const { return bounces_; }
   void set_bounces(const bool value) { bounces_ = value; }
   std::vector<Widget*>* children() { return content_view_->children(); }
@@ -119,6 +123,8 @@ class ScrollView : public Widget {
   void set_enables_paging(const bool value) { enables_paging_ = value; }
   bool enables_scroll() const { return enables_scroll_; }
   void set_enables_scroll(const bool value) { enables_scroll_ = value; }
+  float left_padding() const override { return content_view_->left_padding(); }
+  void set_left_padding(const float padding) override;
   bool is_scrolling() const { return is_scrolling_; }
   float page_width() const {
     return !enables_paging_ || page_width_ <= 0 || page_width_ > GetWidth() ?
@@ -128,6 +134,10 @@ class ScrollView : public Widget {
   EdgeInsets scroll_indicator_insets() const {
     return scroll_indicator_insets_;
   }
+  float right_padding() const override {
+    return content_view_->right_padding();
+  }
+  void set_right_padding(const float padding) override;
   void set_scroll_indicator_insets(const EdgeInsets insets);
   bool shows_horizontal_scroll_indicator() const {
     return shows_horizontal_scroll_indicator_;
@@ -137,6 +147,8 @@ class ScrollView : public Widget {
     return shows_vertical_scroll_indicator_;
   }
   void set_shows_vertical_scroll_indicator(const bool value);
+  float top_padding() const override { return content_view_->top_padding(); }
+  void set_top_padding(const float padding) override;
 
  protected:
   // Animates the content view to the passed location horizontally in

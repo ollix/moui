@@ -71,9 +71,9 @@ std::vector<Widget*> Layout::GetCells() {
   return valid_cells;
 }
 
-void Layout::RearrangeCells() {
+void Layout::Redraw() {
   should_rearrange_cells_ = true;
-  Redraw();
+  Widget::Redraw();
 }
 
 // Checks if there is any difference between the current child widgets and the
@@ -115,8 +115,9 @@ void Layout::UpdateContentSize(const float width, const float height) {
 }
 
 bool Layout::WidgetViewWillRender(NVGcontext* context) {
+  const bool kResult = ScrollView::WidgetViewWillRender(context);
   if (!ShouldRearrangeCells()) {
-    return ScrollView::WidgetViewWillRender(context);
+    return kResult;
   }
   should_rearrange_cells_ = false;
 
@@ -129,7 +130,7 @@ bool Layout::WidgetViewWillRender(NVGcontext* context) {
     managed_widgets_.push_back({widget, occupied_size, cell});
   }
   ArrangeCells(managed_widgets_);
-  return false;
+  return should_rearrange_cells_ ? false : kResult;
 }
 
 std::vector<Widget*>* Layout::children() {
@@ -141,39 +142,11 @@ std::vector<Widget*>* Layout::children() {
   return &managed_children_;
 }
 
-void Layout::set_bottom_padding(const float padding) {
-  if (padding == bottom_padding_)
-    return;
-  bottom_padding_ = padding;
-  RearrangeCells();
-}
-
-void Layout::set_left_padding(const float padding) {
-  if (padding == left_padding_)
-    return;
-  left_padding_ = padding;
-  RearrangeCells();
-}
-
-void Layout::set_right_padding(const float padding) {
-  if (padding == right_padding_)
-    return;
-  right_padding_ = padding;
-  RearrangeCells();
-}
-
 void Layout::set_spacing(const float spacing) {
   if (spacing == spacing_)
     return;
   spacing_ = spacing;
-  RearrangeCells();
-}
-
-void Layout::set_top_padding(const float padding) {
-  if (padding == top_padding_)
-    return;
-  top_padding_ = padding;
-  RearrangeCells();
+  Redraw();
 }
 
 }  // namespace moui
