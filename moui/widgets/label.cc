@@ -131,14 +131,9 @@ void Label::UpdateWidthToFitText(NVGcontext* context) {
   float bounds[4];
 
   // This is a workaround to fix the issue that `nvgTextBounds()` may not
-  // return a consistent result.
-  const float kExpectedWidth1 = nvgTextBounds(context, 0, 0, kStart, kEnd,
-                                             bounds);
-  const float kExpectedWidth2 = bounds[2] - bounds[0];
-  const float kWidth = kExpectedWidth1 > kExpectedWidth2 ?
-                       std::ceil(kExpectedWidth1) :
-                       kExpectedWidth2 + (kExpectedWidth2 - kExpectedWidth1);
-  SetWidth(kWidth);
+  // return a correct result.
+  const float kWidth = nvgTextBounds(context, 0, 0, kStart, kEnd, bounds);
+  SetWidth(std::ceil(kWidth + 1));
 }
 
 // This method begins with determining the actual text and font size to render
