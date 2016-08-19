@@ -7,3 +7,6 @@
 [submodule "moui/deps/bgfx"]
 	path = moui/deps/bgfx
 	url = git@github.com:bkaradzic/bgfx.git
+[submodule "moui/deps/freetype"]
+	path = moui/deps/freetype
+	url = git://git.sv.gnu.org/freetype/freetype2.git

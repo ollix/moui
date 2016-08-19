@@ -33,9 +33,20 @@
       ],
       "direct_dependent_settings": {
         "include_dirs": [
-          'deps/nanovg/src'
+          'deps/nanovg/src',
         ],
       },
+      # Uses freetype for iOS.
+      'conditions': [
+        ['OS == "ios"', {
+          'defines': [
+            'FONS_USE_FREETYPE',
+          ],
+          'dependencies': [
+            'freetype.gyp:libfreetype',
+          ],
+        }],  # ios
+      ],  # conditions
     },
   ],
 }
