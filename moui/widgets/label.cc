@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cfloat>
 #include <cmath>
 #include <string>
 
@@ -35,13 +36,11 @@ const int kMaximumNumberOfLines = 100;
 // The minimum font size guaranteed to render the text.
 const float kMinimumFontSize = 1;
 
-// The offset in points to change the vertical position for rendering text box.
-// This is a workaround to make the rendered position more as expected.
-const float kTextBoxVerticalOffset = 2;
-
 // Default configuration for the label.
 std::string default_font_name;
+float default_font_baseline = 0;
 float default_font_size = 12;
+float default_font_size_scale = 1;
 
 }  // namespace
 
@@ -55,9 +54,10 @@ Label::Label(const std::string& text) : Label(text, "") {
 
 Label::Label(const std::string& text, const std::string& font_name)
     : Widget(false), adjusts_font_size_to_fit_width_(false),
-      adjusts_label_height_to_fit_width_(false), font_name_(font_name),
-      font_size_(0), line_height_(1), minimum_scale_factor_(0),
-      number_of_lines_(1), should_prepare_for_rendering_(true), text_(text),
+      adjusts_label_height_to_fit_width_(false), font_baseline_(FLT_MIN),
+      font_name_(font_name), font_size_(0), font_size_scale_(0),
+      line_height_(1), minimum_scale_factor_(0), number_of_lines_(1),
+      should_prepare_for_rendering_(true), text_(text),
       text_horizontal_alignment_(Alignment::kLeft),
       text_vertical_alignment_(Alignment::kTop) {
   set_text_color(nvgRGBA(0, 0, 0, 255));
@@ -76,7 +76,7 @@ void Label::ConfigureTextAttributes(NVGcontext* context) {
   }
   nvgFillColor(context, text_color_);
   nvgFontFace(context, font_name().c_str());
-  nvgFontSize(context, font_size_to_render_);
+  nvgFontSize(context, font_size_to_render_ * font_size_scale());
   nvgTextAlign(context, horizontal_alignment | NVG_ALIGN_TOP);
   nvgTextLineHeight(context, line_height_);
   nvgTextLetterSpacing(context, 0);
@@ -98,13 +98,13 @@ void Label::Render(NVGcontext* context) {
                    bounds);
   switch (text_vertical_alignment_) {
     case Alignment::kTop:
-      y = -bounds[1];
+      y = -bounds[1] + font_baseline();
       break;
     case Alignment::kMiddle:
-      y = (GetHeight() - (bounds[3] - bounds[1])) / 2 + kTextBoxVerticalOffset;
+      y = (GetHeight() - (bounds[3] - bounds[1])) / 2 + font_baseline();
       break;
     case Alignment::kBottom:
-      y = GetHeight() - bounds[3] + kTextBoxVerticalOffset;
+      y = GetHeight() - bounds[3] + font_baseline();
       break;
     default:
       assert(false);
@@ -112,12 +112,20 @@ void Label::Render(NVGcontext* context) {
   nvgTextBox(context, 0, y, GetWidth(), text_to_render_.c_str(), NULL);
 }
 
+void Label::SetDefaultFontBaseline(const float font_baseline) {
+  default_font_baseline = font_baseline;
+}
+
 void Label::SetDefaultFontName(const std::string& name) {
   default_font_name = name;
 }
 
-void Label::SetDefaultFontSize(const float size) {
-  default_font_size = size;
+void Label::SetDefaultFontSize(const float font_size) {
+  default_font_size = font_size;
+}
+
+void Label::SetDefaultFontSizeScale(const float font_size_scale) {
+  default_font_size_scale = font_size_scale;
 }
 
 void Label::UpdateWidthToFitText(NVGcontext* context) {
@@ -162,7 +170,8 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
   const float kLabelHeight = GetHeight();
   const float kMinimumAcceptableFontSize = \
       minimum_scale_factor_ > 0 ?
-      font_size_to_render_ * minimum_scale_factor_ : kMinimumFontSize;
+      font_size_to_render_ * minimum_scale_factor_ * font_size_scale() :
+      kMinimumFontSize;
   NVGtextRow text_rows[kExpectedNumberOfLines];
   float text_box_height = 0;  // the required height to render text
 
@@ -227,6 +236,20 @@ void Label::set_adjusts_label_height_to_fit_width(const bool value) {
   }
 }
 
+float Label::font_baseline() const {
+  if (font_baseline_ == FLT_MIN) {
+    return default_font_baseline;
+  }
+  return font_baseline_;
+}
+
+void Label::set_font_baseline(const float font_baseline) {
+  if (font_baseline != font_baseline_) {
+    font_baseline_ = font_baseline;
+    Redraw();
+  }
+}
+
 std::string Label::font_name() const {
   if (font_name_.empty())
     return default_font_name;
@@ -241,7 +264,7 @@ void Label::set_font_name(const std::string& name) {
 }
 
 float Label::font_size() const {
-  if (font_size_ < 0)
+  if (font_size_ <= 0)
     return default_font_size;
   return font_size_;
 }
@@ -250,6 +273,20 @@ void Label::set_font_size(const float font_size) {
   const int kFontSize = static_cast<int>(font_size);
   if (kFontSize != font_size_) {
     font_size_ = kFontSize;
+    Redraw();
+  }
+}
+
+float Label::font_size_scale() const {
+  if (font_size_scale_ <= 0) {
+    return default_font_size_scale;
+  }
+  return font_size_scale_;
+}
+
+void Label::set_font_size_scale(const float font_size_scale) {
+  if (font_size_scale != font_size_scale_) {
+    font_size_scale_ = font_size_scale;
     Redraw();
   }
 }

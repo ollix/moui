@@ -46,11 +46,17 @@ class Label : public Widget {
   // Inherited from `Widget` class;
   void Redraw() final;
 
+  // Sets the default font baseline.
+  static void SetDefaultFontBaseline(const float font_baseline);
+
   // Sets the default font name.
   static void SetDefaultFontName(const std::string& name);
 
   // Sets the default font size.
-  static void SetDefaultFontSize(const float size);
+  static void SetDefaultFontSize(const float font_size);
+
+  // Sets the default font size scale.
+  static void SetDefaultFontSizeScale(const float font_size_scale);
 
   // Updates the label's width to fit the text.
   void UpdateWidthToFitText(NVGcontext* context);
@@ -64,10 +70,14 @@ class Label : public Widget {
     return adjusts_label_height_to_fit_width_;
   }
   void set_adjusts_label_height_to_fit_width(const bool value);
+  float font_baseline() const;
+  void set_font_baseline(const float font_baseline);
   std::string font_name() const;
   void set_font_name(const std::string& name);
   float font_size() const;
   void set_font_size(const float font_size);
+  float font_size_scale() const;
+  void set_font_size_scale(const float font_size_scale);
   float font_size_to_render() const { return font_size_to_render_; }
   float line_height() const { return line_height_; }
   void set_line_height(const float line_height);
@@ -107,6 +117,9 @@ class Label : public Widget {
   // `text_vertical_alignment_`. The default value is `false`.
   bool adjusts_label_height_to_fit_width_;
 
+  // Indicates the vertical offset of the font baseline. The default value is 0.
+  float font_baseline_;
+
   // The font name of the font that applies to enitre string of text. Note
   // that the font name must previously registered through `nvgCreateFont()`,
   // or nothing will display on the screen.
@@ -116,6 +129,10 @@ class Label : public Widget {
   // value is 12. If the value is set to 0, the font size set through
   // `SetDefaultFontSize()` will be used.
   float font_size_;
+
+  // Indicates the scale factor multiplied to the `font_size_` to get the final
+  // font size to render. The default value is 1.0.
+  float font_size_scale_;
 
   // The actual font size for rendering on screen. This value is calculated
   // automatically in `WidgetViewWillRender()` according to various
