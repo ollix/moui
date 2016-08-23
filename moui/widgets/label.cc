@@ -151,8 +151,10 @@ void Label::UpdateWidthToFitText(NVGcontext* context) {
 // label's position accordingly if `adjusts_label_height_to_fit_width_` is
 // set to `true`.
 bool Label::WidgetViewWillRender(NVGcontext* context) {
-  if ((!adjusts_label_height_to_fit_width_ && GetHeight() == 0) ||
-      (adjusts_label_height_to_fit_width_ && GetWidth() == 0) ||
+  const float kLabelWidth = GetWidth();
+  const float kLabelHeight = GetHeight();
+  if ((!adjusts_label_height_to_fit_width_ && kLabelHeight <= 0) ||
+      (adjusts_label_height_to_fit_width_ && kLabelWidth <= 0) ||
       text_.empty()) {
     text_to_render_.clear();
     return true;
@@ -166,8 +168,6 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
   const int kExpectedNumberOfLines = number_of_lines_ == 0 ?
                                      kMaximumNumberOfLines : number_of_lines_;
   const char* kExpectedLastCharToRender = text_.c_str() + text_.size();
-  const float kLabelWidth = GetWidth();
-  const float kLabelHeight = GetHeight();
   const float kMinimumAcceptableFontSize = \
       minimum_scale_factor_ > 0 ?
       font_size_to_render_ * minimum_scale_factor_ * font_size_scale() :
@@ -175,8 +175,8 @@ bool Label::WidgetViewWillRender(NVGcontext* context) {
   NVGtextRow text_rows[kExpectedNumberOfLines];
   float text_box_height = 0;  // the required height to render text
 
-  ConfigureTextAttributes(context);
   while (true) {
+    ConfigureTextAttributes(context);
     const int kActualNumberOfLines = nvgTextBreakLines(
         context, text_.c_str(), kExpectedLastCharToRender, kLabelWidth,
         text_rows, kExpectedNumberOfLines);
