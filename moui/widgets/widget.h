@@ -236,11 +236,11 @@ class Widget {
   virtual BoxSizing box_sizing() const { return box_sizing_; }
   virtual void set_box_sizing(const BoxSizing box_sizing);
   std::vector<Widget*>* children() { return &children_; }
-  bool frees_descendants_on_destruction() const {
-    return frees_descendants_on_destruction_;
+  bool frees_children_on_destruction() const {
+    return frees_children_on_destruction_;
   }
-  void set_frees_descendants_on_destruction(const bool value) {
-    frees_descendants_on_destruction_ = value;
+  void set_frees_children_on_destruction(const bool value) {
+    frees_children_on_destruction_ = value;
   }
   virtual float left_padding() const { return left_padding_; }
   virtual void set_left_padding(const float padding);
@@ -441,9 +441,9 @@ class Widget {
   // The `NVGpaint` object corresonded to the `default_framebuffer_`.
   NVGpaint default_framebuffer_paint_;
 
-  // Indicates whether all the widget's descendants should be freed when
+  // Indicates whether all the widget's children should be freed when
   // executing the widget's destructor. The default value is `false`.
-  bool frees_descendants_on_destruction_;
+  bool frees_children_on_destruction_;
 
   // The unit of the `height_value_`.
   Unit height_unit_;

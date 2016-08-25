@@ -17,6 +17,8 @@
 
 #include "moui/widgets/table_view_cell.h"
 
+#include <algorithm>
+
 #include "moui/widgets/label.h"
 #include "moui/widgets/table_view.h"
 #include "moui/widgets/widget.h"
@@ -49,7 +51,7 @@ TableViewCell::TableViewCell(const Style style,
     : Widget(false), accessory_type_(AccessoryType::kNone),
       detail_text_label_(nullptr), highlighted_(false), selected_(false),
       style_(style), reuse_identifier_(reuse_identifier) {
-  set_frees_descendants_on_destruction(true);
+  set_frees_children_on_destruction(true);
 
   // Initializes content view.
   content_view_ = new moui::Widget(false);
@@ -83,7 +85,7 @@ TableViewCell::TableViewCell(const Style style) : TableViewCell(style, "") {
 }
 
 TableViewCell::~TableViewCell() {
-  if (frees_descendants_on_destruction())
+  if (frees_children_on_destruction())
     return;
 
   delete content_view_;

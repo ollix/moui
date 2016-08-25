@@ -100,7 +100,7 @@ ScrollView::ScrollView()
 }
 
 ScrollView::~ScrollView() {
-  if (frees_descendants_on_destruction())
+  if (frees_children_on_destruction())
     return;
 
   delete content_view_;

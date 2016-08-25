@@ -47,17 +47,6 @@ float CalculatePoints(const moui::Widget::Unit unit, const float value,
   return points;
 }
 
-// Frees all descendant widgets of the passed widget recursively. This
-// function is created for the widget's destructor. Note that the passed
-// root widget itself is not freed.
-void FreeDescendantsRecursively(moui::Widget* widget) {
-  for (moui::Widget* child : *widget->children()) {
-    if (child->frees_descendants_on_destruction())
-      FreeDescendantsRecursively(child);
-    delete child;
-  }
-}
-
 }  // namespace
 
 namespace moui {
@@ -69,7 +58,7 @@ Widget::Widget(const bool caches_rendering)
     : alpha_(1), animation_count_(0),
       background_color_(nvgRGBA(255, 255, 255, 255)), bottom_padding_(0),
       box_sizing_(BoxSizing::kContentBox), caches_rendering_(caches_rendering),
-      default_framebuffer_(nullptr), frees_descendants_on_destruction_(false),
+      default_framebuffer_(nullptr), frees_children_on_destruction_(false),
       height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
       left_padding_(0), is_opaque_(true), measured_scale_(-1),
       parent_(nullptr), real_parent_(nullptr), render_function_(NULL),
@@ -84,8 +73,10 @@ Widget::Widget(const bool caches_rendering)
 Widget::~Widget() {
   StopAnimation(true);
   set_widget_view(nullptr);
-  if (frees_descendants_on_destruction_)
-    FreeDescendantsRecursively(this);
+  if (frees_children_on_destruction_) {
+    for (Widget* child : children_)
+      delete child;
+  }
 }
 
 void Widget::AddChild(Widget* child) {
