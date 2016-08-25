@@ -37,7 +37,8 @@ void LinearLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
   // represents the cell's height. For vertical orientation, the length
   // represents the cell's width.
   float cell_length = orientation_ == Layout::Orientation::kHorizontal ?
-                      GetHeight() : GetWidth();
+                      GetHeight() - top_padding() - bottom_padding():
+                      GetWidth() - left_padding() - right_padding();
   for (ManagedWidget managed_widget : managed_widgets) {
     if (orientation_ == Layout::Orientation::kHorizontal) {
       cell_length = std::max(cell_length, managed_widget.occupied_size.height);
@@ -74,9 +75,11 @@ void LinearLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
 
   // Updates the size of content view.
   if (orientation_ == Layout::Orientation::kHorizontal) {
-    UpdateContentSize(offset + right_padding(), cell_length);
+    UpdateContentSize(offset + right_padding(),
+                      cell_length + top_padding() + bottom_padding());
   } else if (orientation_ == Layout::Orientation::kVertical) {
-    UpdateContentSize(cell_length, offset + bottom_padding());
+    UpdateContentSize(cell_length + left_padding() + right_padding(),
+                      offset + bottom_padding());
   }
 }
 

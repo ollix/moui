@@ -91,29 +91,17 @@ class Layout : public ScrollView {
   // fit its contents.
   bool adjusts_size_to_fit_contents_;
 
-  // The padding in points to the bottom side of the layout.
-  float bottom_padding_;
-
-  // The padding in points to the left side of the layout.
-  float left_padding_;
-
   // Keeps a list of weak references to the actual widgets to be layouted.
   std::vector<Widget*> managed_children_;
 
   // Keeps the states of currently managed widgets.
   std::vector<ManagedWidget> managed_widgets_;
 
-  // The padding in points to the right side of the layout.
-  float right_padding_;
-
   // Indicates whether cells should be rearranged.
   bool should_rearrange_cells_;
 
   // The space in ponits between child widgets.
   float spacing_;
-
-  // The padding in points to the top side of the layout.
-  float top_padding_;
 
   DISALLOW_COPY_AND_ASSIGN(Layout);
 };

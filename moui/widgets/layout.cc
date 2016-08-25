@@ -24,10 +24,8 @@
 
 namespace moui {
 
-Layout::Layout() : adjusts_size_to_fit_contents_(false), bottom_padding_(0),
-                   left_padding_(0), right_padding_(0),
-                   should_rearrange_cells_(false), spacing_(0),
-                   top_padding_(0) {
+Layout::Layout() : adjusts_size_to_fit_contents_(false),
+                   should_rearrange_cells_(false), spacing_(0) {
   set_is_opaque(false);
 }
 

@@ -46,9 +46,8 @@ NativeView* NativeViewController::GetView() {
 }
 
 void NativeViewController::PresentViewController(
-      NativeViewController* view_controller,
-      const bool animated,
-      std::function<void()> completion) const {
+    NativeViewController* view_controller, const bool animated,
+    std::function<void()> completion) const {
   UIViewController* controller = (__bridge UIViewController*)native_handle();
   [controller presentViewController:
           (__bridge UIViewController*)view_controller->native_handle()

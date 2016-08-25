@@ -78,6 +78,7 @@ ScrollView::ScrollView()
       shows_horizontal_scroll_indicator_(true),
       shows_vertical_scroll_indicator_(true) {
   // Initializes content view.
+  content_view_->set_box_sizing(Widget::BoxSizing::kBorderBox);
   content_view_->set_is_opaque(false);
   content_view_->SetWidth(Widget::Unit::kPercent, 100);
   content_view_->SetHeight(Widget::Unit::kPercent, 100);
@@ -868,6 +869,12 @@ bool ScrollView::WidgetViewWillRender(NVGcontext* context) {
 void ScrollView::set_bottom_padding(const float padding) {
   if (padding != content_view_->bottom_padding()) {
     content_view_->set_bottom_padding(padding);
+  }
+}
+
+void ScrollView::set_box_sizing(const BoxSizing box_sizing) {
+  if (box_sizing != content_view_->box_sizing()) {
+    content_view_->set_box_sizing(box_sizing);
   }
 }
 

@@ -114,6 +114,8 @@ class ScrollView : public Widget {
   void set_bottom_padding(const float padding) override;
   bool bounces() const { return bounces_; }
   void set_bounces(const bool value) { bounces_ = value; }
+  BoxSizing box_sizing() const override { return content_view_->box_sizing(); }
+  void set_box_sizing(const BoxSizing box_sizing) override;
   std::vector<Widget*>* children() { return content_view_->children(); }
   float deceleration_rate() const { return deceleration_rate_; }
   void set_deceleration_rate(const float deceleration_rate) {

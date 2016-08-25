@@ -233,8 +233,8 @@ class Widget {
   void set_background_color(const NVGcolor background_color);
   virtual float bottom_padding() const { return bottom_padding_; }
   virtual void set_bottom_padding(const float padding);
-  BoxSizing box_sizing() const { return box_sizing_; }
-  void set_box_sizing(const BoxSizing box_sizing);
+  virtual BoxSizing box_sizing() const { return box_sizing_; }
+  virtual void set_box_sizing(const BoxSizing box_sizing);
   std::vector<Widget*>* children() { return &children_; }
   bool frees_descendants_on_destruction() const {
     return frees_descendants_on_destruction_;

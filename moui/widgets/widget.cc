@@ -339,16 +339,26 @@ float Widget::GetX() const {
   const float kParentWidth = real_parent_ == nullptr ?
                              0 : real_parent_->GetWidth();
   const float kOffset = CalculatePoints(x_unit_, x_value_, kParentWidth);
+  float parent_left_padding = 0;
+  float parent_right_padding = 0;
+  if (real_parent_ != nullptr &&
+      real_parent_->box_sizing() == BoxSizing::kContentBox) {
+    parent_left_padding = real_parent_ == nullptr ?
+                          0 : real_parent_->left_padding();
+    parent_right_padding = real_parent_ == nullptr ?
+                           0 : real_parent_->right_padding();
+  }
   float x;
   switch (x_alignment_) {
     case Alignment::kLeft:
-      x = kOffset;
+      x = parent_left_padding + kOffset;
       break;
     case Alignment::kCenter:
-      x = (kParentWidth - GetWidth() * scale_) / 2 + kOffset;
+      x = parent_left_padding + (kParentWidth - GetWidth() * scale_) / 2
+          + kOffset;
       break;
     case Alignment::kRight:
-      x = kParentWidth - GetWidth() * scale_ - kOffset;
+      x = kParentWidth - parent_right_padding - GetWidth() * scale_ - kOffset;
       break;
     default:
       assert(false);
@@ -360,16 +370,26 @@ float Widget::GetY() const {
   const float kParentHeight = real_parent_ == nullptr ?
                               0 : real_parent_->GetHeight();
   const float kOffset = CalculatePoints(y_unit_, y_value_, kParentHeight);
+  float parent_top_padding = 0;
+  float parent_bottom_padding = 0;
+  if (real_parent_ != nullptr &&
+      real_parent_->box_sizing() == BoxSizing::kContentBox) {
+    parent_top_padding = real_parent_ == nullptr ?
+                         0 : real_parent_->top_padding();
+    parent_bottom_padding = real_parent_ == nullptr ?
+                            0 : real_parent_->bottom_padding();
+  }
   float y;
   switch (y_alignment_) {
     case Alignment::kTop:
-      y = kOffset;
+      y = parent_top_padding + kOffset;
       break;
     case Alignment::kMiddle:
-      y = (kParentHeight - GetHeight() * scale_) / 2 + kOffset;
+      y = parent_top_padding + (kParentHeight - GetHeight() * scale_) / 2
+          + kOffset;
       break;
     case Alignment::kBottom:
-      y = kParentHeight - GetHeight() * scale_ - kOffset;
+      y = kParentHeight - parent_top_padding - GetHeight() * scale_ - kOffset;
       break;
     default:
       assert(false);
