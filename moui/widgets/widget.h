@@ -246,6 +246,7 @@ class Widget {
   virtual void set_left_padding(const float padding);
   bool is_opaque() const { return is_opaque_; }
   void set_is_opaque(const bool is_opaque) { is_opaque_ = is_opaque; }
+  bool is_visible() const { return is_visible_; }
   Widget* parent() const { return parent_; }
   void set_parent(Widget* parent) { parent_ = parent; }
   Point rendering_offset() const { return rendering_offset_; }
@@ -402,7 +403,8 @@ class Widget {
   // recursively.
   void ResetMeasuredScaleRecursively(Widget* widget);
 
-  // This setter should only be called by the `WidgetView` class.
+  // This setters that should only be called by the `WidgetView` class.
+  void set_is_visible(const bool is_visible);
   void set_widget_view(WidgetView* widget_view);
 
   // The opacity value of the widget, specified as a value from 0.0 to 1.0.
@@ -466,6 +468,9 @@ class Widget {
   // `true`.
   bool is_opaque_;
 
+  // Indicates if the widget is visible to the corresponded widget view.
+  bool is_visible_;
+
   // Keeps the calculated scale related to the corresponded widget view's
   // coordinate system. This property should never be accessed directly.
   // Instead, calling the `GetMeasuredScale()` method to retrieve this value
@@ -476,6 +481,10 @@ class Widget {
   // logical parent can be changed through `set_parent()` in inherited widgets
   // whenever needed.
   Widget* parent_;
+
+  // Indicates if the animation has been paused for the widget due to its
+  // currently invisible to the corresponded widget view..
+  bool paused_animation_;
 
   // Keeps the real parent widget of the current widget. Unlike the logical
   // `parent_` property. This value is always pointing to the real parent

@@ -132,6 +132,9 @@ class WidgetView : public View {
   // is set to `true`.
   void Render(Widget* widget, NVGLUframebuffer* framebuffer);
 
+  // Sets the specified `widget` and all of its descendants as invisible.
+  void SetWidgetAndDescendantsInvisible(Widget* widget);
+
   // Inherited from `BaseView` class.
   bool ShouldHandleEvent(const Point location) final;
 

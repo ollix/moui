@@ -60,14 +60,14 @@ Widget::Widget(const bool caches_rendering)
       box_sizing_(BoxSizing::kContentBox), caches_rendering_(caches_rendering),
       default_framebuffer_(nullptr), frees_children_on_destruction_(false),
       height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
-      left_padding_(0), is_opaque_(true), measured_scale_(-1),
-      parent_(nullptr), real_parent_(nullptr), render_function_(NULL),
-      rendering_offset_({0, 0}), rendering_scale_(1), right_padding_(0),
-      scale_(1), should_redraw_default_framebuffer_(false), tag_(0),
-      top_padding_(0), widget_view_(nullptr), width_unit_(Unit::kPoint),
-      width_value_(0), x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint),
-      x_value_(0), y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint),
-      y_value_(0) {
+      is_visible_(false), left_padding_(0), is_opaque_(true),
+      measured_scale_(-1), parent_(nullptr), paused_animation_(false),
+      real_parent_(nullptr), render_function_(NULL), rendering_offset_({0, 0}),
+      rendering_scale_(1), right_padding_(0), scale_(1),
+      should_redraw_default_framebuffer_(false), tag_(0), top_padding_(0),
+      widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
+      x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
+      y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
 }
 
 Widget::~Widget() {
@@ -708,6 +708,22 @@ void Widget::set_left_padding(const float padding) {
   }
 }
 
+// Updates the animation state of the corresponded widget view.
+void Widget::set_is_visible(const bool is_visible) {
+  if (is_visible == is_visible_)
+    return;
+
+  if (is_visible_ && !is_visible && IsAnimating() && !paused_animation_) {
+    paused_animation_ = true;
+    widget_view_->StopAnimation();
+  } else if (paused_animation_ && is_visible) {
+    paused_animation_ = false;
+    if (IsAnimating())
+      widget_view_->StartAnimation();
+  }
+  is_visible_ = is_visible;
+}
+
 void Widget::set_rendering_offset(const Point offset) {
   if (offset.x == rendering_offset_.x && offset.y == rendering_offset_.y)
     return;
@@ -763,6 +779,11 @@ void Widget::set_widget_view(WidgetView* widget_view) {
       widget_view_->StopAnimation();
       widget_view->StartAnimation();
     }
+  }
+
+  if (widget_view == nullptr) {
+    is_visible_ = false;
+    paused_animation_ = false;
   }
 
   if (widget_view_ != nullptr) {

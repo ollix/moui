@@ -160,7 +160,8 @@ void WidgetView::PopAndFinalizeWidgetItems(const int level,
 void WidgetView::PopulateWidgetList(const int level, const float scale,
                                     WidgetList* widget_list, Widget* widget,
                                     WidgetItem* parent_item) {
-  if (level != 0 && widget->IsHidden()) return;
+  if (level != 0 && widget->IsHidden())
+    return SetWidgetAndDescendantsInvisible(widget);
   const float kWidgetWidth = widget->GetWidth();
   if (kWidgetWidth <= 0) return;
   const float kWidgetHeight = widget->GetHeight();
@@ -181,15 +182,17 @@ void WidgetView::PopulateWidgetList(const int level, const float scale,
     // Determines the scissor's horizontal position.
     scissor_origin.x = std::max(parent_item->scissor_origin.x,
                                 translated_origin.x);
-    if (scissor_origin.x >= GetWidth()) return;
+    if (scissor_origin.x >= GetWidth())
+      return SetWidgetAndDescendantsInvisible(widget);
     // Determines the scissor's vertical position.
     scissor_origin.y = std::max(parent_item->scissor_origin.y,
                                 translated_origin.y);
-    if (scissor_origin.y >= GetHeight()) return;
+    if (scissor_origin.y >= GetHeight())
+      return SetWidgetAndDescendantsInvisible(widget);
     // Stops if the widget is invisible on the scissor's left or top.
     if ((translated_origin.x + kScaledWidgetWidth - 1) < scissor_origin.x ||
         (translated_origin.y + kScaledWidgetHeight - 1) < scissor_origin.y)
-      return;
+      return SetWidgetAndDescendantsInvisible(widget);
     // Determines the scissor width.
     const float kParentOriginX = parent_item->scissor_origin.x;
     scissor_width = std::min(
@@ -199,7 +202,7 @@ void WidgetView::PopulateWidgetList(const int level, const float scale,
         scissor_width,
         scissor_origin.x + kScaledWidgetWidth - kParentOriginX);
     if (scissor_width <= 0 || (scissor_origin.x + scissor_width - 1) < 0)
-      return;
+      return SetWidgetAndDescendantsInvisible(widget);
     // Determines the scissor height.
     const float kParentOriginY = parent_item->scissor_origin.y;
     scissor_height = std::min(
@@ -209,11 +212,12 @@ void WidgetView::PopulateWidgetList(const int level, const float scale,
         scissor_height,
         scissor_origin.y + kScaledWidgetHeight - kParentOriginY);
     if (scissor_height <= 0 || (scissor_origin.y + scissor_height - 1) < 0)
-      return;
+      return SetWidgetAndDescendantsInvisible(widget);
   }
 
   // The widget is visible. Adds it to the widget list and checks its children.
   visible_widgets_.push_back(widget);
+  widget->set_is_visible(true);
   const float kParentAlpha = (parent_item == nullptr ? 1 : parent_item->alpha);
   auto item = new WidgetItem{widget, {kWidgetX, kWidgetY}, kWidgetWidth,
                              kWidgetHeight, level, parent_item,
@@ -329,6 +333,12 @@ void WidgetView::SetBounds(const int x, const int y, const int width,
   NativeView::SetBounds(x, y, width, height);
   root_widget_->SetWidth(Widget::Unit::kPoint, width);
   root_widget_->SetHeight(Widget::Unit::kPoint, height);
+}
+
+void WidgetView::SetWidgetAndDescendantsInvisible(Widget* widget) {
+  widget->set_is_visible(false);
+  for (Widget* child : *widget->children())
+    SetWidgetAndDescendantsInvisible(child);
 }
 
 bool WidgetView::ShouldHandleEvent(const Point location) {
