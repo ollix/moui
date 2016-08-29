@@ -34,7 +34,7 @@ NativeViewController::NativeViewController(void* native_handle)
 
 NativeViewController::NativeViewController() : NativeViewController(nullptr) {
   UIViewController* view_controller = [[UIViewController alloc] init];
-  SetNativeHandle((__bridge void*)view_controller, true);
+  SetNativeHandle((__bridge_retained void*)view_controller, true);
 }
 
 NativeViewController::~NativeViewController() {
@@ -42,7 +42,7 @@ NativeViewController::~NativeViewController() {
 
 NativeView* NativeViewController::GetView() {
   UIViewController* controller = (__bridge UIViewController*)native_handle();
-  return new NativeView(controller.view);
+  return new NativeView((__bridge void*)controller.view);
 }
 
 void NativeViewController::PresentViewController(

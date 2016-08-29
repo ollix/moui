@@ -34,7 +34,7 @@ View::View() : BaseView() {
 #elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
   MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
 #endif
-  SetNativeHandle((__bridge void*)view, true);
+  SetNativeHandle((__bridge_retained void*)view, true);
 }
 
 View::~View() {

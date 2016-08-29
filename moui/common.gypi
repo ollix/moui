@@ -56,6 +56,7 @@
       }],  # OS == "mac"
     ],  # conditions
     'xcode_settings': {
+      'CLANG_ENABLE_OBJC_ARC': 'NO',
       'OTHER_CPLUSPLUSFLAGS': [
         '-std=c++11',  # supports C++11
       ],

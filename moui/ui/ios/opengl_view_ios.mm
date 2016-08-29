@@ -179,7 +179,6 @@
     glDeleteFramebuffers(1, &_framebuffer);
   if (_displayLink != nil)
     [_displayLink invalidate];
-  [_context release];
 
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:UIApplicationDidBecomeActiveNotification
@@ -190,8 +189,6 @@
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:UIApplicationDidReceiveMemoryWarningNotification
       object:[UIApplication sharedApplication]];
-
-  [super dealloc];
 }
 
 // Triggered by `setNeedsDisplay` from _mouiView's Redraw(). This method

@@ -32,7 +32,7 @@ NativeView::NativeView(void* native_handle) : NativeObject(native_handle) {
 
 NativeView::NativeView() : NativeView(nullptr) {
   UIView* view = [[UIView alloc] initWithFrame:CGRectZero];
-  SetNativeHandle((__bridge void*)view, true);
+  SetNativeHandle((__bridge_retained void*)view, true);
 }
 
 NativeView::~NativeView() {
@@ -90,7 +90,7 @@ unsigned char* NativeView::GetSnapshot() const {
 
 NativeView* NativeView::GetSuperview() const {
   UIView* native_view = (__bridge UIView*)native_handle();
-  return new NativeView(native_view.superview);
+  return new NativeView((__bridge void*)native_view.superview);
 }
 
 int NativeView::GetWidth() const {

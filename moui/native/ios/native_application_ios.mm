@@ -37,11 +37,12 @@ NativeApplication::~NativeApplication() {
 
 NativeWindow* NativeApplication::GetKeyWindow() const {
   UIApplication* application = (__bridge UIApplication*)native_handle();
-  return new NativeWindow(application.keyWindow);
+  return new NativeWindow((__bridge void*)application.keyWindow);
 }
 
 NativeApplication* NativeApplication::GetSharedApplication() {
-  return new NativeApplication([UIApplication sharedApplication]);
+  return new NativeApplication(
+      (__bridge void*)[UIApplication sharedApplication]);
 }
 
 }  // namespace moui

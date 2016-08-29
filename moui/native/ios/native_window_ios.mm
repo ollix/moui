@@ -32,7 +32,7 @@ NativeWindow::~NativeWindow() {
 
 NativeViewController* NativeWindow::GetRootViewController() const {
   UIWindow* window = (__bridge UIWindow*)native_handle();
-  return new NativeViewController(window.rootViewController, false);
+  return new NativeViewController((__bridge void*)window.rootViewController);
 }
 
 void NativeWindow::MakeKeyAndVisible() const {

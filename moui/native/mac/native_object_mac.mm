@@ -22,11 +22,8 @@
 namespace moui {
 
 void NativeObject::ReleaseNativeHandle() {
-  if (native_handle_ == nullptr)
-    return;
-
-  NSObject* object = (__bridge NSObject*)native_handle_;
-  [object release];
+  if (native_handle_ != nullptr)
+    NSObject* object = (__bridge_transfer NSObject*)native_handle_;
 }
 
 }  // namespace moui

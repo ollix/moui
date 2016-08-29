@@ -125,6 +125,9 @@
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
             ],
           },
+          'xcode_settings': {
+            'CLANG_ENABLE_OBJC_ARC': 'YES',
+          },
         }, {  # OS != "ios"
           'sources!': [
             'native/ios/native_application_ios.mm',
@@ -150,6 +153,9 @@
               '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
               '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
             ],
+          },
+          'xcode_settings': {
+            'CLANG_ENABLE_OBJC_ARC': 'YES',
           },
         }, {  # OS != "mac"
           'sources!': [
