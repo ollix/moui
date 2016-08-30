@@ -350,7 +350,7 @@ void TableView::ScrollToCellIndex(const CellIndex cell_index,
 
       // Rows.
       for (int row_index = 0; row_index < kNumberOfRows; ++row_index) {
-        cell_offset = content_view_offset < 0 ? 0 : content_view_offset - 1;
+        cell_offset = content_view_offset <= 0 ? 0 : content_view_offset - 1;
         cell_height = GetRowHeight({section_index, row_index});
         if (section_index == cell_index.section_index &&
             row_index == cell_index.row_index) {
@@ -556,7 +556,7 @@ bool TableView::UpdateLayout() {
     // Rows.
     for (int row_index = 0; row_index < kNumberOfRows; ++row_index) {
       const float kRowHeight = GetRowHeight({section_index, row_index});
-      const float kCellTopOffset = content_view_offset < 0 ?
+      const float kCellTopOffset = content_view_offset <= 0 ?
                                    0 : content_view_offset - 1;
       const float kCellBottomOffset = kCellTopOffset + kRowHeight - 1;
       content_view_offset = kCellTopOffset + kRowHeight;
