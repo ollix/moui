@@ -27,6 +27,24 @@
 
 namespace moui {
 
+Device::BatteryState Device::GetBatteryState() {
+#ifdef MOUI_MAC
+  return BatteryState::kUnknown;
+#else
+  UIDeviceBatteryState state;
+  switch ([UIDevice currentDevice].batteryState) {
+    case UIDeviceBatteryStateUnplugged:
+      return BatteryState::kUnplugged;
+    case UIDeviceBatteryStateCharging:
+      return BatteryState::kCharging;
+    case UIDeviceBatteryStateFull:
+      return BatteryState::kFull;
+    default:
+      return BatteryState::kUnknown;
+  }
+#endif
+}
+
 Device::Category Device::GetCategory() {
 #if MOUI_MAC
   return Category::kDesktop;

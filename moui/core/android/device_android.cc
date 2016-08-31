@@ -47,6 +47,10 @@ jobject GetJavaDevice() {
 
 namespace moui {
 
+Device::BatteryState BatteryState Device::GetBatteryState() {
+  return BatteryState::kUnknown;
+}
+
 // Calls com.ollix.moui.Device.getSmallestScreenWidthDp() on the Java side.
 Device::Category Device::GetCategory() {
   static float smallest_screen_width_dp = 0;

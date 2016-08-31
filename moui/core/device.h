@@ -24,6 +24,19 @@ namespace moui {
 
 class Device {
  public:
+  // The battery power state of the device.
+  enum class BatteryState {
+    // The battery state for the device cannot be determined.
+    kUnknown,
+    // The device is not plugged into power; the battery is discharging.
+    kUnplugged,
+    // The device is plugged into power and the battery is less than 100%
+    // charged.
+    kCharging,
+    // The device is plugged into power and the battery is 100% charged.
+    kFull,
+  };
+
   enum class Category {
     kDesktop,
     kPhone,
@@ -32,6 +45,9 @@ class Device {
 
   Device() {}
   ~Device() {}
+
+  // Returns the battery state for the current device.
+  static BatteryState GetBatteryState();
 
   // Returns the device category the app is currently running on.
   static Category GetCategory();
