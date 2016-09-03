@@ -155,8 +155,8 @@ class WidgetView : public View {
   // The nanovg context for rendering.
   NVGcontext* context_;
 
-  // Keeps a list of widgets that handles the latest down event.
-  std::vector<Widget*> down_event_responders_;
+  // Keeps a list of effective event responders.
+  std::vector<Widget*> effective_event_responders_;
 
   // Keeps a list of widgets to handle events passed to the `HandleEvent()`
   // method. The list could be updated by `UpdateEventResponders()`.

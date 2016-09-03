@@ -646,17 +646,23 @@ bool Widget::ShouldHandleEvent(const Point location) {
 }
 
 void Widget::StartAnimation() {
-  if (animation_count_ == 0 && widget_view_ != nullptr)
-    widget_view_->StartAnimation();
-  ++animation_count_;
+  if (animation_count_++ == 0 && !paused_animation_) {
+    if (is_visible_ && widget_view_ != nullptr)
+      widget_view_->StartAnimation();
+    else
+      paused_animation_ = true;
+  }
 }
 
 void Widget::StopAnimation(const bool force) {
-  const bool kShouldStopWidgetViewAnimation = IsAnimating() &&
-                                              (force || animation_count_ == 1);
+  const bool kIsAnimating = IsAnimating();
   animation_count_ = force ? 0 : std::max(0, animation_count_ - 1);
-  if (widget_view_ != nullptr && kShouldStopWidgetViewAnimation)
-    widget_view_->StopAnimation();
+  if (kIsAnimating && animation_count_ == 0) {
+    if (paused_animation_)
+      paused_animation_ = false;
+    else
+      widget_view_->StopAnimation();
+  }
 }
 
 void Widget::UnbindRenderFunction() {
@@ -713,13 +719,12 @@ void Widget::set_is_visible(const bool is_visible) {
   if (is_visible == is_visible_)
     return;
 
-  if (is_visible_ && !is_visible && IsAnimating() && !paused_animation_) {
+  if (is_visible && paused_animation_ && widget_view_ != nullptr) {
+    paused_animation_ = false;
+    widget_view_->StartAnimation();
+  } else if (!is_visible && !paused_animation_ && IsAnimating()) {
     paused_animation_ = true;
     widget_view_->StopAnimation();
-  } else if (paused_animation_ && is_visible) {
-    paused_animation_ = false;
-    if (IsAnimating())
-      widget_view_->StartAnimation();
   }
   is_visible_ = is_visible;
 }
@@ -769,29 +774,13 @@ void Widget::set_widget_view(WidgetView* widget_view) {
   if (widget_view_ == widget_view)
     return;
 
-  // Updates the animation state for the current and previous widget views.
-  if (IsAnimating()) {
-    if (widget_view == nullptr) {
-      widget_view_->StopAnimation();
-    } else if (widget_view_ == nullptr) {
-      widget_view->StartAnimation();
-    } else {
-      widget_view_->StopAnimation();
-      widget_view->StartAnimation();
-    }
-  }
-
-  if (widget_view == nullptr) {
-    is_visible_ = false;
-    paused_animation_ = false;
-  }
-
   if (widget_view_ != nullptr) {
     widget_view_->RemoveResponder(this);
     NVGcontext* context = widget_view_->context();
     if (context != nullptr)
       ContextWillChange(context);
   }
+  set_is_visible(false);
   widget_view_ = widget_view;
 
   // Updates the widget view of all its child widgets as well.

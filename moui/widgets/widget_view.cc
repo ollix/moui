@@ -60,19 +60,6 @@ void WidgetView::HandleEvent(Event* event) {
   bool scroll_view_vertical_scrolling_is_acceptable = true;
 
   for (Widget* responder : event_responders_) {
-    // Adds the `responder` to the `down_event_responders_` vector if the
-    // current event is down.
-    if (kEventTypeIsDown) {
-      down_event_responders_.push_back(responder);
-    // Removes the `responder` from the `down_event_responders_` vector if
-    // the current event is up or cancel.
-    } else if (kEventTypeIsUpOrCancel) {
-      auto match = std::find(down_event_responders_.begin(),
-                             down_event_responders_.end(), responder);
-      if (match != down_event_responders_.end())
-        down_event_responders_.erase(match);
-    }
-
     // Determines if the responder is a instance of the `ScrollView` class.
     const bool kResponderIsScrollView = \
         dynamic_cast<ScrollView*>(responder) != nullptr;
@@ -86,6 +73,17 @@ void WidgetView::HandleEvent(Event* event) {
            scroll_view->VerticalScrollingIsAcceptable())) {
         continue;
       }
+    }
+
+    // Updates `effective_event_responders_` for the current responder.
+    auto match = std::find(effective_event_responders_.begin(),
+                           effective_event_responders_.end(), responder);
+    const bool kIsEffective = match != effective_event_responders_.end();
+    if (kEventTypeIsUpOrCancel) {
+      if (kIsEffective)
+        effective_event_responders_.erase(match);
+    } else if (!kIsEffective) {
+      effective_event_responders_.push_back(responder);
     }
 
     // Asks the `responder` to handle the current event and stops propagates
@@ -106,9 +104,9 @@ void WidgetView::HandleEvent(Event* event) {
     }
   }
 
-  // Sends a `cancel` event to all responders that handled `down` event but
-  // did not handle the `up` or `cancel` event.
-  if (!kEventTypeIsUpOrCancel || down_event_responders_.empty()) {
+  // Sends a `cancel` event to all effective responders that does not handle
+  // the `up` or `cancel` event.
+  if (!kEventTypeIsUpOrCancel || effective_event_responders_.empty()) {
     return;
   }
   // Creates a `cancel` event if the received one is not.
@@ -122,12 +120,12 @@ void WidgetView::HandleEvent(Event* event) {
     for (Point location : *(event->locations()))
       cancel_event->locations()->push_back(location);
   }
-  for (Widget* responder : down_event_responders_) {
+  for (Widget* responder : effective_event_responders_) {
     responder->HandleEvent(cancel_event);
   }
   if (creates_cancel_event)
     delete cancel_event;
-  down_event_responders_.clear();
+  effective_event_responders_.clear();
 }
 
 void WidgetView::HandleMemoryWarning() {
@@ -255,11 +253,11 @@ void WidgetView::RemoveResponder(Widget* widget) {
       break;
     }
   }
-  for (auto iterator = down_event_responders_.begin();
-       iterator != down_event_responders_.end();
+  for (auto iterator = effective_event_responders_.begin();
+       iterator != effective_event_responders_.end();
        ++iterator) {
     if (*iterator == widget) {
-      down_event_responders_.erase(iterator);
+      effective_event_responders_.erase(iterator);
       break;
     }
   }
