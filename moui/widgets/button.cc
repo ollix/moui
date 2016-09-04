@@ -312,6 +312,7 @@ bool Button::RenderFramebufferForControlState(
   const int kWidth = static_cast<int>(GetWidth());
   const int kHeight = static_cast<int>(GetHeight());
   nvgBeginFrame(context, kWidth, kHeight, scale_factor);
+  nvgScale(context, rendering_scale(), rendering_scale());
   ExecuteRenderFunction(context, control_state);
   nvgEndFrame(context);
 

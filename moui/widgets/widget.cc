@@ -191,8 +191,12 @@ void Widget::ExecuteRenderFunction(NVGcontext* context) {
   }
 
   nvgTranslate(context, rendering_offset_.x, rendering_offset_.y);
-  nvgScale(context, rendering_scale_, rendering_scale_);
-  render_function_ == NULL ? Render(context) : render_function_(this, context);
+  if (render_function_ == NULL) {
+    Render(context);
+  } else {
+    nvgScale(context, rendering_scale_, rendering_scale_);
+    render_function_(this, context);
+  }
 }
 
 float Widget::GetHeight() const {
