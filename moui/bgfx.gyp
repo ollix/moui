@@ -32,6 +32,9 @@
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
           'sources!': [ 'deps/bgfx/src/amalgamated.cpp' ],
+          'xcode_settings': {
+            'STRIP_INSTALLED_PRODUCT': 'NO',
+          },
         }, {
           'sources!': [ 'deps/bgfx/src/amalgamated.mm' ],
         }],
