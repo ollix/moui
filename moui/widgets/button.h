@@ -129,6 +129,10 @@ class Button : public Control {
     return default_highlighted_style_;
   }
   void set_default_highlighted_style(const Style style);
+  float semi_transparent_style_opacity() const {
+    return semi_transparent_style_opacity_;
+  }
+  void set_semi_transparent_style_opacity(const float opacity);
   EdgeInsets title_edge_insets() const { return title_edge_insets_; }
   void set_title_edge_insets(const EdgeInsets edge_insets);
   Label* title_label() const { return title_label_; }
@@ -281,6 +285,10 @@ class Button : public Control {
   // The framebuffer for rendering the button in selected state with default
   // highlighted effect.
   NVGLUframebuffer* selected_state_with_highlighted_effect_framebuffer_;
+
+  // Indicates the opacity used when rendering the button for
+  // `Style::kSemiTransparent`. The default value is 0.5.
+  float semi_transparent_style_opacity_;
 
   // Records title colors for every control states.
   std::vector<NVGcolor> title_colors_;

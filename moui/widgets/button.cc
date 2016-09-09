@@ -39,6 +39,9 @@ enum class ControlStateIndex {
   kSelected,
 };
 
+// The default opacity for rendering the button with semi transparent style.
+const float kDefaultSemiTransparentStyleOpacity = 0.5;
+
 // The number of ControlStates constants.
 const int kNumberOfControlStates = 4;
 
@@ -60,6 +63,8 @@ Button::Button() : Control(false),
                    current_framebuffer_(nullptr),
                    default_disabled_style_(Style::kSemiTransparent),
                    default_highlighted_style_(Style::kSemiTransparent),
+                   semi_transparent_style_opacity_(
+                       kDefaultSemiTransparentStyleOpacity),
                    disabled_state_framebuffer_(nullptr),
                    final_framebuffer_(nullptr),
                    highlighted_state_framebuffer_(nullptr),
@@ -325,7 +330,7 @@ bool Button::RenderFramebufferForControlState(
     nvgGlobalCompositeOperation(context, NVG_DESTINATION_IN);
     nvgBeginPath(context);
     nvgRect(context, 0, 0, kWidth, kHeight);
-    nvgFillColor(context, nvgRGBAf(0, 0, 0, 0.5));
+    nvgFillColor(context, nvgRGBAf(0, 0, 0, semi_transparent_style_opacity_));
     nvgFill(context);
     nvgEndFrame(context);
   // Creates the `translucent` effect.
@@ -611,6 +616,14 @@ void Button::set_default_highlighted_style(const Style style) {
   moui::nvgDeleteFramebuffer(
       &selected_state_with_highlighted_effect_framebuffer_);
   default_highlighted_style_ = style;
+}
+
+void Button::set_semi_transparent_style_opacity(const float opacity) {
+  if (opacity == semi_transparent_style_opacity_)
+    return;
+  semi_transparent_style_opacity_ = opacity;
+  ResetFramebuffers();
+  Redraw();
 }
 
 void Button::set_title_edge_insets(const EdgeInsets edge_insets) {
