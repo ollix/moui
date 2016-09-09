@@ -44,10 +44,9 @@ WidgetView::WidgetView() : context_(nullptr), preparing_for_rendering_(false),
 }
 
 WidgetView::~WidgetView() {
-  if (context_ != nullptr) {
-    nvgDeleteContext(context_);
-  }
   delete root_widget_;
+  if (context_ != nullptr)
+    nvgDeleteContext(context_);
 }
 
 void WidgetView::HandleEvent(Event* event) {
