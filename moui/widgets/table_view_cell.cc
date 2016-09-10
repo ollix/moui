@@ -150,12 +150,25 @@ void TableViewCell::UpdateLayout(NVGcontext* context) {
     left_offset += (image_view_->GetWidth() + 15);
   }
 
+  // Determines the widht of accessory view.
+  float accessory_view_width = 0;
+  if (accessory_type_ == AccessoryType::kCheckmark) {
+    accessory_view_width = kAccessoryCheckmarkVectorWidth;
+  } else if (accessory_type_ == AccessoryType::kDisclosureIndicator) {
+    accessory_view_width = kAccessoryDisclosureIndicatorVectorWidth;
+  }
+  if (accessory_view_width > 0)
+    accessory_view_width += kDefaultTextLabelMargin;
+
   // Updates the attributes of the `text_label_` widget.
   const float kMaximumLabelWidth = \
       GetWidth()
       - left_offset  // left side
-      - kDefaultCellHorizontalPadding;  // right side
+      - kDefaultCellHorizontalPadding  // right side
+      - accessory_view_width;
+  text_label_->set_adjusts_font_size_to_fit_width(false);
   text_label_->UpdateWidthToFitText(context);
+  text_label_->set_adjusts_font_size_to_fit_width(true);
   const float kLabelWidth = std::min(kMaximumLabelWidth,
                                      text_label_->GetWidth());
   text_label_->SetX(left_offset);
@@ -165,14 +178,7 @@ void TableViewCell::UpdateLayout(NVGcontext* context) {
 
   // Updates the attributes of the `detail_text_label_` widget.
   if (detail_text_label_ != nullptr) {
-    float offset = kDefaultCellHorizontalPadding;
-    if (accessory_type_ == AccessoryType::kDisclosureIndicator) {
-      offset += kAccessoryDisclosureIndicatorVectorWidth
-                + kDefaultTextLabelMargin;
-    } else if (accessory_type_ == AccessoryType::kCheckmark) {
-      offset += kAccessoryCheckmarkVectorWidth + kDefaultTextLabelMargin;
-    }
-
+    float offset = kDefaultCellHorizontalPadding + accessory_view_width;
     detail_text_label_->UpdateWidthToFitText(context);
     detail_text_label_->SetX(Widget::Alignment::kRight, Widget::Unit::kPoint,
                              offset);
