@@ -21,7 +21,9 @@
 
 namespace moui {
 
-PageControl::PageControl() : Widget(), current_page_(0),
+PageControl::PageControl() : Widget(),
+                             adjusts_width_to_fit_indicator_dots_(true),
+                             current_page_(0),
                              hides_for_single_page_(false),
                              number_of_pages_(0),
                              page_indicator_dot_diameter_(-1),
@@ -51,6 +53,23 @@ void PageControl::Render(NVGcontext* context) {
     else
       nvgFillColor(context, page_indicator_color_);
     nvgFill(context);
+  }
+}
+
+bool PageControl::WidgetViewWillRender(NVGcontext* context) {
+  if (adjusts_width_to_fit_indicator_dots_) {
+    const float kExpectedWidth = \
+        page_indicator_dot_diameter_ * number_of_pages_
+        + (number_of_pages_ - 1) * page_indicator_dot_padding_;
+    SetWidth(kExpectedWidth);
+  }
+  return true;
+}
+
+void PageControl::set_adjusts_width_to_fit_indicator_dots(const bool value) {
+  if (value != adjusts_width_to_fit_indicator_dots_) {
+    adjusts_width_to_fit_indicator_dots_ = value;
+    Redraw();
   }
 }
 

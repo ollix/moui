@@ -33,6 +33,10 @@ class PageControl : public Widget {
   ~PageControl();
 
   // Accessors and setters.
+  bool adjusts_width_to_fit_indicator_dots() const {
+    return adjusts_width_to_fit_indicator_dots_;
+  }
+  void set_adjusts_width_to_fit_indicator_dots(const bool value);
   int current_page() const { return current_page_; }
   void set_current_page(const int page);
   NVGcolor current_page_indicator_color() const {
@@ -55,6 +59,13 @@ class PageControl : public Widget {
  private:
   // Inherited from `Widget` class. Renders the page indicator dots.
   void Render(NVGcontext* context) final;
+
+  // Inherited from `Widget` class.
+  bool WidgetViewWillRender(NVGcontext* context);
+
+  // Indicates whether to adjst the width of page control to fit displayed
+  // indicator dots automatically. The default is `true`.
+  bool adjusts_width_to_fit_indicator_dots_;
 
   // The current page that causes the corresponded page indicator dot to be
   // shown with a particular color. The default value is 0.
