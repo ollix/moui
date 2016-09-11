@@ -303,7 +303,7 @@
     _displayLink = [CADisplayLink displayLinkWithTarget:self
                                                 selector:@selector(render)];
     [_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
-                       forMode:NSRunLoopCommonModes];
+                       forMode:NSDefaultRunLoopMode];
   }
 }
 
