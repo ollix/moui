@@ -94,6 +94,11 @@ class NativeView : public NativeObject {
   bool SetHidden(const bool hidden) const;
 #endif
 
+#ifdef MOUI_IOS
+  // Sets whether user events are ignored and removed from the event queue.
+  void SetUserInteractionEnabled(const bool enabled) const;
+#endif
+
  private:
   DISALLOW_COPY_AND_ASSIGN(NativeView);
 };

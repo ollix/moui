@@ -135,4 +135,9 @@ bool NativeView::SetHidden(const bool hidden) const {
   native_view.hidden = hidden;
 }
 
+void NativeView::SetUserInteractionEnabled(const bool enabled) const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  native_view.userInteractionEnabled = enabled;
+}
+
 }  // namespace moui
