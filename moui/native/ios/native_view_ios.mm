@@ -49,9 +49,10 @@ bool NativeView::BecomeFirstResponder() const {
   return [native_view becomeFirstResponder];
 }
 
-void NativeView::BringSubviewToFront(const NativeView* view) const {
+void NativeView::BringSubviewToFront(const NativeView* subview) const {
   UIView* native_view = (__bridge UIView*)native_handle();
-  [native_view bringSubviewToFront:native_view];
+  UIView* native_subview = (__bridge UIView*)subview->native_handle();
+  [native_view bringSubviewToFront:native_subview];
 }
 
 float NativeView::GetAlpha() const {

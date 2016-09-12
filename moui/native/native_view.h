@@ -43,7 +43,7 @@ class NativeView : public NativeObject {
 
 #ifdef MOUI_IOS
   // Moves the specified subview so that it appears on top of its siblings.
-  void BringSubviewToFront(const NativeView* view) const;
+  void BringSubviewToFront(const NativeView* subview) const;
 
   // Returns the view's alpha value.
   float GetAlpha() const;
