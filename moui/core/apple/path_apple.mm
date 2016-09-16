@@ -40,6 +40,9 @@ std::string Path::GetDirectory(const Directory directory) {
   // Other directories.
   NSSearchPathDirectory search_path_directory;
   switch(directory) {
+    case Directory::kDocument:
+      search_path_directory = NSDocumentDirectory;
+      break;
     case Directory::kLibrary:
       search_path_directory = NSLibraryDirectory;
       break;

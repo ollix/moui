@@ -29,6 +29,7 @@ class Path {
  public:
   enum class Directory {
 #ifdef MOUI_APPLE
+    kDocument,
     kLibrary,
     kResource,
     kTemporary,
