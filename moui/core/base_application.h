@@ -28,7 +28,7 @@ namespace moui {
 class BaseApplication {
  public:
   BaseApplication();
-  ~BaseApplication();
+  virtual ~BaseApplication();
 
   // Returns the pointer to the application that previously set through the
   // `RegisterMainApplication()` method.

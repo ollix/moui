@@ -31,7 +31,7 @@ class NativeObject {
         releases_on_demand_(releases_on_demand) {}
   explicit NativeObject(void* native_handle)
       : NativeObject(native_handle, false) {}
-  ~NativeObject() {
+  virtual ~NativeObject() {
     if (releases_on_demand_)
       ReleaseNativeHandle();
   }
