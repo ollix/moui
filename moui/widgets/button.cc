@@ -226,7 +226,7 @@ void Button::Render(NVGcontext* context) {
   const float kHeight = GetHeight();
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
-  const NVGpaint kPaint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight,
+  const NVGpaint kPaint = nvgImagePattern(context, 0, 0, kWidth, kHeight,
                                           0, final_framebuffer_->image, 1);
   nvgFillPaint(context, kPaint);
   nvgFill(context);
@@ -377,7 +377,7 @@ bool Button::RenderFramebufferForTransition(NVGcontext* context,
   // Draws for the previous control state.
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
-  NVGpaint paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
+  NVGpaint paint = nvgImagePattern(context, 0, 0, kWidth, kHeight, 0,
                                    previous_framebuffer_->image,
                                    1 - transition_states_.progress);
   nvgFillPaint(context, paint);
@@ -385,7 +385,7 @@ bool Button::RenderFramebufferForTransition(NVGcontext* context,
   // Draws for the current control state.
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
-  paint = nvgImagePattern(context, 0, kHeight, kWidth, kHeight, 0,
+  paint = nvgImagePattern(context, 0, 0, kWidth, kHeight, 0,
                           current_framebuffer_->image,
                           transition_states_.progress);
   nvgFillPaint(context, paint);

@@ -509,7 +509,7 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
     ExecuteRenderFunction(context);
     nvgEndFrame(context);
     EndFramebufferUpdates();
-    default_framebuffer_paint_ = nvgImagePattern(context, 0, kHeight, kWidth,
+    default_framebuffer_paint_ = nvgImagePattern(context, 0, 0, kWidth,
                                                  kHeight, 0,
                                                  default_framebuffer_->image,
                                                  1);
