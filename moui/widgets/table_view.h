@@ -85,6 +85,9 @@ class TableView : public ScrollView {
   // Reloads the rows and sections of the table view.
   void ReloadData();
 
+  // Refreshes the layout.
+  void RefreshLayout();
+
   // Scrolls through the table view until a row identified by cell index is at
   // a particular location on the screen.
   void ScrollToCellIndex(const CellIndex cell_index,

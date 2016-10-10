@@ -222,6 +222,12 @@ void TableView::ReloadData() {
   layout_view_->Redraw();
 }
 
+void TableView::RefreshLayout() {
+  should_update_layout_ = true;
+  layout_view_->Redraw();
+  Redraw();
+}
+
 void TableView::ReuseCell(TableViewCell* cell) {
   cell->RemoveFromParent();
   const std::string kReuseIdentifier = cell->reuse_identifier();
