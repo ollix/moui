@@ -70,7 +70,7 @@ void GridLayout::ArrangeCells(const ManagedWidgetVector managed_widgets) {
     if (++column == kNumberOfColumns) {
       column = 0;
       column_offset = left_padding();
-      row_offset += height_of_rows[++row] + spacing();
+      row_offset += height_of_rows[row++] + spacing();
     } else if (column > 0) {
       column_offset += spacing();
     }
