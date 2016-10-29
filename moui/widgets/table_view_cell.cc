@@ -142,7 +142,7 @@ void TableViewCell::UpdateLayout(NVGcontext* context) {
   content_view_->SetHeight(GetHeight());
 
   // Updates the bounds of the `image_view_` widget.
-  float left_offset = kDefaultCellHorizontalPadding;
+  float left_offset = kDefaultCellHorizontalPadding + left_padding();
   if (!image_view_->IsHidden()) {
     image_view_->SetX(left_offset);
     image_view_->SetY(
@@ -165,7 +165,8 @@ void TableViewCell::UpdateLayout(NVGcontext* context) {
       GetWidth()
       - left_offset  // left side
       - kDefaultCellHorizontalPadding  // right side
-      - accessory_view_width;
+      - accessory_view_width
+      - right_padding();
   text_label_->set_adjusts_font_size_to_fit_width(false);
   text_label_->UpdateWidthToFitText(context);
   text_label_->set_adjusts_font_size_to_fit_width(true);
