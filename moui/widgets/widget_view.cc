@@ -273,7 +273,14 @@ void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
 
   // Determines widgets to render in order and filters invisible onces.
   requests_redraw_ = true;
+  int count = 0;
   while (requests_redraw_) {
+    if (++count == 1000) {
+#ifdef DEBUG
+      printf("!! WidgetView::Render: Too many redraws.\n");
+#endif
+      break;
+    }
     requests_redraw_ = false;
     WidgetViewWillRender(widget);
   }

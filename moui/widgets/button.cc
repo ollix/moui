@@ -533,8 +533,8 @@ bool Button::UpdateTitleLabel(NVGcontext* context) {
     }
   // Updates the title label's width to fit the button.
   } else {
-    const float kTitleLabelWidth = \
-        GetWidth() - title_edge_insets_.left - title_edge_insets_.right;
+    const float kTitleLabelWidth = std::max(
+        0.0f, GetWidth() - title_edge_insets_.left - title_edge_insets_.right);
     if (title_label_->GetWidth() != kTitleLabelWidth) {
       title_label_->SetWidth(kTitleLabelWidth);
       result = true;
@@ -552,8 +552,8 @@ bool Button::UpdateTitleLabel(NVGcontext* context) {
     }
   // Updates the title label's height to fit the button.
   } else {
-    const float kTitleLabelHeight = \
-        GetHeight() - title_edge_insets_.top - title_edge_insets_.bottom;
+    const float kTitleLabelHeight = std::max(
+        0.0f, GetHeight() - title_edge_insets_.top - title_edge_insets_.bottom);
     if (title_label_->GetHeight() != kTitleLabelHeight) {
       title_label_->SetHeight(kTitleLabelHeight);
       result = true;

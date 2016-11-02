@@ -184,6 +184,7 @@ void TableViewCell::UpdateLayout(NVGcontext* context) {
     detail_text_label_->SetX(Widget::Alignment::kRight, Widget::Unit::kPoint,
                              offset);
     detail_text_label_->SetHeight(Widget::Unit::kPercent, 100);
+    detail_text_label_->set_adjusts_font_size_to_fit_width(true);
     detail_text_label_->set_text_horizontal_alignment(Label::Alignment::kRight);
     detail_text_label_->set_text_vertical_alignment(Label::Alignment::kMiddle);
     const float kRevisedWidth = \
