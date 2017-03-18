@@ -142,6 +142,12 @@ class Widget {
   // Returns the vertical position in points related to its parent's top.
   float GetY() const;
 
+  // This methods gets called when the application receives a memory warning.
+  // The overriding method in subclasses should always call the same method
+  // defined in its super class as there are some default behaviors
+  // implemented in this base class.
+  virtual void HandleMemoryWarning(NVGcontext* context);
+
   // Inserts a child view above another view in the view hierarchy.
   // Returns `false` on failure.
   bool InsertChildAboveSibling(Widget* child, Widget* sibling);
@@ -307,12 +313,6 @@ class Widget {
   // `WidgetView::HandleEvent()` method.
   virtual bool HandleEvent(Event* event) { return false; }
 
-  // This methods gets called when the application receives a memory warning.
-  // The overriding method in subclasses should always call the same method
-  // defined in its super class as there are some default behaviors
-  // implemented in this base class.
-  virtual void HandleMemoryWarning(NVGcontext* context);
-
   // Implements the logic for rendering the widget. The actual implementation
   // should be done in subclass. Note that this method should only be called by
   // `WidgetView::RenderWidget()`.
@@ -356,8 +356,7 @@ class Widget {
   // This method gets called when the corresponded widget view is about to
   // render widgets but has not started the rendering process yet. It's a good
   // place to change the widget's position and dimensions. This method is
-  // always called as long as the widget is attached to a widget view and is
-  // not hidden.
+  // always called as long as the widget is attached to a widget view.
   //
   // This method requires a boolean value to be returned. The returned value
   // indicates whether the widget is ready to render. If `false`, the
