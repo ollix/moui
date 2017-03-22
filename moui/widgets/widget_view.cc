@@ -309,6 +309,13 @@ void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
   glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#else
+  const uint8_t kViewId = nvgViewId(context);
+  bgfx::setViewClear(kViewId,
+                     BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+                     0x00000000, 1.0f, 0);
+  bgfx::setViewRect(kViewId, 0, 0, kWidth * kScreenScaleFactor,
+                    kHeight * kScreenScaleFactor);
 #endif  // MOUI_BGFX
   nvgBeginFrame(context, kWidth , kHeight, kScreenScaleFactor);
   WidgetItemStack rendering_stack;
@@ -400,9 +407,6 @@ void WidgetView::WidgetViewWillRender(Widget* widget) {
 NVGcontext* WidgetView::context() {
   if (context_ == nullptr) {
     context_ = nvgCreateContext(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-#ifdef MOUI_BGFX
-    bgfx::setViewSeq(nvgViewId(context_), true);
-#endif
   }
   return context_;
 }

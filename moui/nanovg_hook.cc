@@ -29,8 +29,13 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <cstdio>
 
 #include "nanovg/src/nanovg.h"
+
+#ifdef MOUI_BGFX
+#  include "bgfx/bgfx.h"
+#endif
 
 namespace {
 
@@ -49,6 +54,19 @@ unsigned char* CreateImageSnapshot(const int x, const int y, const int width,
 #endif
   return image;
 }
+
+#ifdef MOUI_BGFX
+bool* GetViewIdAvailabilityTable() {
+  static bool* table = nullptr;
+  if (table == nullptr) {
+    const int kMaxViews = static_cast<int>(bgfx::getCaps()->limits.maxViews);
+    table = reinterpret_cast<bool*>(std::malloc(sizeof(bool) * kMaxViews));
+    for (int i = 0; i < kMaxViews; ++i)
+      table[i] = true;
+  }
+  return table;
+}
+#endif  // MOUI_BGFX
 
 // Sets the alpha value of every pixel of the passed image.
 void SetImageAlpha(const int width, const int height, unsigned char alpha,
@@ -89,6 +107,36 @@ bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2) {
          color1.b == color2.b && color1.a == color2.a;
 }
 
+NVGLUframebuffer* nvgCreateFramebuffer(NVGcontext* context, const int width,
+                                       const int height,
+                                       const int image_flags) {
+  NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context, width,
+                                                         height, image_flags);
+#ifdef MOUI_BGFX
+  if (framebuffer != nullptr) {
+    bool* view_id_availability_table = GetViewIdAvailabilityTable();
+    int view_id = 0;
+    for (int i = 1; i < bgfx::getCaps()->limits.maxViews; ++i) {
+      if (view_id_availability_table[i]) {
+        view_id_availability_table[i] = false;
+        view_id = i;
+        break;
+      }
+    }
+    framebuffer->viewId = 0;
+    if (view_id == 0) {
+      nvgDeleteFramebuffer(&framebuffer);
+    } else {
+      bgfx::setViewMode(view_id, bgfx::ViewMode::Sequential);
+      nvgluSetViewFramebuffer(view_id, framebuffer);
+    }
+  }
+#endif  // MOUI_BGFX
+  if (framebuffer == nullptr)
+    fprintf(stderr, "Failed to Create NanoVG Framebuffer\n");
+  return framebuffer;
+}
+
 int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
                            const int width, const int height,
                            const float scale_factor) {
@@ -110,6 +158,12 @@ void nvgDeleteFramebuffer(NVGLUframebuffer** framebuffer) {
   if (framebuffer == nullptr || *framebuffer == nullptr) {
     return;
   }
+#ifdef MOUI_BGFX
+  const int kViewId = static_cast<int>((*framebuffer)->viewId);
+  bool* view_id_availability_table = GetViewIdAvailabilityTable();
+  if (kViewId > 0)
+    view_id_availability_table[kViewId] = true;
+#endif  // MOUI_BGFX
   nvgluDeleteFramebuffer(*framebuffer);
   *framebuffer = nullptr;
 }

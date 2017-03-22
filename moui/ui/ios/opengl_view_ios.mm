@@ -29,7 +29,7 @@
 
 #ifdef MOUI_BGFX
 #  include "bgfx/bgfx.h"
-#  include "bgfx/bgfxplatform.h"
+#  include "bgfx/platform.h"
 #elif defined(MOUI_GLES2)
 #  include <OpenGLES/ES2/gl.h>
 #  include <OpenGLES/ES2/glext.h>
@@ -50,9 +50,12 @@
 
 - (void)applicationDidBecomeActive;
 - (void)applicationWillResignActive;
+#ifndef MOUI_BGFX
+- (void)createBuffers;
+#endif
+- (void)destroyBuffers;
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
 - (void)handleMemoryWarning:(NSNotification *)notification;
-- (void)setupFramebuffer;
 
 @end
 
@@ -72,6 +75,59 @@
   _displayLink = nil;
 }
 
+#ifndef MOUI_BGFX
+- (void)createBuffers {
+  [EAGLContext setCurrentContext:_context];
+
+  glGenFramebuffers(1, &_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+
+  // Creates the color render buffer.
+  glGenRenderbuffers(1, &_colorRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
+  [_context renderbufferStorage:GL_RENDERBUFFER
+                   fromDrawable:(CAEAGLLayer *)self.layer];
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                            GL_RENDERBUFFER, _colorRenderbuffer);
+
+  GLint backingWidth;
+  GLint backingHeight;
+  glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,
+                               &backingWidth);
+  glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT,
+                               &backingHeight);
+
+  // Creates both stencil and depth render buffers.
+  glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, backingWidth,
+                        backingHeight);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
+}
+#endif
+
+- (void)destroyBuffers {
+#ifdef MOUI_BGFX
+  if (_initializedBGFX)
+    bgfx::shutdown();
+#endif
+  if (_colorRenderbuffer != 0) {
+    glDeleteRenderbuffers(1, &_colorRenderbuffer);
+    _colorRenderbuffer = 0;
+  }
+  if (_stencilAndDepthRenderbuffer != 0) {
+    glDeleteFramebuffers(1, &_stencilAndDepthRenderbuffer);
+    _stencilAndDepthRenderbuffer = 0;
+  }
+  if (_framebuffer != 0) {
+    glDeleteFramebuffers(1, &_framebuffer);
+    _framebuffer = 0;
+  }
+}
+
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type {
   moui::Event mouiEvent(type);
   for (UITouch* nativeTouch in [event allTouches]) {
@@ -86,27 +142,6 @@
 // `UIApplicationDidReceiveMemoryWarningNotification`.
 - (void)handleMemoryWarning:(NSNotification *)notification {
   _mouiView->HandleMemoryWarning();
-}
-
-- (void)setupFramebuffer {
-  [EAGLContext setCurrentContext:_context];
-
-  glGenFramebuffers(1, &_framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-
-  // Creates the color render buffer.
-  glGenRenderbuffers(1, &_colorRenderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                            GL_RENDERBUFFER, _colorRenderbuffer);
-
-  // Creates both stencil and depth render buffers.
-  glGenRenderbuffers(1, &_stencilAndDepthRenderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                            GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
 }
 
 @end
@@ -136,18 +171,19 @@
     CAEAGLLayer* eaglLayer = (CAEAGLLayer *)self.layer;
     eaglLayer.contentsScale = [UIScreen mainScreen].scale;
     eaglLayer.opaque = NO;
-
 #ifdef MOUI_BGFX
     eaglLayer.style = @{@"opaque": @NO};  // for bgfx
+#endif
+
+#ifdef MOUI_BGFX
+    // CAEAGLLayer* eaglLayer = (CAEAGLLayer *)self.layer;
     bgfx::PlatformData platformData;
     platformData.ndt = NULL;
-    platformData.nwh = eaglLayer;
+    platformData.nwh = (__bridge void*)eaglLayer;
     platformData.context = NULL;
     platformData.backBuffer = NULL;
     platformData.backBufferDS = NULL;
     bgfx::setPlatformData(platformData);
-#else
-    [self setupFramebuffer];
 #endif
 
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -167,16 +203,8 @@
 }
 
 - (void)dealloc {
-#ifdef MOUI_BGFX
-  if (_initializedBGFX)
-    bgfx::shutdown();
-#endif
-  if (_colorRenderbuffer != 0)
-    glDeleteRenderbuffers(1, &_colorRenderbuffer);
-  if (_stencilAndDepthRenderbuffer != 0)
-    glDeleteFramebuffers(1, &_stencilAndDepthRenderbuffer);
-  if (_framebuffer != 0)
-    glDeleteFramebuffers(1, &_framebuffer);
+  [self destroyBuffers];
+
   if (_displayLink != nil)
     [_displayLink invalidate];
 
@@ -205,6 +233,13 @@
       [self stopUpdatingView];
     }
   }
+}
+
+- (void)layoutSubviews {
+#ifndef MOUI_BGFX
+  [self destroyBuffers];
+  [self createBuffers];
+#endif
 }
 
 // If this method returns `NO`, the event will be passed to the next responder.
@@ -243,12 +278,11 @@
   if (!_initializedBGFX) {
     _initializedBGFX = bgfx::init(bgfx::RendererType::OpenGLES,
                                   BGFX_PCI_ID_NONE);
-    if (!_initializedBGFX)
-      return;
-
-    bgfx::reset(kWidth, kHeight, BGFX_RESET_VSYNC);
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x00000000,
-                       1.0f, 0);
+    bgfx::reset(kWidth, kHeight, BGFX_RESET_VSYNC | BGFX_RESET_HIDPI);
+    bgfx::setViewClear(
+        0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+        0x00000000, 1.0f, 0);
+    bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
   }
   bgfx::setViewRect(0, 0, 0, kWidth, kHeight);
 
@@ -256,13 +290,7 @@
   // if no other draw calls are submitted to view 0.
   bgfx::touch(0);
 #else
-  [EAGLContext setCurrentContext:_context];
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, _stencilAndDepthRenderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, kWidth, kHeight);
-  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
-  [_context renderbufferStorage:GL_RENDERBUFFER
-                   fromDrawable:(CAEAGLLayer *)self.layer];
 #endif
 
   // Rendering.
@@ -272,6 +300,7 @@
 #ifdef MOUI_BGFX
   bgfx::frame();
 #else
+  glBindRenderbuffer(GL_RENDERBUFFER, _colorRenderbuffer);
   [_context presentRenderbuffer:GL_RENDERBUFFER];
 #endif
 

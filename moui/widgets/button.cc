@@ -318,29 +318,27 @@ bool Button::RenderFramebufferForControlState(
   const int kHeight = static_cast<int>(GetHeight());
   nvgBeginFrame(context, kWidth, kHeight, scale_factor);
   nvgScale(context, rendering_scale(), rendering_scale());
+  nvgSave(context);
   ExecuteRenderFunction(context, control_state);
-  nvgEndFrame(context);
+  nvgRestore(context);
 
   // Creates the semi-transparent effect.
   if ((renders_default_disabled_effect &&
        default_disabled_style_ == Style::kSemiTransparent) ||
       (renders_default_highlighted_effect &&
        default_highlighted_style_ == Style::kSemiTransparent)) {
-    nvgBeginFrame(context, kWidth, kHeight, scale_factor);
-    nvgGlobalCompositeOperation(context, NVG_DESTINATION_IN);
     nvgBeginPath(context);
+    nvgGlobalCompositeOperation(context, NVG_DESTINATION_IN);
     nvgRect(context, 0, 0, kWidth, kHeight);
     nvgFillColor(context, nvgRGBAf(0, 0, 0, semi_transparent_style_opacity_));
     nvgFill(context);
-    nvgEndFrame(context);
   // Creates the `translucent` effect.
   } else if ((renders_default_disabled_effect &&
               default_disabled_style_ != Style::kSemiTransparent) ||
              (renders_default_highlighted_effect &&
               default_highlighted_style_ != Style::kSemiTransparent)) {
-    nvgBeginFrame(context, kWidth, kHeight, scale_factor);
-    nvgGlobalCompositeOperation(context, NVG_ATOP);
     nvgBeginPath(context);
+    nvgGlobalCompositeOperation(context, NVG_ATOP);
     nvgRect(context, 0, 0, kWidth, kHeight);
     if ((renders_default_disabled_effect &&
          default_disabled_style_ == Style::kTranslucentBlack) ||
@@ -355,8 +353,8 @@ bool Button::RenderFramebufferForControlState(
       nvgFillColor(context, nvgRGBA(255, 255, 255, 50));
     }
     nvgFill(context);
-    nvgEndFrame(context);
   }
+  nvgEndFrame(context);
   EndFramebufferUpdates();
   return true;
 }

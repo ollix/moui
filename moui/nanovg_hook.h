@@ -59,6 +59,10 @@ namespace moui {
 // Returns `true` if passed colors are the same.
 bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2);
 
+// Returns a newly created framebuffer or `nullptr` on failure.
+NVGLUframebuffer* nvgCreateFramebuffer(NVGcontext* context, const int width,
+                                       const int height, const int image_flags);
+
 // Returns the image identifier of the current snapshot of the passed context
 // or -1 on failure. The returned image needs to be freed manually through
 // `nvgDeleteImage()`.

@@ -1,4 +1,4 @@
-# Copyright 2016 Ollix
+# Copyright 2017 Ollix
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,27 +17,20 @@
   ],
   'targets': [
     {
-      'target_name': 'libbgfx',
+      'target_name': 'libbx',
       'type': 'static_library',
       'sources': [
-        'deps/bgfx/src/amalgamated.cpp',
-        'deps/bgfx/src/amalgamated.mm',
+        'deps/bx/src/amalgamated.cpp',
       ],
       'include_dirs': [
+        'deps/bx/3rdparty',
         'deps/bx/include',
-        'deps/bimg/include',
-        'deps/bgfx/3rdparty',
-        'deps/bgfx/include',
       ],
-
       'conditions': [
         ['OS == "mac" or OS == "ios"', {
-          'sources!': [ 'deps/bgfx/src/amalgamated.cpp' ],
           'xcode_settings': {
             'STRIP_INSTALLED_PRODUCT': 'NO',
           },
-        }, {
-          'sources!': [ 'deps/bgfx/src/amalgamated.mm' ],
         }],
         ['OS == "android"', {
         }],
@@ -51,16 +44,10 @@
           'include_dirs': [ 'deps/bx/include/compat/msvc' ],
         }],
       ],  # conditions
-      'dependencies': [
-        'bx.gyp:libbx',
-        'bimg.gyp:libbimg',
-      ],
       'direct_dependent_settings': {
         'include_dirs': [
-          '..',
-          'deps',
-          'deps/bgfx/3rdparty',
-          'deps/bgfx/include',
+          'deps/bx/3rdparty',
+          'deps/bx/include',
         ],
         'conditions': [
           ['OS == "android"', {
@@ -76,10 +63,6 @@
           }],
         ],  # conditions
       },  # direct_dependent_settings
-      'export_dependent_settings': [
-        'bx.gyp:libbx',
-        'bimg.gyp:libbimg',
-      ],
     },
   ],
 }

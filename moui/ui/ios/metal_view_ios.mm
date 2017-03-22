@@ -23,7 +23,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #include "bgfx/bgfx.h"
-#include "bgfx/bgfxplatform.h"
+#include "bgfx/platform.h"
 
 #include "moui/core/event.h"
 #include "moui/ui/view.h"
@@ -98,8 +98,8 @@
 
     bgfx::PlatformData platformData;
     platformData.ndt = NULL;
-    platformData.nwh = metalLayer;
-    platformData.context = MTLCreateSystemDefaultDevice();
+    platformData.nwh = (__bridge void*)metalLayer;
+    platformData.context = (__bridge void*)MTLCreateSystemDefaultDevice();
     platformData.backBuffer = NULL;
     platformData.backBufferDS = NULL;
     bgfx::setPlatformData(platformData);
@@ -133,8 +133,6 @@
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:UIApplicationDidReceiveMemoryWarningNotification
       object:[UIApplication sharedApplication]];
-
-  [super dealloc];
 }
 
 // Triggered by `setNeedsDisplay` from _mouiView's Redraw(). This method
@@ -179,19 +177,22 @@
     return;
   }
 
+  const float kWidth = self.bounds.size.width * self.layer.contentsScale;
+  const float kHeight = self.bounds.size.height * self.layer.contentsScale;
   if (!_initializedBGFX) {
-    bgfx::renderFrame();
     _initializedBGFX = bgfx::init(bgfx::RendererType::Metal, BGFX_PCI_ID_NONE);
-    if (!_initializedBGFX)
-      return;
-
-    bgfx::reset(self.bounds.size.width * self.layer.contentsScale,
-                self.bounds.size.height * self.layer.contentsScale,
-                BGFX_RESET_VSYNC | BGFX_RESET_HIDPI);
-  	bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x00000000,
-                       1.0f, 0);
-    bgfx::setViewSeq(0, true);
+    bgfx::reset(kWidth, kHeight, BGFX_RESET_VSYNC | BGFX_RESET_HIDPI);
+  	bgfx::setViewClear(
+        0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+        0x00000000, 1.0f, 0);
+    bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
   }
+  bgfx::setViewRect(0, 0, 0, kWidth, kHeight);
+
+  // This dummy draw call is here to make sure that view 0 is cleared
+  // if no other draw calls are submitted to view 0.
+  bgfx::touch(0);
+
   // Rendering.
   _mouiView->Render();
   bgfx::frame();

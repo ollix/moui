@@ -10,3 +10,6 @@
 [submodule "moui/deps/freetype"]
 	path = moui/deps/freetype
 	url = git://git.sv.gnu.org/freetype/freetype2.git
+[submodule "moui/deps/bimg"]
+	path = moui/deps/bimg
+	url = git@github.com:bkaradzic/bimg.git

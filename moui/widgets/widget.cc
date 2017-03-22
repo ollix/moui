@@ -113,7 +113,7 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
   }
 
   if (*framebuffer == nullptr)
-    *framebuffer = nvgluCreateFramebuffer(context, kWidth, kHeight, 0);
+    *framebuffer = moui::nvgCreateFramebuffer(context, kWidth, kHeight, 0);
   if (*framebuffer == NULL) {
     *framebuffer = nullptr;
     return false;
@@ -124,7 +124,14 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
 #ifndef MOUI_BGFX
   glViewport(0, 0, kWidth, kHeight);
   glClearColor(0, 0, 0, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#else
+  const uint8_t kViewId = (*framebuffer)->viewId;
+  bgfx::setViewClear(kViewId,
+                     BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+                     0x00000000, 1.0f, 0);
+  bgfx::setViewRect(kViewId, 0, 0, kWidth, kHeight);
+  bgfx::touch(kViewId);
 #endif
   return true;
 }
