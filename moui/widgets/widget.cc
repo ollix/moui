@@ -123,13 +123,32 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
   nvgluBindFramebuffer(*framebuffer);
 #ifndef MOUI_BGFX
   glViewport(0, 0, kWidth, kHeight);
-  glClearColor(0, 0, 0, 0);
+  if (is_opaque_ && background_color_.a > 0) {
+    const float kAlpha = static_cast<float>(background_color_.a);
+    const float kRed = static_cast<float>(background_color_.r) * kAlpha;
+    const float kGreen = static_cast<float>(background_color_.g) * kAlpha;
+    const float kBlue = static_cast<float>(background_color_.b) * kAlpha;
+    glClearColor(kRed, kGreen, kBlue, kAlpha);
+  } else {
+    glClearColor(0, 0, 0, 0);
+  }
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 #else
   const uint8_t kViewId = (*framebuffer)->viewId;
+  uint32_t clear_color = 0x00000000;
+  if (is_opaque_ && background_color_.a > 0) {
+    const float kAlpha = static_cast<float>(background_color_.a) * 256;
+    const float kRed = static_cast<float>(background_color_.r) * kAlpha;
+    const float kGreen = static_cast<float>(background_color_.g) * kAlpha;
+    const float kBlue = static_cast<float>(background_color_.b) * kAlpha;
+    clear_color = (static_cast<uint32_t>(kRed )<< 24) +
+                  (static_cast<uint32_t>(kGreen) << 16) +
+                  (static_cast<uint32_t>(kBlue) << 8) +
+                  (static_cast<uint32_t>(kAlpha));
+  }
   bgfx::setViewClear(kViewId,
                      BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
-                     0x00000000, 1.0f, 0);
+                     clear_color, 1.0f, 0);
   bgfx::setViewRect(kViewId, 0, 0, kWidth, kHeight);
   bgfx::touch(kViewId);
 #endif
@@ -188,9 +207,8 @@ void Widget::EndFramebufferUpdates() {
 }
 
 void Widget::ExecuteRenderFunction(NVGcontext* context) {
-  // Fills the background color if the widget is not opaque and the color's
-  // alpha value is not 0.
-  if (is_opaque_ && background_color_.a > 0) {
+  // Fills the background color.
+  if (!caches_rendering_ && is_opaque_ && background_color_.a > 0) {
     nvgBeginPath(context);
     nvgRect(context, 0, 0, GetWidth(), GetHeight());
     nvgFillColor(context, background_color_);
