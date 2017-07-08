@@ -39,7 +39,8 @@
 namespace moui {
 
 WidgetView::WidgetView() : context_(nullptr), preparing_for_rendering_(false),
-                           requests_redraw_(false), root_widget_(new Widget) {
+                           requests_redraw_(false),
+                           root_widget_(new Widget(false)) {
   root_widget_->set_widget_view(this);
 }
 
