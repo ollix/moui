@@ -63,16 +63,15 @@
 
 // Resumes view updates.
 - (void)applicationDidBecomeActive {
-  _isActive = YES;
-  if (!_stopsUpdatingView)
+  _applicationIsActive = YES;
+  if (_isUpdatingView)
     [self startUpdatingView];
 }
 
 // Unregisters the display link to stops updating the view.
 - (void)applicationWillResignActive {
-  _isActive = NO;
-  [_displayLink invalidate];
-  _displayLink = nil;
+  _applicationIsActive = NO;
+  _displayLink.paused = YES;
 }
 
 #ifndef MOUI_BGFX
@@ -160,12 +159,18 @@
 #endif
     _framebuffer = 0;
     _initializedBGFX = NO;
-    _isActive = YES;
     _isHandlingEvents = NO;
+    _isUpdatingView = NO;
     _mouiView = mouiView;
     _needsRedraw = NO;
     _stencilAndDepthRenderbuffer = 0;
-    _stopsUpdatingView = YES;
+
+    // Initializes the display link.
+    _displayLink = [CADisplayLink displayLinkWithTarget:self
+                                               selector:@selector(render)];
+    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
+                       forMode:NSRunLoopCommonModes];
+    _displayLink.paused = YES;
 
     // Initializes the CAEAGLLayer.
     CAEAGLLayer* eaglLayer = (CAEAGLLayer *)self.layer;
@@ -204,9 +209,7 @@
 
 - (void)dealloc {
   [self destroyBuffers];
-
-  if (_displayLink != nil)
-    [_displayLink invalidate];
+  [_displayLink invalidate];
 
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:UIApplicationDidBecomeActiveNotification
@@ -223,15 +226,11 @@
 // guarantees the view will be updated in the next refresh cycle of the display.
 - (void)displayLayer:(CALayer *)layer {
   @synchronized(self) {
-    if (!_stopsUpdatingView && _needsRedraw)
-      return;
-
     _needsRedraw = YES;
-    // Attaches `_displayLink` to the run loop if it's invalidated.
-    if (_stopsUpdatingView) {
-      [self startUpdatingView];
-      [self stopUpdatingView];
-    }
+    if (_isUpdatingView)
+      return;
+    [self startUpdatingView];
+    [self stopUpdatingView];
   }
 }
 
@@ -304,43 +303,26 @@
   [_context presentRenderbuffer:GL_RENDERBUFFER];
 #endif
 
-  // Removes the display link from the run loop if no need to update the view
-  // continuously.
+  // Pauses display link if stopped updating view and no redraw request.
   @synchronized(self) {
-    if (_stopsUpdatingView && !_needsRedraw) {
-      [_displayLink invalidate];  // this also releases `_displayLink`
-      _displayLink = nil;
-    } else {
+    if (_needsRedraw)
       _needsRedraw = NO;
-    }
+    else if (!_isUpdatingView)
+      _displayLink.paused = YES;
   }
 }
 
-// Sets `_stopsUpdatingView` to NO to make sure `_displayLink` stays in the
-// run loop and keep updating the view continuously. If the updating mechanism
-// was not activated yet or stopped previously, a new `CADisplayLink` object
-// will be created and added to the run loop.
 - (void)startUpdatingView {
   @synchronized(self) {
-    _stopsUpdatingView = NO;
-
-    // Registers the display link only if the app is active. Or the display
-    // link will be registered automatically when the app becomes active again.
-    if (!_isActive || _displayLink != nil)
-      return;
-
-    _displayLink = [CADisplayLink displayLinkWithTarget:self
-                                                selector:@selector(render)];
-    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
-                       forMode:NSRunLoopCommonModes];
+    _isUpdatingView = YES;
+    if (_applicationIsActive)
+      _displayLink.paused = NO;
   }
 }
 
-// Simply sets `_stopsUpdatingView` to YES to stop updating when the latest
-// rendering is done.
 - (void)stopUpdatingView {
   @synchronized(self) {
-    _stopsUpdatingView = YES;
+    _isUpdatingView = NO;
   }
 }
 

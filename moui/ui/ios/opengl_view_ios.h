@@ -34,17 +34,17 @@ class View;
 // The native iOS view for rendering OpenGL stuff.
 @interface MOOpenGLView : UIView {
  @private
+  BOOL _applicationIsActive;
   GLuint _colorRenderbuffer;
   EAGLContext* _context;
   CADisplayLink* _displayLink;
   GLuint _framebuffer;
   BOOL _initializedBGFX;
-  BOOL _isActive;  // indicates whether the app is active
   BOOL _isHandlingEvents;
+  BOOL _isUpdatingView;
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
   GLuint _stencilAndDepthRenderbuffer;
-  BOOL _stopsUpdatingView;
 }
 
 - (id)initWithMouiView:(moui::View *)mouiView;
