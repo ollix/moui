@@ -36,6 +36,7 @@ class Widget;
 // managed widget for rendering.
 class WidgetView : public View {
  public:
+  WidgetView(const int context_flags);
   WidgetView();
   ~WidgetView();
 
@@ -154,6 +155,9 @@ class WidgetView : public View {
 
   // The nanovg context for rendering.
   NVGcontext* context_;
+
+  // Indicates the flags to initialize the nanovg context.
+  int context_flags_;
 
   // Keeps a list of effective event responders.
   std::vector<Widget*> effective_event_responders_;

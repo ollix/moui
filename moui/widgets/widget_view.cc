@@ -38,10 +38,14 @@
 
 namespace moui {
 
-WidgetView::WidgetView() : context_(nullptr), preparing_for_rendering_(false),
-                           requests_redraw_(false),
-                           root_widget_(new Widget(false)) {
+WidgetView::WidgetView(const int context_flags)
+    : context_(nullptr), context_flags_(context_flags),
+      preparing_for_rendering_(false), requests_redraw_(false),
+      root_widget_(new Widget) {
   root_widget_->set_widget_view(this);
+}
+
+WidgetView::WidgetView() : WidgetView(NVG_ANTIALIAS | NVG_STENCIL_STROKES) {
 }
 
 WidgetView::~WidgetView() {
@@ -407,7 +411,7 @@ void WidgetView::WidgetViewWillRender(Widget* widget) {
 
 NVGcontext* WidgetView::context() {
   if (context_ == nullptr) {
-    context_ = nvgCreateContext(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+    context_ = nvgCreateContext(context_flags_);
   }
   return context_;
 }
