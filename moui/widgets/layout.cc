@@ -37,7 +37,7 @@ Layout::~Layout() {
 // When adding a child widget, the child is actually added to a newly created
 // cell widget.
 void Layout::AddChild(Widget* child) {
-  auto cell = new Widget(false);
+  auto cell = new Widget;
   cell->set_is_opaque(false);
   cell->AddChild(child);
   ScrollView::AddChild(cell);

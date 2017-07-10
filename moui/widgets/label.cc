@@ -53,7 +53,7 @@ Label::Label(const std::string& text) : Label(text, "") {
 }
 
 Label::Label(const std::string& text, const std::string& font_name)
-    : Widget(false), adjusts_font_size_to_fit_width_(false),
+    : adjusts_font_size_to_fit_width_(false),
       adjusts_label_height_to_fit_width_(false), font_baseline_(FLT_MIN),
       font_name_(font_name), font_size_(0), font_size_scale_(0),
       line_height_(1), minimum_scale_factor_(0), number_of_lines_(1),

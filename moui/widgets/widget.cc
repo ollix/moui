@@ -51,9 +51,6 @@ float CalculatePoints(const moui::Widget::Unit unit, const float value,
 
 namespace moui {
 
-Widget::Widget() : Widget(true) {
-}
-
 Widget::Widget(const bool caches_rendering)
     : alpha_(1), animation_count_(0),
       background_color_(nvgRGBA(255, 255, 255, 255)), bottom_padding_(0),
@@ -68,6 +65,9 @@ Widget::Widget(const bool caches_rendering)
       widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
       x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
       y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
+}
+
+Widget::Widget() : Widget(false) {
 }
 
 Widget::~Widget() {

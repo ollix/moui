@@ -43,7 +43,7 @@ const float kTrackPadding = 3;
 namespace moui {
 
 Scroller::Scroller(const Direction direction)
-    : Widget(false), animation_progress_(-1), direction_(direction),
+    : animation_progress_(-1), direction_(direction),
       shows_scrollers_on_both_directions_(false) {
   set_is_opaque(false);
   SetX(Widget::Alignment::kRight, Widget::Unit::kPoint, 0);

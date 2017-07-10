@@ -48,13 +48,13 @@ namespace moui {
 
 TableViewCell::TableViewCell(const Style style,
                              const std::string& reuse_identifier)
-    : Widget(false), accessory_type_(AccessoryType::kNone),
-      detail_text_label_(nullptr), highlighted_(false), selected_(false),
-      style_(style), reuse_identifier_(reuse_identifier) {
+    : accessory_type_(AccessoryType::kNone), detail_text_label_(nullptr),
+      highlighted_(false), selected_(false), style_(style),
+      reuse_identifier_(reuse_identifier) {
   set_frees_children_on_destruction(true);
 
   // Initializes content view.
-  content_view_ = new moui::Widget(false);
+  content_view_ = new moui::Widget;
   content_view_->BindRenderFunction(&TableViewCell::RenderContentView, this);
   AddChild(content_view_);
 

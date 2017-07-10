@@ -68,9 +68,8 @@ float ReviseScrollVelocity(const float velocity) {
 namespace moui {
 
 ScrollView::ScrollView()
-    : Widget(false), always_bounce_horizontal_(false),
-      always_bounce_vertical_(false), always_scroll_both_directions_(true),
-      always_scroll_to_next_page_(false),
+    : always_bounce_horizontal_(false), always_bounce_vertical_(false),
+      always_scroll_both_directions_(true), always_scroll_to_next_page_(false),
       deceleration_rate_(kDefaultDecelerationRate), bounces_(true),
       content_view_(new Widget(false)), enables_paging_(false),
       enables_scroll_(true), moves_content_view_to_page_(0), page_width_(0),
