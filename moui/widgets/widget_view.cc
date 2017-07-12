@@ -313,7 +313,7 @@ void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
 #ifndef MOUI_BGFX
   glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
   glClearColor(0, 0, 0, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 #else
   const uint8_t kViewId = nvgViewId(context);
   bgfx::setViewClear(kViewId,
