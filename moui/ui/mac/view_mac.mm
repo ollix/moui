@@ -39,6 +39,11 @@ View::View() : BaseView() {
 View::~View() {
 }
 
+moui::Point View::GetMouseLocation() {
+  MOView* native_view = (__bridge MOView*)native_handle();
+  return [native_view mouseLocation];
+}
+
 void View::Redraw() {
   MOView* native_view = (__bridge MOView*)native_handle();
   [native_view setNeedsRedraw];

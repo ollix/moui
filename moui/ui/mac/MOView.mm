@@ -201,6 +201,16 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
   // Implmenets this method in subclass.
 }
 
+- (moui::Point)mouseLocation {
+  NSPoint mouseLocation = [NSEvent mouseLocation];
+  NSRect localRect = [[self window]
+      convertRectFromScreen:NSMakeRect(mouseLocation.x, mouseLocation.y, 0, 0)];
+  NSPoint locationInView = [self convertPoint:localRect.origin fromView:self];
+  mouseLocation = [self convertToInternalPoint:locationInView];
+  return {static_cast<float>(mouseLocation.x),
+          static_cast<float>(mouseLocation.y)};
+}
+
 - (void)presentDrawable {
   // Implmenets this method in subclass.
 }

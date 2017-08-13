@@ -30,6 +30,10 @@ class View : public BaseView {
   View();
   ~View();
 
+#ifdef MOUI_MAC
+  moui::Point GetMouseLocation();
+#endif
+
   // This method is designed to be called whenever the application receives a
   // memory warning. Currently this method only works for iOS.
   virtual void HandleMemoryWarning() {}

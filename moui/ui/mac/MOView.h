@@ -17,6 +17,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+#include "moui/base.h"
+
 namespace moui {
 class View;
 }  // namespace moui
@@ -38,6 +40,9 @@ class View;
 
 // Destroies the drawable. This method should be implemented in the subclass.
 - (void)destroyDrawable;
+
+// Returns the current mouse location related to the view's top-left origin.
+- (moui::Point)mouseLocation;
 
 // Presents the drawable. This method should be implemented in the subclass.
 - (void)presentDrawable;
