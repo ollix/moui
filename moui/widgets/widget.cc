@@ -784,6 +784,7 @@ void Widget::set_widget_view(WidgetView* widget_view) {
   }
   set_is_visible(false);
   widget_view_ = widget_view;
+  ContextDidChange(widget_view == nullptr ? nullptr : widget_view->context());
 
   // Updates the widget view of all its child widgets as well.
   for (Widget* child_widget : children_)

@@ -292,10 +292,14 @@ class Widget {
                                NVGframebuffer** framebuffer,
                                float* scale_factor);
 
+  // This method will get called when a new context is assigned to the widget.
+  // It's a good place to allocate context-related resources in subclasses.
+  virtual void ContextDidChange(NVGcontext* context) {}
+
   // This method will get called when the corresponed nanovg context is about
   // to change. Subclasses should implement this method to free related
   // nanovg objects if there is any. Besides, the overriding method should
-  // always call the same method defined in its super class as there are some
+  // always calls the same method defined in its super class as there are some
   // default behaviors implemented in this base class.
   virtual void ContextWillChange(NVGcontext* context);
 
