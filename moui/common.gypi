@@ -20,19 +20,13 @@
   'configurations': {
     'Debug': {
       'xcode_settings': {
-        'GCC_OPTIMIZATION_LEVEL': '0',
         'ONLY_ACTIVE_ARCH': 'YES',
-      },
-    },
-    'Release': {
-      'xcode_settings': {
-        'GCC_OPTIMIZATION_LEVEL': 's',
       },
     },
   },
   # Target-level configurations.
   'target_defaults': {
-    'default_configuration': 'Debug',
+    'default_configuration': 'Release',
     'configurations': {
       'Debug': {
         'defines': [ 'DEBUG' ],
@@ -57,6 +51,7 @@
     ],  # conditions
     'xcode_settings': {
       'CLANG_ENABLE_OBJC_ARC': 'NO',
+      'GCC_OPTIMIZATION_LEVEL': 's',
       'OTHER_CPLUSPLUSFLAGS': [
         '-std=c++11',  # supports C++11
       ],

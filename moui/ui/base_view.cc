@@ -22,7 +22,6 @@
 #include <string>
 
 #include "moui/native/native_view.h"
-#include "moui/opengl_hook.h"
 
 namespace moui {
 

@@ -18,16 +18,21 @@
 #ifndef MOUI_OPENGL_HOOK_H_
 #define MOUI_OPENGL_HOOK_H_
 
+#include "moui/defines.h"
+
+#ifdef MOUI_GL
+
 #if defined MOUI_ANDROID
 #include <GLES2/gl2.h>
 // iOS
-#elif defined MOUI_IOS && defined MOUI_GLES2
+#elif defined(MOUI_IOS) && defined(MOUI_GLES2)
 #include <OpenGLES/ES2/gl.h>
-#elif defined MOUI_IOS && defined MOUI_GLES3
+#elif defined(MOUI_IOS) && defined(MOUI_GLES3)
 #include <OpenGLES/ES3/gl.h>
 // Mac
-#elif defined MOUI_MAC && defined MOUI_GL2
+#elif defined(MOUI_MAC) && defined(MOUI_GL2)
 #include <OpenGL/gl.h>
 #endif
 
+#endif  // MOUI_GL
 #endif  // MOUI_OPENGL_HOOK_H_

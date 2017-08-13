@@ -27,14 +27,9 @@
 #include "moui/defines.h"
 #include "moui/native/native_view.h"
 #include "moui/nanovg_hook.h"
-#include "moui/opengl_hook.h"
 #include "moui/ui/view.h"
 #include "moui/widgets/scroll_view.h"
 #include "moui/widgets/widget.h"
-
-#ifdef MOUI_BGFX
-#  include "bgfx/bgfx.h"
-#endif
 
 namespace moui {
 
@@ -45,7 +40,7 @@ WidgetView::WidgetView(const int context_flags)
   root_widget_->set_widget_view(this);
 }
 
-WidgetView::WidgetView() : WidgetView(NVG_ANTIALIAS | NVG_STENCIL_STROKES) {
+WidgetView::WidgetView() : WidgetView(nvgContextFlags(true, true, true)) {
 }
 
 WidgetView::~WidgetView() {
@@ -268,10 +263,12 @@ void WidgetView::RemoveResponder(Widget* widget) {
 }
 
 void WidgetView::Render() {
+  root_widget_->SetWidth(GetWidth());
+  root_widget_->SetHeight(GetHeight());
   Render(root_widget_, nullptr);
 }
 
-void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
+void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   preparing_for_rendering_ = true;
   NVGcontext* context = this->context();
   visible_widgets_.clear();
@@ -296,32 +293,24 @@ void WidgetView::Render(Widget* widget, NVGLUframebuffer* framebuffer) {
 
   // Renders offscreen stuff here so it won't interfere the onscreen rendering.
   if (framebuffer != nullptr)
-    nvgluBindFramebuffer(NULL);
+    nvgBindFramebuffer(NULL);
   for (WidgetItem* item : widget_list) {
     item->widget->RenderFramebuffer(context);
     item->widget->RenderDefaultFramebuffer(context);
   }
   if (framebuffer != nullptr)
-    nvgluBindFramebuffer(framebuffer);
+    nvgBindFramebuffer(framebuffer);
 
-  // Renders visible widgets on screen.
+  // Clears the render buffer.
   const float kWidth = widget->GetWidth();
   const float kHeight = widget->GetHeight();
   const float kScreenScaleFactor = \
       Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
+  moui::nvgClearColor(kWidth * kScreenScaleFactor,
+                      kHeight * kScreenScaleFactor,
+                      nvgRGBAf(0, 0, 0, 0));
 
-#ifndef MOUI_BGFX
-  glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
-  glClearColor(0, 0, 0, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-#else
-  const uint8_t kViewId = nvgViewId(context);
-  bgfx::setViewClear(kViewId,
-                     BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
-                     0x00000000, 1.0f, 0);
-  bgfx::setViewRect(kViewId, 0, 0, kWidth * kScreenScaleFactor,
-                    kHeight * kScreenScaleFactor);
-#endif  // MOUI_BGFX
+  // Renders visible widgets on screen.
   nvgBeginFrame(context, kWidth , kHeight, kScreenScaleFactor);
   WidgetItemStack rendering_stack;
   for (WidgetItem* item : widget_list) {
@@ -411,7 +400,11 @@ void WidgetView::WidgetViewWillRender(Widget* widget) {
 
 NVGcontext* WidgetView::context() {
   if (context_ == nullptr) {
+#ifdef MOUI_METAL
+    context_ = nvgCreateContext(GetLayer(), context_flags_);
+#else
     context_ = nvgCreateContext(context_flags_);
+#endif  // MOUI_METAL
   }
   return context_;
 }

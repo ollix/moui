@@ -22,19 +22,14 @@
 #  define MOUI_APPLE
 #endif
 
-#ifdef MOUI_METAL
-#  define MOUI_BGFX
-#endif
-
-#if defined(MOUI_BGFX)
-#elif defined MOUI_GL2
-#  define NANOVG_GL2_IMPLEMENTATION
-#elif defined MOUI_GLES2
-#  define NANOVG_GLES2_IMPLEMENTATION
-#elif defined MOUI_GL3
-#  define NANOVG_GL3_IMPLEMENTATION
-#elif defined MOUI_GLES3
-#  define NANOVG_GLES3_IMPLEMENTATION
+#if defined(MOUI_GL2)
+#  define MOUI_GL
+#elif defined(MOUI_GLES2)
+#  define MOUI_GL
+#elif defined(MOUI_GL3)
+#  define MOUI_GL
+#elif defined(MOUI_GLES3)
+#  define MOUI_GL
 #endif
 
 #endif  // MOUI_DEFINES_H_

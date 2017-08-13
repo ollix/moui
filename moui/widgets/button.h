@@ -166,7 +166,7 @@ class Button : public Control {
     // Records the transition progress, specified as a value from 0.0 to 1.0.
     float progress;
     // The framebuffer to render while transitioning.
-    NVGLUframebuffer* framebuffer;
+    NVGframebuffer* framebuffer;
     // Keeps the `title_label_`'s text color that should be transitioned from.
     NVGcolor previous_title_color;
   };
@@ -196,7 +196,7 @@ class Button : public Control {
   // Renders the specified `control_state` to the passed `framebuffer`.
   // Returns `false` on failure.
   bool RenderFramebufferForControlState(
-      NVGcontext* context, NVGLUframebuffer** framebuffer,
+      NVGcontext* context, NVGframebuffer** framebuffer,
       const ControlState control_state,
       const bool renders_default_disabled_effect,
       const bool renders_default_highlighted_effect);
@@ -204,7 +204,7 @@ class Button : public Control {
   // Renders the button's current transition state to the passed `framebuffer`.
   // Returns `false` on failure.
   bool RenderFramebufferForTransition(NVGcontext* context,
-                                      NVGLUframebuffer** framebuffer);
+                                      NVGframebuffer** framebuffer);
 
   // Returns `true` if a render function is binded to the passed control state.
   bool RenderFunctionIsBinded(const ControlState state) const;
@@ -236,7 +236,7 @@ class Button : public Control {
 
   // Keeps the reference to the framebuffer pointer of current control state.
   // This value is updated in the `RenderFramebuffer()` method.
-  NVGLUframebuffer* current_framebuffer_;
+  NVGframebuffer* current_framebuffer_;
 
   // The style used to render default disabled state when no corresponded
   // render function is binded. The default style is `kSemiTransparent`. Note
@@ -251,26 +251,26 @@ class Button : public Control {
   Style default_highlighted_style_;
 
   // The framebuffer for rendering the button in disabled state.
-  NVGLUframebuffer* disabled_state_framebuffer_;
+  NVGframebuffer* disabled_state_framebuffer_;
 
   // The reference to the framebuffer pointer that will be actually rendered
   // in the `Render()` method. This value is updated in the
   // `RenderFramebuffer()` method.
-  NVGLUframebuffer* final_framebuffer_;
+  NVGframebuffer* final_framebuffer_;
 
   // The framebuffer for rendering the button in highlighted state.
-  NVGLUframebuffer* highlighted_state_framebuffer_;
+  NVGframebuffer* highlighted_state_framebuffer_;
 
   // The framebuffer for rendering the button in normal state.
-  NVGLUframebuffer* normal_state_framebuffer_;
+  NVGframebuffer* normal_state_framebuffer_;
 
   // The framebuffer for rendering the button in normal state with default
   // highlighted effect.
-  NVGLUframebuffer* normal_state_with_highlighted_effect_framebuffer_;
+  NVGframebuffer* normal_state_with_highlighted_effect_framebuffer_;
 
   // Keeps the reference to the framebuffer pointer of previous control state.
   // This value is updated in the `RenderFramebuffer()` method.
-  NVGLUframebuffer* previous_framebuffer_;
+  NVGframebuffer* previous_framebuffer_;
 
   // Keeps the binded render functions for different control states. The vector
   // will be initialized in constructor to have the same number of elemens as
@@ -280,11 +280,11 @@ class Button : public Control {
   std::vector<std::function<void(Button*, NVGcontext*)>> render_functions_;
 
   // The framebuffer for rendering the button in selected state.
-  NVGLUframebuffer* selected_state_framebuffer_;
+  NVGframebuffer* selected_state_framebuffer_;
 
   // The framebuffer for rendering the button in selected state with default
   // highlighted effect.
-  NVGLUframebuffer* selected_state_with_highlighted_effect_framebuffer_;
+  NVGframebuffer* selected_state_with_highlighted_effect_framebuffer_;
 
   // Indicates the opacity used when rendering the button for
   // `Style::kSemiTransparent`. The default value is 0.5.

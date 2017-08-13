@@ -53,6 +53,9 @@ class NativeView : public NativeObject {
   int GetHeight() const;
 
 #ifdef MOUI_APPLE
+  // Returns the view's Core Animation layer used for rendering.
+  void* GetLayer() const;
+
   // Returns the snapshot of the native view. The returned snapshot is a
   // bitmap data with the width and height matched to the screen sacle,
   // and each pixel is represented by 4 consective bytes in the RGBA format.

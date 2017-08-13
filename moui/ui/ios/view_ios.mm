@@ -20,19 +20,19 @@
 #include "moui/defines.h"
 #include "moui/ui/base_view.h"
 
-#if defined(MOUI_METAL)
-#  import "moui/ui/ios/metal_view_ios.h"
-#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
-#  import "moui/ui/ios/opengl_view_ios.h"
+#if defined(MOUI_GL)
+#  import "moui/ui/ios/MOOpenGLView.h"
+#elif defined(MOUI_METAL)
+#  import "moui/ui/ios/MOMetalView.h"
 #endif
 
 namespace moui {
 
 View::View() : BaseView() {
-#if defined(MOUI_METAL)
-  MOMetalView* view = [[MOMetalView alloc] initWithMouiView:this];
-#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
+#if defined(MOUI_GL)
   MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
+#elif defined(MOUI_METAL)
+  MOMetalView* view = [[MOMetalView alloc] initWithMouiView:this];
 #endif
   SetNativeHandle((__bridge_retained void*)view, true);
 }
@@ -41,31 +41,19 @@ View::~View() {
 }
 
 // Calls `CALayer`'s `setNeedsDisplay` method to trigger the `displayLayer:`
-// method defined in `MOMetalView`.
+// method defined in `MOView`.
 void View::Redraw() {
-#if defined(MOUI_METAL)
-	MOMetalView* native_view = (__bridge MOMetalView*)native_handle();
-#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
-	MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
-#endif
+  MOView* native_view = (__bridge MOView*)native_handle();
   [[native_view layer] setNeedsDisplay];
 }
 
 void View::StartUpdatingNativeView() {
-#if defined(MOUI_METAL)
-	MOMetalView* native_view = (__bridge MOMetalView*)native_handle();
-#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
-	MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
-#endif
+  MOView* native_view = (__bridge MOView*)native_handle();
   [native_view startUpdatingView];
 }
 
 void View::StopUpdatingNativeView() {
-#if defined(MOUI_METAL)
-	MOMetalView* native_view = (__bridge MOMetalView*)native_handle();
-#elif defined(MOUI_GLES2) || defined(MOUI_GLES3)
-	MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
-#endif
+  MOView* native_view = (__bridge MOView*)native_handle();
   [native_view stopUpdatingView];
 }
 

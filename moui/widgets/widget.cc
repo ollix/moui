@@ -92,7 +92,7 @@ void Widget::AddChild(Widget* child) {
 }
 
 bool Widget::BeginFramebufferUpdates(NVGcontext* context,
-                                     NVGLUframebuffer** framebuffer,
+                                     NVGframebuffer** framebuffer,
                                      const float width, const float height,
                                      float* scale_factor) {
   const float kScaleFactor = \
@@ -108,55 +108,27 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
     int framebuffer_height = 0;
     nvgImageSize((*framebuffer)->ctx, (*framebuffer)->image,
                  &framebuffer_width, &framebuffer_height);
-    if (kWidth != framebuffer_width || kHeight != framebuffer_height)
-      moui::nvgDeleteFramebuffer(framebuffer);
+    if (kWidth != framebuffer_width || kHeight != framebuffer_height) {
+      nvgDeleteFramebuffer(*framebuffer);
+      *framebuffer = nullptr;
+    }
   }
 
   if (*framebuffer == nullptr)
-    *framebuffer = moui::nvgCreateFramebuffer(context, kWidth, kHeight, 0);
+    *framebuffer = nvgCreateFramebuffer(context, kWidth, kHeight, 0);
   if (*framebuffer == NULL) {
     *framebuffer = nullptr;
     return false;
   }
   if (scale_factor != nullptr)
     *scale_factor = kScaleFactor;
-  nvgluBindFramebuffer(*framebuffer);
-#ifndef MOUI_BGFX
-  glViewport(0, 0, kWidth, kHeight);
-  if (is_opaque_ && background_color_.a > 0) {
-    const float kAlpha = static_cast<float>(background_color_.a);
-    const float kRed = static_cast<float>(background_color_.r) * kAlpha;
-    const float kGreen = static_cast<float>(background_color_.g) * kAlpha;
-    const float kBlue = static_cast<float>(background_color_.b) * kAlpha;
-    glClearColor(kRed, kGreen, kBlue, kAlpha);
-  } else {
-    glClearColor(0, 0, 0, 0);
-  }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-#else
-  const uint8_t kViewId = (*framebuffer)->viewId;
-  uint32_t clear_color = 0x00000000;
-  if (is_opaque_ && background_color_.a > 0) {
-    const float kAlpha = static_cast<float>(background_color_.a) * 256;
-    const float kRed = static_cast<float>(background_color_.r) * kAlpha;
-    const float kGreen = static_cast<float>(background_color_.g) * kAlpha;
-    const float kBlue = static_cast<float>(background_color_.b) * kAlpha;
-    clear_color = (static_cast<uint32_t>(kRed )<< 24) +
-                  (static_cast<uint32_t>(kGreen) << 16) +
-                  (static_cast<uint32_t>(kBlue) << 8) +
-                  (static_cast<uint32_t>(kAlpha));
-  }
-  bgfx::setViewClear(kViewId,
-                     BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
-                     clear_color, 1.0f, 0);
-  bgfx::setViewRect(kViewId, 0, 0, kWidth, kHeight);
-  bgfx::touch(kViewId);
-#endif
+  nvgBindFramebuffer(*framebuffer);
+  nvgClearColor(kWidth, kHeight, is_opaque_ ? background_color_ : nvgRGBAf(0, 0, 0, 0));
   return true;
 }
 
 bool Widget::BeginFramebufferUpdates(NVGcontext* context,
-                                    NVGLUframebuffer** framebuffer,
+                                    NVGframebuffer** framebuffer,
                                     float* scale_factor) {
   return BeginFramebufferUpdates(context, framebuffer, GetWidth(), GetHeight(),
                                  scale_factor);
@@ -199,11 +171,12 @@ bool Widget::CollidePoint(const Point point, const float top_padding,
 }
 
 void Widget::ContextWillChange(NVGcontext* context) {
-  moui::nvgDeleteFramebuffer(&default_framebuffer_);
+  nvgDeleteFramebuffer(default_framebuffer_);
+  default_framebuffer_ = nullptr;
 }
 
 void Widget::EndFramebufferUpdates() {
-  nvgluBindFramebuffer(NULL);
+  nvgBindFramebuffer(NULL);
 }
 
 void Widget::ExecuteRenderFunction(NVGcontext* context) {
@@ -324,7 +297,7 @@ unsigned char* Widget::GetSnapshot() {
   if (context == nullptr)
     return nullptr;
 
-  NVGLUframebuffer* framebuffer = nullptr;
+  NVGframebuffer* framebuffer = nullptr;
   if (!BeginFramebufferUpdates(context, &framebuffer, nullptr))
     return nullptr;
   widget_view_->Render(this, framebuffer);
@@ -337,13 +310,11 @@ unsigned char* Widget::GetSnapshot() {
   unsigned char* snapshot = reinterpret_cast<unsigned char*>(
       std::malloc(framebuffer_width * framebuffer_height * 4));
   if (snapshot != nullptr) {
-#ifndef MOUI_BGFX
-    glReadPixels(0, 0, framebuffer_width, framebuffer_height, GL_RGBA,
-                 GL_UNSIGNED_BYTE, snapshot);
-#endif
+    nvgReadPixels(context, framebuffer->image, 0, 0, framebuffer_width,
+                  framebuffer_height, snapshot);
   }
   EndFramebufferUpdates();
-  moui::nvgDeleteFramebuffer(&framebuffer);
+  nvgDeleteFramebuffer(framebuffer);
   return snapshot;
 }
 
@@ -418,7 +389,8 @@ float Widget::GetY() const {
 }
 
 void Widget::HandleMemoryWarning(NVGcontext* context) {
-  moui::nvgDeleteFramebuffer(&default_framebuffer_);
+  nvgDeleteFramebuffer(default_framebuffer_);
+  default_framebuffer_ = nullptr;
 }
 
 bool Widget::InsertChildAboveSibling(Widget* child, Widget* sibling) {
@@ -517,7 +489,8 @@ void Widget::RenderDefaultFramebuffer(NVGcontext* context) {
                  &framebuffer_width, &framebuffer_height);
     if (kFramebufferWidth != framebuffer_width ||
         kFramebufferHeight != framebuffer_height) {
-      moui::nvgDeleteFramebuffer(&default_framebuffer_);
+      nvgDeleteFramebuffer(default_framebuffer_);
+      default_framebuffer_ = nullptr;
       should_redraw_default_framebuffer_ = true;
     }
   }

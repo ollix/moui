@@ -282,14 +282,14 @@ class Widget {
   // generate the best quality. If this value doesn't matter, simply passing
   // `nullptr` as the `scale_factor` parameter.
   bool BeginFramebufferUpdates(NVGcontext* context,
-                               NVGLUframebuffer** framebuffer,
+                               NVGframebuffer** framebuffer,
                                const float width, const float height,
                                float* scale_factor);
 
   // Initializes the environment for rendering in the passed framebuffer based
   // on the widget's current size.
   bool BeginFramebufferUpdates(NVGcontext* context,
-                               NVGLUframebuffer** framebuffer,
+                               NVGframebuffer** framebuffer,
                                float* scale_factor);
 
   // This method will get called when the corresponed nanovg context is about
@@ -324,7 +324,7 @@ class Widget {
   //
   // An example to implement this method for offscreen rendering:
   //
-  //    NVGLUframebuffer* framebuffer;  // usually defined as a class member
+  //    NVGframebuffer* framebuffer;  // usually defined as a class member
   //    float scale_factor;
   //    BeginFramebufferUpdates(context, &framebuffer, &scale_factor);
   //    nvgBeginFrame(context, GetWidth(), GetHeight(), scale_factor);
@@ -437,7 +437,7 @@ class Widget {
 
   // The framebuffer to save the rendering result of `Render()` when
   // `caches_rendering_` is set to `true`.
-  NVGLUframebuffer* default_framebuffer_;
+  NVGframebuffer* default_framebuffer_;
 
   // The `NVGpaint` object corresonded to the `default_framebuffer_`.
   NVGpaint default_framebuffer_paint_;

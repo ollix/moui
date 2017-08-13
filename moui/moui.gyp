@@ -48,11 +48,14 @@
         'ui/base_window.cc',
         'ui/android/view_android.cc',
         'ui/android/window_android.cc',
-        'ui/ios/metal_view_ios.mm',
-        'ui/ios/opengl_view_ios.mm',
+        'ui/ios/MOMetalView.mm',
+        'ui/ios/MOOpenGLView.mm',
+        'ui/ios/MOView.mm',
         'ui/ios/view_ios.mm',
         'ui/ios/window_ios.mm',
-        'ui/mac/opengl_view_mac.mm',
+        'ui/mac/MOMetalView.mm',
+        'ui/mac/MOOpenGLView.mm',
+        'ui/mac/MOView.mm',
         'ui/mac/view_mac.mm',
         'ui/mac/window_mac.mm',
         'widgets/activity_indicator_view.cc',
@@ -109,9 +112,8 @@
         ['OS == "ios"', {
           'variables': {
             'defines': [
-              # 'MOUI_BGFX',
-              # 'MOUI_METAL',
-              'MOUI_GLES2',
+              'MOUI_METAL',
+              # 'MOUI_GLES2',
               'MOUI_IOS',
             ],
           },
@@ -120,13 +122,10 @@
               '$(SDKROOT)/System/Library/Frameworks/CoreGraphics.framework',
               '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
-              '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
+              # '$(SDKROOT)/System/Library/Frameworks/OpenGLES.framework',
               '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
               '$(SDKROOT)/System/Library/Frameworks/UIKit.framework',
             ],
-          },
-          'xcode_settings': {
-            'CLANG_ENABLE_OBJC_ARC': 'YES',
           },
         }, {  # OS != "ios"
           'sources!': [
@@ -135,8 +134,9 @@
             'native/ios/native_view_ios.mm',
             'native/ios/native_view_controller_ios.mm',
             'native/ios/native_window_ios.mm',
-            'ui/ios/metal_view_ios.mm',
-            'ui/ios/opengl_view_ios.mm',
+            'ui/ios/MOMetalView.mm',
+            'ui/ios/MOOpenGLView.mm',
+            'ui/ios/MOView.mm',
             'ui/ios/view_ios.mm',
             'ui/ios/window_ios.mm',
           ],
@@ -144,25 +144,28 @@
         ['OS == "mac"', {
           'variables': {
             'defines': [
-            'MOUI_GL2',
-            'MOUI_MAC',
+              'MOUI_METAL',
+              # 'MOUI_GL2',
+              'MOUI_MAC',
             ],
           },
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
-              '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+              '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
+              '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+              # '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+              '$(SDKROOT)/System/Library/Frameworks/QuartzCore.framework',
             ],
-          },
-          'xcode_settings': {
-            'CLANG_ENABLE_OBJC_ARC': 'YES',
           },
         }, {  # OS != "mac"
           'sources!': [
             'native/mac/native_object_mac.mm',
             'native/mac/native_view_mac.mm',
             'native/mac/native_window_mac.mm',
-            'ui/mac/opengl_view_mac.mm',
+            'ui/mac/MOMetalView.mm',
+            'ui/mac/MOOpenGLView.mm',
+            'ui/mac/MOView.mm',
             'ui/mac/view_mac.mm',
             'ui/mac/window_mac.mm',
           ],
@@ -174,7 +177,11 @@
             ],
           },
         }],
-        ['OS != "mac" and OS != "ios"', {
+        ['OS == "mac" or OS == "ios"', {
+          'xcode_settings': {
+            'CLANG_ENABLE_OBJC_ARC': 'YES',
+          },
+        }, {
           'sources!': [
             'core/apple/clock_apple.mm',
             'core/apple/device_apple.mm',
@@ -186,11 +193,9 @@
         '<@(defines)',
       ],
       'dependencies': [
-        'bgfx.gyp:libbgfx',
         'nanovg.gyp:libnanovg',
       ],
       'export_dependent_settings': [
-        'bgfx.gyp:libbgfx',
         'nanovg.gyp:libnanovg',
       ],
       'direct_dependent_settings': {

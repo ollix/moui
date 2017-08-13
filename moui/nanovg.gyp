@@ -20,32 +20,38 @@
       'target_name': 'libnanovg',
       'type': 'static_library',
       'sources': [
-        'deps/bgfx/examples/common/nanovg/nanovg_bgfx.cpp',
         'deps/nanovg/src/nanovg.c',
+        'deps/MetalNanoVG/src/nanovg_mtl.m',
       ],
       'include_dirs': [
         'deps/nanovg/src',
-        'deps/bgfx/3rdparty',
-        'deps/bgfx/examples/common/nanovg',
+        'deps/MetalNanoVG/src',
+        'deps/3rdparty',  # for freetype configuration
+      ],
+      'defines': [
+        'FONS_USE_FREETYPE',
       ],
       'dependencies': [
-        'bgfx.gyp:libbgfx',
+        'freetype.gyp:libfreetype',
       ],
       "direct_dependent_settings": {
         "include_dirs": [
           'deps/nanovg/src',
+          'deps/MetalNanoVG/src',
         ],
       },
-      # Uses freetype for iOS.
       'conditions': [
-        ['OS == "ios"', {
-          'defines': [
-            'FONS_USE_FREETYPE',
+        ['OS == "mac" or OS == "ios"', {
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/Metal.framework',
+            ],
+          },
+        }, {
+          'sources!': [
+            'deps/MetalNanoVG/src/nanovg_mtl.m',
           ],
-          'dependencies': [
-            'freetype.gyp:libfreetype',
-          ],
-        }],  # ios
+        }],
       ],  # conditions
     },
   ],

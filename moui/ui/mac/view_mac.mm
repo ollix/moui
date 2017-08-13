@@ -18,31 +18,39 @@
 #include "moui/ui/view.h"
 
 #include "moui/ui/base_view.h"
-#import "moui/ui/mac/opengl_view_mac.h"
+
+#if defined(MOUI_GL)
+#  import "moui/ui/mac/MOOpenGLView.h"
+#elif defined(MOUI_METAL)
+#  import "moui/ui/mac/MOMetalView.h"
+#endif
 
 namespace moui {
 
-// Instantiates the `MOOpenGLView` class and uses it as the native handle.
 View::View() : BaseView() {
+#if defined(MOUI_GL)
   MOOpenGLView* view = [[MOOpenGLView alloc] initWithMouiView:this];
-  SetNativeHandle((__bridge void*)view, true);
+#elif defined(MOUI_METAL)
+  MOMetalView* view = [[MOMetalView alloc] initWithMouiView:this];
+#endif
+  SetNativeHandle((__bridge_retained void*)view, true);
 }
 
 View::~View() {
 }
 
 void View::Redraw() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+  MOView* native_view = (__bridge MOView*)native_handle();
   [native_view setNeedsRedraw];
 }
 
 void View::StartUpdatingNativeView() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+  MOView* native_view = (__bridge MOView*)native_handle();
   [native_view startUpdatingView];
 }
 
 void View::StopUpdatingNativeView() {
-  MOOpenGLView* native_view = (__bridge MOOpenGLView*)native_handle();
+  MOView* native_view = (__bridge MOView*)native_handle();
   [native_view stopUpdatingView];
 }
 

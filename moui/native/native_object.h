@@ -43,8 +43,6 @@ class NativeObject {
   // Updates the native handle and sets if the handle should be released
   // automatically when no longer needed.
   void SetNativeHandle(void* native_handle, const bool releases_on_demand) {
-    if (releases_on_demand_)
-      ReleaseNativeHandle();
     native_handle_ = native_handle;
     releases_on_demand_ = releases_on_demand;
   }

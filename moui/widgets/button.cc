@@ -24,7 +24,6 @@
 #include "moui/core/clock.h"
 #include "moui/core/device.h"
 #include "moui/nanovg_hook.h"
-#include "moui/opengl_hook.h"
 #include "moui/widgets/control.h"
 #include "moui/widgets/label.h"
 #include "moui/widgets/widget_view.h"
@@ -238,7 +237,7 @@ void Button::Render(NVGcontext* context) {
 // binded. The normal state will be rendered instead.
 void Button::RenderFramebuffer(NVGcontext* context) {
   // Determines what state to render and which framebuffer to render to.
-  NVGLUframebuffer** framebuffer;
+  NVGframebuffer** framebuffer;
   ControlState state = ControlState::kNormal;
   bool renders_default_disabled_effect = false;
   bool renders_default_highlighted_effect = false;
@@ -283,8 +282,10 @@ void Button::RenderFramebuffer(NVGcontext* context) {
     nvgImageSize((*framebuffer)->ctx, (*framebuffer)->image,
                  &framebuffer_width, &framebuffer_height);
     if (framebuffer_width != static_cast<int>(GetWidth() * kScaleFactor) ||
-        framebuffer_height != static_cast<int>(GetHeight() * kScaleFactor))
-      moui::nvgDeleteFramebuffer(framebuffer);
+        framebuffer_height != static_cast<int>(GetHeight() * kScaleFactor)) {
+      nvgDeleteFramebuffer(*framebuffer);
+      *framebuffer = nullptr;
+    }
   }
   // Renders the new framebuffer.
   if (*framebuffer == nullptr) {
@@ -306,7 +307,7 @@ void Button::RenderFramebuffer(NVGcontext* context) {
 }
 
 bool Button::RenderFramebufferForControlState(
-    NVGcontext* context, NVGLUframebuffer** framebuffer,
+    NVGcontext* context, NVGframebuffer** framebuffer,
     const ControlState control_state,
     const bool renders_default_disabled_effect,
     const bool renders_default_highlighted_effect) {
@@ -360,7 +361,7 @@ bool Button::RenderFramebufferForControlState(
 }
 
 bool Button::RenderFramebufferForTransition(NVGcontext* context,
-                                            NVGLUframebuffer** framebuffer) {
+                                            NVGframebuffer** framebuffer) {
   if (!transition_states_.is_transitioning)
     return false;
 
@@ -399,18 +400,24 @@ bool Button::RenderFunctionIsBinded(const ControlState state) const {
 
 void Button::ResetFramebuffers() {
   StopTransitioningBetweenControlStates(this);
-  moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
-  moui::nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
-  moui::nvgDeleteFramebuffer(&normal_state_framebuffer_);
-  moui::nvgDeleteFramebuffer(
-      &normal_state_with_highlighted_effect_framebuffer_);
-  moui::nvgDeleteFramebuffer(&selected_state_framebuffer_);
-  moui::nvgDeleteFramebuffer(
-      &selected_state_with_highlighted_effect_framebuffer_);
-  moui::nvgDeleteFramebuffer(&transition_states_.framebuffer);
+  nvgDeleteFramebuffer(disabled_state_framebuffer_);
+  nvgDeleteFramebuffer(highlighted_state_framebuffer_);
+  nvgDeleteFramebuffer(normal_state_framebuffer_);
+  nvgDeleteFramebuffer(normal_state_with_highlighted_effect_framebuffer_);
+  nvgDeleteFramebuffer(selected_state_framebuffer_);
+  nvgDeleteFramebuffer(selected_state_with_highlighted_effect_framebuffer_);
+  nvgDeleteFramebuffer(transition_states_.framebuffer);
+
   current_framebuffer_ = nullptr;
-  previous_framebuffer_ = nullptr;
+  disabled_state_framebuffer_ = nullptr;
   final_framebuffer_ = nullptr;
+  highlighted_state_framebuffer_ = nullptr;
+  normal_state_framebuffer_ = nullptr;
+  normal_state_with_highlighted_effect_framebuffer_ = nullptr;
+  previous_framebuffer_ = nullptr;
+  selected_state_framebuffer_ = nullptr;
+  selected_state_with_highlighted_effect_framebuffer_ = nullptr;
+  transition_states_.framebuffer = nullptr;
 }
 
 void Button::SetTitle(const std::string& title, const ControlState states) {
@@ -482,20 +489,24 @@ void Button::TransitionBetweenControlStates(Control* control) {
 void Button::UnbindRenderFunction(const ControlState states) {
   if (states & ControlState::kNormal) {
     render_functions_[GetControlStateIndex(ControlState::kNormal)] = NULL;
-    moui::nvgDeleteFramebuffer(&normal_state_framebuffer_);
+    nvgDeleteFramebuffer(normal_state_framebuffer_);
+    normal_state_framebuffer_ = nullptr;
   } else if (states & ControlState::kHighlighted) {
     render_functions_[GetControlStateIndex(ControlState::kHighlighted)] = NULL;
-    moui::nvgDeleteFramebuffer(&highlighted_state_framebuffer_);
-    moui::nvgDeleteFramebuffer(
-        &normal_state_with_highlighted_effect_framebuffer_);
-    moui::nvgDeleteFramebuffer(
-        &selected_state_with_highlighted_effect_framebuffer_);
+    nvgDeleteFramebuffer(highlighted_state_framebuffer_);
+    nvgDeleteFramebuffer(normal_state_with_highlighted_effect_framebuffer_);
+    nvgDeleteFramebuffer(selected_state_with_highlighted_effect_framebuffer_);
+    highlighted_state_framebuffer_ = nullptr;
+    normal_state_with_highlighted_effect_framebuffer_ = nullptr;
+    selected_state_with_highlighted_effect_framebuffer_ = nullptr;
   } else if (states & ControlState::kSelected) {
     render_functions_[GetControlStateIndex(ControlState::kSelected)] = NULL;
-    moui::nvgDeleteFramebuffer(&selected_state_framebuffer_);
+    nvgDeleteFramebuffer(selected_state_framebuffer_);
+    selected_state_framebuffer_ = nullptr;
   } else if (states & ControlState::kDisabled) {
     render_functions_[GetControlStateIndex(ControlState::kDisabled)] = NULL;
-    moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
+    nvgDeleteFramebuffer(disabled_state_framebuffer_);
+    disabled_state_framebuffer_ = nullptr;
   }
 }
 
@@ -601,7 +612,8 @@ void Button::set_default_disabled_style(const Style style) {
   if (style == default_disabled_style_)
     return;
 
-  moui::nvgDeleteFramebuffer(&disabled_state_framebuffer_);
+  nvgDeleteFramebuffer(disabled_state_framebuffer_);
+  disabled_state_framebuffer_ = nullptr;
   default_disabled_style_ = style;
 }
 
@@ -609,10 +621,10 @@ void Button::set_default_highlighted_style(const Style style) {
   if (style == default_highlighted_style_)
     return;
 
-  moui::nvgDeleteFramebuffer(
-      &normal_state_with_highlighted_effect_framebuffer_);
-  moui::nvgDeleteFramebuffer(
-      &selected_state_with_highlighted_effect_framebuffer_);
+  nvgDeleteFramebuffer(normal_state_with_highlighted_effect_framebuffer_);
+  nvgDeleteFramebuffer(selected_state_with_highlighted_effect_framebuffer_);
+  normal_state_with_highlighted_effect_framebuffer_ = nullptr;
+  selected_state_with_highlighted_effect_framebuffer_ = nullptr;
   default_highlighted_style_ = style;
 }
 

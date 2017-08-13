@@ -19,59 +19,88 @@
 #define MOUI_NANOVG_HOOK_H_
 
 #include "moui/defines.h"
-#include "moui/opengl_hook.h"
 
 #include "nanovg/src/nanovg.h"
 
-#ifdef MOUI_BGFX
-#  include "bx/bx.h"
-#  include "bgfx/bgfx.h"
-#  include "bgfx/examples/common/nanovg/nanovg_bgfx.h"
-#else
-#  include "nanovg/src/nanovg_gl.h"
+#if defined(MOUI_GL)
+#  include "moui/opengl_hook.h"
 #  include "nanovg/src/nanovg_gl_utils.h"
+#elif defined(MOUI_METAL)
+#  include "MetalNanoVG/src/nanovg_mtl.h"
 #endif
 
-#if defined MOUI_BGFX
-#  define nvgCreateContext(flags) nvgCreate(1, 0, NULL)
-#  define nvgDeleteContext(context) nvgDelete(context)
-#elif defined MOUI_GL2
+// Forward declaration.
+extern "C" {
+#if defined(MOUI_GL2)
+  NVGcontext* nvgCreateGL2(int flags);
+  void nvgDeleteGL2(NVGcontext* ctx);
+#elif defined(MOUI_GLES2)
+  NVGcontext* nvgCreateGLES2(int flags);
+  void nvgDeleteGLES2(NVGcontext* ctx);
+#elif defined(MOUI_GLES3)
+  NVGcontext* nvgCreateGLES3(int flags);
+  void nvgDeleteGLES3(NVGcontext* ctx);
+#endif
+}  // extern "C"
+
+#if defined(MOUI_GL2)
 #  define NANOVG_GL2 1
 #  define nvgCreateContext(flags) nvgCreateGL2(flags)
 #  define nvgDeleteContext(context) nvgDeleteGL2(context)
-#elif defined MOUI_GLES2
+#elif defined(MOUI_GLES2)
 #  define NANOVG_GLES2 1
 #  define nvgCreateContext(flags) nvgCreateGLES2(flags)
 #  define nvgDeleteContext(context) nvgDeleteGLES2(context)
-#elif defined MOUI_GL3
+#elif defined(MOUI_GL3)
 #  define NANOVG_GL3 1
 #  define nvgCreateContext(flags) nvgCreateGL3(flags)
 #  define nvgDeleteContext(context) nvgDeleteGL3(context)
-#elif defined MOUI_GLES3
+#elif defined(MOUI_GLES3)
 #  define NANOVG_GLES3 1
 #  define nvgCreateContext(flags) nvgCreateGLES3(flags)
 #  define nvgDeleteContext(context) nvgDeleteGLES3(context)
+#elif defined(MOUI_METAL)
+#  define nvgCreateContext(layer, flags) nvgCreateMTL(layer, flags)
+#  define nvgDeleteContext(context) nvgDeleteMTL(context)
+#  define nvgBindFramebuffer(fb) mnvgBindFramebuffer(fb)
+#  define nvgCreateFramebuffer(ctx, w, h, flags) \
+          mnvgCreateFramebuffer(ctx, w, h, flags)
+#  define nvgDeleteFramebuffer(fb) mnvgDeleteFramebuffer(fb)
+#endif
+
+#ifdef MOUI_GL
+#  define nvgBindFramebuffer(fb) nvgluBindFramebuffer(fb)
+#  define nvgCreateFramebuffer(ctx, w, h, flags) \
+          nvgluCreateFramebuffer(ctx, w, h, flags)
+#  define nvgDeleteFramebuffer(fb) nvgluDeleteFramebuffer(fb)
+#endif
+
+#if defined(MOUI_GL)
+  typedef NVGLUframebuffer NVGframebuffer;
+#elif defined(MOUI_METAL)
+  typedef MNVGframebuffer NVGframebuffer;
 #endif
 
 // Additonal APIs for nanovg.
 namespace moui {
 
+// Clears the current color buffer with the specified `clear_color`. Note that
+// this function should be called between `nvgBindFramebuffer()` and
+// `nvgBeginFrame()`.
+void nvgClearColor(const int width, const int height,
+                   const NVGcolor& clear_color);
+
 // Returns `true` if passed colors are the same.
 bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2);
 
-// Returns a newly created framebuffer or `nullptr` on failure.
-NVGLUframebuffer* nvgCreateFramebuffer(NVGcontext* context, const int width,
-                                       const int height, const int image_flags);
+// Returns context flags for the specified parameters.
+int nvgContextFlags(const bool antialias, const bool stencil_strokes,
+                    const bool triple_buffering);
 
-// Returns the image identifier of the current snapshot of the passed context
-// or -1 on failure. The returned image needs to be freed manually through
-// `nvgDeleteImage()`.
-int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
-                           const int width, const int height,
-                           const float scale_factor);
-
-// Deletes the passed framebuffer and resets the pointer.
-void nvgDeleteFramebuffer(NVGLUframebuffer** framebuffer);
+// Creates an image for pixels read from `nvgReadPixels()`.
+int nvgCreateImageFromPixels(NVGcontext* context, const int width,
+                             const int height, const int image_flags,
+                             const unsigned char* data);
 
 // Deletes the passed image and set the image id to -1.
 void nvgDeleteImage(NVGcontext* context, int* image);
@@ -82,6 +111,12 @@ void nvgDrawDropShadow(NVGcontext* context, const float x, const float y,
                        const float radius, float feather,
                        const NVGcolor inner_color,
                        const NVGcolor outer_color);
+
+// Copies the pixels from the specified image into the specified `data`.
+// Note that for OpenGL, this function reads the pixels from the currently
+// binded render buffer directly instead of the specified `image`.
+void nvgReadPixels(NVGcontext* context, int image, int x, int y, int width,
+                   int height, void* data);
 
 // Updates the specified `image` data to unpremultiply its alpha values.
 void nvgUnpremultiplyImageAlpha(unsigned char* image, const int width,

@@ -37,7 +37,7 @@ NativeView::NativeView() : NativeView(nullptr) {
 NativeView::~NativeView() {
 }
 
-void NativeView::AddSubview(const NativeView* subview) {
+void NativeView::AddSubview(const NativeView* subview) const {
   NSView* native_view = (__bridge NSView*)native_handle();
   NSView* native_subview = (__bridge NSView*)subview->native_handle();
   [native_view addSubview:native_subview];
@@ -51,6 +51,11 @@ bool NativeView::BecomeFirstResponder() const {
 int NativeView::GetHeight() const {
   NSView* native_view = (__bridge NSView*)native_handle();
   return native_view.frame.size.height;
+}
+
+void* NativeView::GetLayer() const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  return (__bridge void*)native_view.layer;
 }
 
 unsigned char* NativeView::GetSnapshot() const {
@@ -79,7 +84,7 @@ unsigned char* NativeView::GetSnapshot() const {
 
 NativeView* NativeView::GetSuperview() const {
   NSView* native_view = (__bridge NSView*)native_handle();
-  return new NativeView(native_view.superview);
+  return new NativeView((__bridge void*)native_view.superview);
 }
 
 int NativeView::GetWidth() const {
@@ -102,7 +107,7 @@ void NativeView::ResignFirstResponder() const {
   [native_view resignFirstResponder];
 }
 
-void NativeView::SendSubviewToBack(const NativeView* subview) {
+void NativeView::SendSubviewToBack(const NativeView* subview) const {
   NSView* native_view = (__bridge NSView*)native_handle();
   NSView* native_subview = (__bridge NSView*)subview->native_handle();
   [native_subview removeFromSuperview];

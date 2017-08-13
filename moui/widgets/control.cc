@@ -24,7 +24,6 @@
 #include "moui/core/device.h"
 #include "moui/core/event.h"
 #include "moui/nanovg_hook.h"
-#include "moui/opengl_hook.h"
 
 namespace {
 

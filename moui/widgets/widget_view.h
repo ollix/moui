@@ -47,8 +47,7 @@ class WidgetView : public View {
   // Inherited from `View` class.
   void Redraw() final;
 
-  // Inherited from `View` class. Redraws the specified `widget` only if it's
-  // currently visible.
+  // Redraws the specified `widget` if it's currently visible.
   void Redraw(Widget* widget);
 
   // Removes the specified widget from responder chain or do nothing if not
@@ -131,7 +130,7 @@ class WidgetView : public View {
   // will be rendered without binding the `framebuffer`. Note that the
   // specified `widget` will always be rendered even if its `hidden_` property
   // is set to `true`.
-  void Render(Widget* widget, NVGLUframebuffer* framebuffer);
+  void Render(Widget* widget, NVGframebuffer* framebuffer);
 
   // Sets the specified `widget` and all of its descendants as invisible.
   void SetWidgetAndDescendantsInvisible(Widget* widget);

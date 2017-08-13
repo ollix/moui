@@ -65,18 +65,25 @@ int NativeView::GetHeight() const {
   return native_view.frame.size.height;
 }
 
+void* NativeView::GetLayer() const {
+  UIView* native_view = (__bridge UIView*)native_handle();
+  return (__bridge void*)native_view.layer;
+}
+
 unsigned char* NativeView::GetSnapshot() const {
   const float kScreenScaleFactor = Device::GetScreenScaleFactor();
-  const int kWidth = GetWidth() * kScreenScaleFactor;
-  const int kHeight = GetHeight() * kScreenScaleFactor;
-  const int kBytesPerRow = kWidth * 4;
-  unsigned char* image = \
-      reinterpret_cast<unsigned char*>(std::malloc(kBytesPerRow * kHeight));
+  const int kWidth = GetWidth();
+  const int kHeight = GetHeight();
+  const int kScaledWidth = kWidth * kScreenScaleFactor;
+  const int kScaledHeight = kHeight * kScreenScaleFactor;
+  const int kBytesPerRow = kScaledWidth * 4;
+  unsigned char* image = reinterpret_cast<unsigned char*>(
+      std::malloc(kBytesPerRow * kScaledHeight));
   CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
   CGContextRef context = CGBitmapContextCreate(
       image,
-      kWidth,
-      kHeight,
+      kScaledWidth,
+      kScaledHeight,
       8,  // bits per component
       kBytesPerRow,  // bytes per row
       color_space,
@@ -84,6 +91,11 @@ unsigned char* NativeView::GetSnapshot() const {
   CGColorSpaceRelease(color_space);
   UIView* native_view = (__bridge UIView*)native_handle();
   CGContextScaleCTM(context, kScreenScaleFactor, kScreenScaleFactor);
+#ifdef MOUI_METAL
+  CGAffineTransform flipVertical = CGAffineTransformMake(
+      1, 0, 0, -1, 0, kHeight);
+  CGContextConcatCTM(context, flipVertical);
+#endif
   [native_view.layer renderInContext:context];
   CGContextRelease(context);
   return image;

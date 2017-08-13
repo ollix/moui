@@ -19,9 +19,9 @@
 
 #include <cassert>
 
-#if MOUI_IOS
+#if defined(MOUI_IOS)
 #import <UIKit/UIKit.h>
-#elif MOUI_MAC
+#elif defined(MOUI_MAC)
 #import <Cocoa/Cocoa.h>
 #endif
 

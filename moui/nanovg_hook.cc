@@ -15,13 +15,15 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#if defined MOUI_GL2
+#if defined(MOUI_METAL)
+#  define NANOVG_MTL_IMPLEMENTATION
+#elif defined(MOUI_GL2)
 #  define NANOVG_GL2_IMPLEMENTATION
-#elif defined MOUI_GLES2
+#elif defined(MOUI_GLES2)
 #  define NANOVG_GLES2_IMPLEMENTATION
-#elif defined MOUI_GL3
+#elif defined(MOUI_GL3)
 #  define NANOVG_GL3_IMPLEMENTATION
-#elif defined MOUI_GLES3
+#elif defined(MOUI_GLES3)
 #  define NANOVG_GLES3_IMPLEMENTATION
 #endif
 
@@ -33,139 +35,55 @@
 
 #include "nanovg/src/nanovg.h"
 
-#ifdef MOUI_BGFX
-#  include "bgfx/bgfx.h"
+#if defined(MOUI_GL)
+#  include "nanovg/src/nanovg_gl.h"
+#  include "nanovg/src/nanovg_gl_utils.h"
 #endif
-
-namespace {
-
-// Returns the data of the image snapshot from the current framebuffer.
-// The returned image data should be freed manually when no longer needed.
-// `NULL` is returned on failure.
-unsigned char* CreateImageSnapshot(const int x, const int y, const int width,
-                                   const int height) {
-  unsigned char* image = \
-      reinterpret_cast<unsigned char*>(std::malloc(width * height * 4));
-  if (image == NULL)
-    return NULL;
-
-#ifndef MOUI_BGFX
-  glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image);
-#endif
-  return image;
-}
-
-#ifdef MOUI_BGFX
-bool* GetViewIdAvailabilityTable() {
-  static bool* table = nullptr;
-  if (table == nullptr) {
-    const int kMaxViews = static_cast<int>(bgfx::getCaps()->limits.maxViews);
-    table = reinterpret_cast<bool*>(std::malloc(sizeof(bool) * kMaxViews));
-    for (int i = 0; i < kMaxViews; ++i)
-      table[i] = true;
-  }
-  return table;
-}
-#endif  // MOUI_BGFX
-
-// Sets the alpha value of every pixel of the passed image.
-void SetImageAlpha(const int width, const int height, unsigned char alpha,
-                   unsigned char* image) {
-  const int kStride = width * 4;
-  int x, y;
-  for (y = 0; y < height; y++) {
-    unsigned char* row = &image[y * kStride];
-    for (x = 0; x < width; x++)
-      row[x * 4 + 3] = alpha;
-  }
-}
-
-// Flips the passed image vertically.
-void FlipImageVertically(const int width, const int height,
-                         unsigned char* image) {
-  const int kStride = width * 4;
-  int i = 0, j = height - 1, k;
-  while (i < j) {
-    unsigned char* ri = &image[i * kStride];
-    unsigned char* rj = &image[j * kStride];
-    for (k = 0; k < kStride; k++) {
-      unsigned char t = ri[k];
-      ri[k] = rj[k];
-      rj[k] = t;
-    }
-    i++;
-    j--;
-  }
-}
-
-}  // namespace
 
 namespace moui {
+
+void nvgClearColor(const int width, const int height,
+                   const NVGcolor& clear_color) {
+#ifdef MOUI_GL
+  const float kAlpha = static_cast<float>(clear_color.a);
+  const float kRed = static_cast<float>(clear_color.r) * kAlpha;
+  const float kGreen = static_cast<float>(clear_color.g) * kAlpha;
+  const float kBlue = static_cast<float>(clear_color.b) * kAlpha;
+  glViewport(0, 0, width, height);
+  glClearColor(kRed, kGreen, kBlue, kAlpha);
+  glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#elif MOUI_METAL
+  mnvgClearWithColor(clear_color);
+#endif
+}
 
 bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2) {
   return color1.r == color2.r && color1.g == color2.g && \
          color1.b == color2.b && color1.a == color2.a;
 }
 
-NVGLUframebuffer* nvgCreateFramebuffer(NVGcontext* context, const int width,
-                                       const int height,
-                                       const int image_flags) {
-  NVGLUframebuffer* framebuffer = nvgluCreateFramebuffer(context, width,
-                                                         height, image_flags);
-#ifdef MOUI_BGFX
-  if (framebuffer != nullptr) {
-    bool* view_id_availability_table = GetViewIdAvailabilityTable();
-    int view_id = 0;
-    for (int i = 1; i < bgfx::getCaps()->limits.maxViews; ++i) {
-      if (view_id_availability_table[i]) {
-        view_id_availability_table[i] = false;
-        view_id = i;
-        break;
-      }
-    }
-    framebuffer->viewId = 0;
-    if (view_id == 0) {
-      nvgDeleteFramebuffer(&framebuffer);
-    } else {
-      bgfx::setViewMode(view_id, bgfx::ViewMode::Sequential);
-      nvgluSetViewFramebuffer(view_id, framebuffer);
-    }
-  }
-#endif  // MOUI_BGFX
-  if (framebuffer == nullptr)
-    fprintf(stderr, "Failed to Create NanoVG Framebuffer\n");
-  return framebuffer;
+int nvgContextFlags(const bool antialias, const bool stencil_strokes,
+                    const bool triple_buffering) {
+  int flags = 0;
+  if (antialias)
+    flags |= NVG_ANTIALIAS;
+  if (stencil_strokes)
+    flags |= NVG_STENCIL_STROKES;
+#ifdef MOUI_METAL
+  if (triple_buffering)
+    flags |= NVG_TRIPLE_BUFFERING;
+#endif
+  return flags;
 }
 
-int nvgCreateImageSnapshot(NVGcontext* context, const int x, const int y,
-                           const int width, const int height,
-                           const float scale_factor) {
-  const int kScaledWidth = width * scale_factor;
-  const int kScaledHeight = height * scale_factor;
-  unsigned char* image = CreateImageSnapshot(x * scale_factor, y * scale_factor,
-                                             kScaledWidth, kScaledHeight);
-  if (image == NULL)
-    return -1;
-
-  const int kIdentifier = nvgCreateImageRGBA(
-      context, kScaledWidth, kScaledHeight,
-      NVG_IMAGE_FLIPY | NVG_IMAGE_PREMULTIPLIED, image);
-  std::free(image);
-  return kIdentifier;
-}
-
-void nvgDeleteFramebuffer(NVGLUframebuffer** framebuffer) {
-  if (framebuffer == nullptr || *framebuffer == nullptr) {
-    return;
-  }
-#ifdef MOUI_BGFX
-  const int kViewId = static_cast<int>((*framebuffer)->viewId);
-  bool* view_id_availability_table = GetViewIdAvailabilityTable();
-  if (kViewId > 0)
-    view_id_availability_table[kViewId] = true;
-#endif  // MOUI_BGFX
-  nvgluDeleteFramebuffer(*framebuffer);
-  *framebuffer = nullptr;
+int nvgCreateImageFromPixels(NVGcontext* context, const int width,
+                             const int height, const int image_flags,
+                             const unsigned char* data) {
+  int flags = image_flags | NVG_IMAGE_PREMULTIPLIED;
+#ifdef MOUI_GL
+  flags |= NVG_IMAGE_FLIPY;
+#endif
+  return nvgCreateImageRGBA(context, width, height, flags, data);
 }
 
 void nvgDeleteImage(NVGcontext* context, int* image) {
@@ -189,6 +107,15 @@ void nvgDrawDropShadow(NVGcontext* context, const float x, const float y,
           height + feather * 2);
   nvgFillPaint(context, kShadowPaint);
   nvgFill(context);
+}
+
+void nvgReadPixels(NVGcontext* context, int image, int x, int y, int width,
+                   int height, void* data) {
+#if defined(MOUI_GL)
+  glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#elif defined(MOUI_METAL)
+  mnvgReadPixels(context, image, x, y, width, height, data);
+#endif
 }
 
 void nvgUnpremultiplyImageAlpha(unsigned char* image, const int width,
