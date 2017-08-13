@@ -73,9 +73,9 @@ class Clock {
   // In addition, the time point is represented in seconds but is accurate to
   // nanoseconds.
   static double GetTimestamp() {
-    auto now = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(
-        now.time_since_epoch()).count() / 1000000000.0;
+    static auto start = std::chrono::steady_clock::now();
+    return std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - start).count();
   }
 
  private:
