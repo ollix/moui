@@ -40,7 +40,7 @@ WidgetView::WidgetView(const int context_flags)
   root_widget_->set_widget_view(this);
 }
 
-WidgetView::WidgetView() : WidgetView(nvgContextFlags(true, true, true)) {
+WidgetView::WidgetView() : WidgetView(nvgContextFlags(true, true, 3)) {
 }
 
 WidgetView::~WidgetView() {

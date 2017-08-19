@@ -95,7 +95,7 @@ bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2);
 
 // Returns context flags for the specified parameters.
 int nvgContextFlags(const bool antialias, const bool stencil_strokes,
-                    const bool triple_buffering);
+                    const int number_of_buffers);
 
 // Creates an image for pixels read from `nvgReadPixels()`.
 int nvgCreateImageFromPixels(NVGcontext* context, const int width,

@@ -63,15 +63,17 @@ bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2) {
 }
 
 int nvgContextFlags(const bool antialias, const bool stencil_strokes,
-                    const bool triple_buffering) {
+                    const int number_of_buffers) {
   int flags = 0;
   if (antialias)
     flags |= NVG_ANTIALIAS;
   if (stencil_strokes)
     flags |= NVG_STENCIL_STROKES;
 #ifdef MOUI_METAL
-  if (triple_buffering)
-    flags |= NVG_TRIPLE_BUFFERING;
+  if (number_of_buffers >= 3)
+    flags |= NVG_TRIPLE_BUFFER;
+  else if (number_of_buffers == 2)
+    flags |= NVG_DOUBLE_BUFFER;
 #endif
   return flags;
 }
