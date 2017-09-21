@@ -45,6 +45,7 @@
       ['OS == "mac"', {
         'xcode_settings': {
           'COMBINE_HIDPI_IMAGES': 'YES',
+          'MACOSX_DEPLOYMENT_TARGET': '10.11',
           'SDKROOT': 'macosx',  # -isysroot
         },
       }],  # OS == "mac"

@@ -150,6 +150,8 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)dealloc {
+  CVDisplayLinkRelease(_displayLink);
+
   [[NSNotificationCenter defaultCenter] removeObserver:self
       name:NSViewGlobalFrameDidChangeNotification
       object:self];
