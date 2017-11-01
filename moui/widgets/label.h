@@ -97,6 +97,13 @@ class Label : public Widget {
   void set_text_vertical_alignment(const Alignment alignment);
 
  private:
+  struct CachedLabelWidth {
+    float font_size_to_render;
+    std::string font_name;
+    std::string text;
+    float width;
+  };
+
   // Configures text attributes through nanovg APIs.
   void ConfigureTextAttributes(NVGcontext* context);
 
@@ -116,6 +123,9 @@ class Label : public Widget {
   // position of the label will also be adjusted as well to respect
   // `text_vertical_alignment_`. The default value is `false`.
   bool adjusts_label_height_to_fit_width_;
+
+  // Keeps the last result of calling `UpdateWidthToFitText()`.
+  CachedLabelWidth cached_label_width_;
 
   // Indicates the vertical offset of the font baseline. The default value is 0.
   float font_baseline_;

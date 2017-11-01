@@ -61,6 +61,7 @@ Label::Label(const std::string& text, const std::string& font_name)
       text_horizontal_alignment_(Alignment::kLeft),
       text_vertical_alignment_(Alignment::kTop) {
   set_text_color(nvgRGBA(0, 0, 0, 255));
+  cached_label_width_.width = -1;
 }
 
 Label::~Label() {
@@ -133,18 +134,32 @@ void Label::UpdateWidthToFitText(NVGcontext* context) {
   if (font_size_to_render_ <= 0 || text_.empty())
     return;
 
-  ConfigureTextAttributes(context);
-  const char* kStart = text_.c_str();
-  const char* kEnd = kStart + text_.size();
-  float bounds[4];
+  float label_width;
+  if (cached_label_width_.width >= 0 &&
+      font_size_to_render_ == cached_label_width_.font_size_to_render &&
+      font_name_ == cached_label_width_.font_name &&
+      text_to_render_ == text_) {
+    label_width = cached_label_width_.width;
+  } else {
+    ConfigureTextAttributes(context);
+    const char* kStart = text_.c_str();
+    const char* kEnd = kStart + text_.size();
+    float bounds[4];
 
-  // This is a workaround to fix the issue that `nvgTextBounds()` may not
-  // return a correct result.
-  const float kWidth = std::ceil(
-      nvgTextBounds(context, 0, 0, kStart, kEnd, bounds) + 2);
+    // This is a workaround to fix the issue that `nvgTextBounds()` may not
+    // return a correct result.
+    float result = nvgTextBounds(context, 0, 0, kStart, kEnd, bounds);
+    label_width = std::ceil(result + 2);
 
-  if (kWidth != GetWidth())
-    SetWidth(kWidth);
+    // Caches the result.
+    cached_label_width_.font_size_to_render = font_size_to_render_;
+    cached_label_width_.font_name = font_name_;
+    cached_label_width_.text = text_;
+    cached_label_width_.width = label_width;
+  }
+
+  if (label_width != GetWidth())
+    SetWidth(label_width);
 }
 
 // This method begins with determining the actual text and font size to render
