@@ -124,9 +124,6 @@ class Label : public Widget {
   // `text_vertical_alignment_`. The default value is `false`.
   bool adjusts_label_height_to_fit_width_;
 
-  // Keeps the last result of calling `UpdateWidthToFitText()`.
-  CachedLabelWidth cached_label_width_;
-
   // Indicates the vertical offset of the font baseline. The default value is 0.
   float font_baseline_;
 
