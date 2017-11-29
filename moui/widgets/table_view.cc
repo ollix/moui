@@ -381,8 +381,7 @@ void TableView::ScrollToCellIndex(const CellIndex cell_index,
 
   const float kCellBottomOffset = cell_offset + cell_height - 1;
   const float kContentViewBottomOffset = kContentViewOffset + GetHeight() - 1;
-  if (scroll_position == ScrollPosition::kNone &&
-      cell_offset >= kContentViewOffset &&
+  if (cell_offset >= kContentViewOffset &&
       kCellBottomOffset <= kContentViewBottomOffset) {
     return;
   }
