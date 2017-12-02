@@ -39,9 +39,7 @@ class NativeView : public NativeObject {
 #ifdef MOUI_APPLE
   // Notifies that it is about to become first responder in its window.
   bool BecomeFirstResponder() const;
-#endif
 
-#ifdef MOUI_IOS
   // Moves the specified subview so that it appears on top of its siblings.
   void BringSubviewToFront(const NativeView* subview) const;
 
@@ -83,7 +81,7 @@ class NativeView : public NativeObject {
   void SendSubviewToBack(const NativeView* subview) const;
 #endif
 
-#ifdef MOUI_IOS
+#ifdef MOUI_APPLE
   // Sets the view's alpha value.
   void SetAlpha(const float alpha) const;
 #endif

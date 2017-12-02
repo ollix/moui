@@ -24,9 +24,25 @@
 #include "moui/core/device.h"
 #include "moui/native/native_object.h"
 
+namespace {
+
+// The comparator function for odering a view's subviews.
+static NSComparisonResult SubviewOrderComparator(__kindof NSView* view1,
+                                                 __kindof NSView* view2,
+                                                 void* context ) {
+  NSView* subview = (__bridge NSView*)context;
+  return view1 == subview ? NSOrderedDescending : NSOrderedAscending;
+}
+
+}  // namespace
+
 namespace moui {
 
-NativeView::NativeView(void* native_handle) : NativeObject(native_handle) {
+NativeView::NativeView(void* native_handle, const bool releases_on_demand)
+    : NativeObject(native_handle, releases_on_demand) {
+}
+
+NativeView::NativeView(void* native_handle) : NativeView(native_handle, false) {
 }
 
 NativeView::NativeView() : NativeView(nullptr) {
@@ -46,6 +62,17 @@ void NativeView::AddSubview(const NativeView* subview) const {
 bool NativeView::BecomeFirstResponder() const {
   NSView* native_view = (__bridge NSView*)native_handle();
   return [native_view becomeFirstResponder];
+}
+
+void NativeView::BringSubviewToFront(const NativeView* subview) const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  [native_view sortSubviewsUsingFunction:SubviewOrderComparator
+                                 context:subview->native_handle()];
+}
+
+void NativeView::GetAlpha() const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  return native_view.alphaValue;
 }
 
 int NativeView::GetHeight() const {
@@ -114,6 +141,11 @@ void NativeView::SendSubviewToBack(const NativeView* subview) const {
   [native_view addSubview:native_subview
                positioned:NSWindowBelow
                relativeTo:nil];
+}
+
+void NativeView::SetAlpha(const float alpha) const {
+  NSView* native_view = (__bridge NSView*)native_handle();
+  native_view.alphaValue = alpha;
 }
 
 void NativeView::SetBounds(const int x, const int y, const int width,
