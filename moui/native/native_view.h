@@ -29,6 +29,7 @@ namespace moui {
 // In Android, the native view would be `android.view.View` or its subclasses.
 class NativeView : public NativeObject {
  public:
+  NativeView(void* native_handle, const bool releases_on_demand);
   explicit NativeView(void* native_handle);
   NativeView();
   ~NativeView();

@@ -70,7 +70,7 @@ void NativeView::BringSubviewToFront(const NativeView* subview) const {
                                  context:subview->native_handle()];
 }
 
-void NativeView::GetAlpha() const {
+float NativeView::GetAlpha() const {
   NSView* native_view = (__bridge NSView*)native_handle();
   return native_view.alphaValue;
 }
