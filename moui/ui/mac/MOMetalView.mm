@@ -27,6 +27,7 @@
 - (void)createDrawableWithSize:(NSSize)size {
   if (!self.wantsLayer) {
     self.layer = [CAMetalLayer new];
+    self.layer.opaque = NO;
     self.wantsLayer = YES;
   }
 }
