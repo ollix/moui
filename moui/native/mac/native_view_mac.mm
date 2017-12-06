@@ -26,12 +26,20 @@
 
 namespace {
 
-// The comparator function for odering a view's subviews.
-static NSComparisonResult SubviewOrderComparator(__kindof NSView* view1,
-                                                 __kindof NSView* view2,
-                                                 void* context ) {
+// The comparator function for `NativeView::BringSubviewToFront()`.
+static NSComparisonResult BringSubviewToFrontComparator(__kindof NSView* view1,
+                                                        __kindof NSView* view2,
+                                                        void* context) {
   NSView* subview = (__bridge NSView*)context;
   return view1 == subview ? NSOrderedDescending : NSOrderedAscending;
+}
+
+// The comparator function for `NativeView::SendSubviewToBack()`.
+static NSComparisonResult SendSubviewToBackComparator(__kindof NSView* view1,
+                                                      __kindof NSView* view2,
+                                                      void* context) {
+  NSView* subview = (__bridge NSView*)context;
+  return view1 == subview ?  NSOrderedAscending : NSOrderedDescending;
 }
 
 }  // namespace
@@ -66,7 +74,7 @@ bool NativeView::BecomeFirstResponder() const {
 
 void NativeView::BringSubviewToFront(const NativeView* subview) const {
   NSView* native_view = (__bridge NSView*)native_handle();
-  [native_view sortSubviewsUsingFunction:SubviewOrderComparator
+  [native_view sortSubviewsUsingFunction:BringSubviewToFrontComparator
                                  context:subview->native_handle()];
 }
 
@@ -136,11 +144,8 @@ void NativeView::ResignFirstResponder() const {
 
 void NativeView::SendSubviewToBack(const NativeView* subview) const {
   NSView* native_view = (__bridge NSView*)native_handle();
-  NSView* native_subview = (__bridge NSView*)subview->native_handle();
-  [native_subview removeFromSuperview];
-  [native_view addSubview:native_subview
-               positioned:NSWindowBelow
-               relativeTo:nil];
+  [native_view sortSubviewsUsingFunction:SendSubviewToBackComparator
+                                 context:subview->native_handle()];
 }
 
 void NativeView::SetAlpha(const float alpha) const {
