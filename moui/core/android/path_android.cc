@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2017 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,29 +15,15 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-package com.ollix.moui;
+#include "moui/core/path.h"
 
-import android.os.Handler;
-import java.lang.Object;
-import java.lang.Runnable;
+namespace moui {
 
-public class Clock extends Object {
-
-  Handler mHandler;
-
-  private native void executeCallback(long callbackPointer);
-
-  public Clock() {
-    super();
-    mHandler = new Handler();
+std::string Path::GetDirectory(const Directory directory) {
+  if (directory == Path::Directory::kResource) {
+    return "file:///android_assets";
   }
-
-  public void executeCallback(float delay, long callbackPointer) {
-    final long innerCallbackPointer = callbackPointer;
-    mHandler.postDelayed(new Runnable() {
-      public void run() {
-        executeCallback(innerCallbackPointer);
-      }
-    }, (long)(delay * 1000));
-  }
+  return "";
 }
+
+}  // namespace moui

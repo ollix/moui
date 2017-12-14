@@ -36,19 +36,6 @@ void Clock::DispatchAfter(const float delay, std::function<void()> callback) {
   dispatch_after(kWhen, queue, ^{ callback(); });
 }
 
-void Clock::ExecuteCallback(Callback* callback) {
-  bool func_result = callback->func();
-  if (!func_result || callback->interval < 0) {
-    delete callback;
-    return;
-  }
-
-  // Executes the callback again with interval delay.
-  dispatch_time_t delay = dispatch_time(
-      DISPATCH_TIME_NOW, callback->interval * NSEC_PER_SEC);
-  dispatch_after(delay, queue, ^{ Clock::ExecuteCallback(callback); });
-}
-
 void Clock::ExecuteCallbackOnMainThread(const float delay,
                                         std::function<void()> callback) {
   if ([NSThread isMainThread] && delay <= 0) {

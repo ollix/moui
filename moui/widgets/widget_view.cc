@@ -137,6 +137,15 @@ void WidgetView::HandleMemoryWarningRecursively(moui::Widget* widget) {
     HandleMemoryWarningRecursively(child_widget);
 }
 
+void WidgetView::OnSurfaceDestroyed() {
+  if (context_ == nullptr)
+    return;
+
+  SetWidgetContextRecursively(root_widget_, context_, nullptr);
+  nvgDeleteContext(context_);
+  context_ = nullptr;
+}
+
 void WidgetView::PopAndFinalizeWidgetItems(const int level,
                                            WidgetItemStack* stack) {
   while (!stack->empty()) {
@@ -333,8 +342,8 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   WidgetViewDidRender(widget);
 }
 
-void WidgetView::SetBounds(const int x, const int y, const int width,
-                           const int height) {
+void WidgetView::SetBounds(const float x, const float y, const float width,
+                           const float height) {
   NativeView::SetBounds(x, y, width, height);
   root_widget_->SetWidth(Widget::Unit::kPoint, width);
   root_widget_->SetHeight(Widget::Unit::kPoint, height);
@@ -344,6 +353,14 @@ void WidgetView::SetWidgetAndDescendantsInvisible(Widget* widget) {
   widget->set_is_visible(false);
   for (Widget* child : *widget->children())
     SetWidgetAndDescendantsInvisible(child);
+}
+
+void WidgetView::SetWidgetContextRecursively(Widget* widget,
+                                             NVGcontext* oldContext,
+                                             NVGcontext* newContext) {
+  widget->NotifyContextChange(oldContext, newContext);
+  for (Widget* child_widget : *widget->children())
+    SetWidgetContextRecursively(child_widget, oldContext, newContext);
 }
 
 bool WidgetView::ShouldHandleEvent(const Point location) {
@@ -405,6 +422,7 @@ NVGcontext* WidgetView::context() {
 #else
     context_ = nvgCreateContext(context_flags_);
 #endif  // MOUI_METAL
+    SetWidgetContextRecursively(root_widget_, nullptr, context_);
   }
   return context_;
 }

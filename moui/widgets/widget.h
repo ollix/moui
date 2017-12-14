@@ -384,6 +384,10 @@ class Widget {
   // also fills the background color if the widget is opaque.
   void ExecuteRenderFunction(NVGcontext* context);
 
+  // Notifies that the corresponded context has been changed. This method
+  // would call `ContextWillChange()` and `ContextDidChange()` on demand.
+  void NotifyContextChange(NVGcontext* old_context, NVGcontext* new_context);
+
   // Returns `true` if the passed widget is removed from children. This method
   // is designed for internal use. To remove a child from a parent widget.
   // Calls the child widget's `RemoveFromParent()` method instead.

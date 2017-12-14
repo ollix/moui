@@ -17,6 +17,8 @@
 
 #include "moui/native/native_object.h"
 
+#include "jni.h"  // NOLINT
+
 #include "moui/core/application.h"
 
 namespace moui {
@@ -26,7 +28,13 @@ void NativeObject::ReleaseNativeHandle() {
     return;
 
   JNIEnv* env = Application::GetJNIEnv();
-  env->DeleteGlobalRef(reinterpret_cast<jobject>(native_handle()));
+  jobject obj = reinterpret_cast<jobject>(native_handle());
+  jobjectRefType ref_type = env->GetObjectRefType(obj);
+  if (ref_type == JNIGlobalRefType) {
+    env->DeleteGlobalRef(obj);
+  } else if (ref_type == JNILocalRefType) {
+    env->DeleteLocalRef(obj);
+  }
 }
 
 }  // namespace moui

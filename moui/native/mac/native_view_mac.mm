@@ -83,7 +83,7 @@ float NativeView::GetAlpha() const {
   return native_view.alphaValue;
 }
 
-int NativeView::GetHeight() const {
+float NativeView::GetHeight() const {
   NSView* native_view = (__bridge NSView*)native_handle();
   return native_view.frame.size.height;
 }
@@ -122,7 +122,7 @@ NativeView* NativeView::GetSuperview() const {
   return new NativeView((__bridge void*)native_view.superview);
 }
 
-int NativeView::GetWidth() const {
+float NativeView::GetWidth() const {
   NSView* native_view = (__bridge NSView*)native_handle();
   return native_view.frame.size.width;
 }
@@ -153,13 +153,13 @@ void NativeView::SetAlpha(const float alpha) const {
   native_view.alphaValue = alpha;
 }
 
-void NativeView::SetBounds(const int x, const int y, const int width,
-                           const int height) const {
+void NativeView::SetBounds(const float x, const float y, const float width,
+                           const float height) const {
   NSView* native_view = (__bridge NSView*)native_handle();
   native_view.frame = CGRectMake(x, y, width, height);
 }
 
-bool NativeView::SetHidden(const bool hidden) const {
+void NativeView::SetHidden(const bool hidden) const {
   NSView* native_view = (__bridge NSView*)native_handle();
   native_view.hidden = hidden;
 }

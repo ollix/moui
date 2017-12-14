@@ -15,17 +15,19 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-package com.ollix.moui;
+#include "jni.h"
 
-import android.content.Context;
-import java.lang.Object;
+#include "moui/moui.h"
 
-public class Application extends Object {
+extern "C" {
 
-  private native void init(Context context);
-
-  public Application(Context context) {
-    super();
-    init(context);
-  }
+JNIEXPORT void
+JNICALL
+Java_com_ollix_moui_Clock_executeCallbackFromJNI(
+    JNIEnv* env, jobject, jlong callback_ptr) {
+  auto callback = reinterpret_cast<moui::Clock::Callback*>(callback_ptr);
+  callback->func();
+  delete callback;
 }
+
+}  // extern "C"

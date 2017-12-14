@@ -152,6 +152,16 @@ bool Widget::BringChildToFront(Widget* child) {
   return true;
 }
 
+void Widget::NotifyContextChange(NVGcontext* old_context,
+                                 NVGcontext* new_context) {
+  if (old_context == new_context)
+    return;
+
+  if (old_context != nullptr)
+    ContextWillChange(old_context);
+  ContextDidChange(new_context);
+}
+
 bool Widget::CollidePoint(const Point point, const float padding) {
   return CollidePoint(point, padding, padding, padding, padding);
 }
@@ -776,15 +786,16 @@ void Widget::set_widget_view(WidgetView* widget_view) {
   if (widget_view_ == widget_view)
     return;
 
+  NVGcontext* old_context = nullptr;
   if (widget_view_ != nullptr) {
     widget_view_->RemoveResponder(this);
-    NVGcontext* context = widget_view_->context();
-    if (context != nullptr)
-      ContextWillChange(context);
+    old_context = widget_view_->context();
   }
   set_is_visible(false);
   widget_view_ = widget_view;
-  ContextDidChange(widget_view == nullptr ? nullptr : widget_view->context());
+  NVGcontext* new_context = (widget_view == nullptr) ? nullptr :
+                                                       widget_view->context();
+  NotifyContextChange(old_context, new_context);
 
   // Updates the widget view of all its child widgets as well.
   for (Widget* child_widget : children_)

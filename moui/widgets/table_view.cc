@@ -496,7 +496,7 @@ bool TableView::ShouldHandleEvent(const Point location) {
 bool TableView::UpdateLayout() {
   if (data_source_ == nullptr || IsHidden() || widget_view() == nullptr ||
       (GetWidth() == 0 && GetHeight() == 0)) {
-    return;
+    return false;
   }
 
   const Point kContentViewOffset = GetContentViewOffset();

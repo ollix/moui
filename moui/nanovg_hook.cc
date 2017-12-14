@@ -32,8 +32,13 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstdio>
+#include <string>
 
 #include "nanovg/src/nanovg.h"
+
+#if defined(MOUI_ANDROID)
+#  include "aasset.h"
+#endif
 
 #if defined(MOUI_GL)
 #  include "nanovg/src/nanovg_gl.h"
@@ -76,6 +81,58 @@ int nvgContextFlags(const bool antialias, const bool stencil_strokes,
     flags |= NVG_DOUBLE_BUFFER;
 #endif
   return flags;
+}
+
+int nvgCreateFontAtPath(NVGcontext* context, const std::string name,
+                        const std::string path) {
+#ifdef MOUI_ANDROID
+  // Loads the image from Android's assets folder.
+  if (path.find("file:///android_assets/") == 0) {
+    std::string asset_path = path.substr(23);
+    std::FILE* file = aasset_fopen(asset_path.c_str(), "r");
+    if (file == NULL) {
+      return -1;
+    }
+    const int kDataSize = aasset_fsize(file);
+    unsigned char* data = \
+        reinterpret_cast<unsigned char*>(std::malloc(kDataSize));
+    int image = -1;
+    if (aasset_fread(data, 1, kDataSize, file) == kDataSize) {
+      image = nvgCreateFontMem(context, name.c_str(), data, kDataSize,
+                               true);  // frees data
+    }
+    aasset_fclose(file);
+    return image;
+  }
+#endif  // MOUI_ANDROID
+
+  return nvgCreateFont(context, name.c_str(), path.c_str());
+}
+
+int nvgCreateImageAtPath(NVGcontext* context, const std::string path,
+                         const int image_flags) {
+#ifdef MOUI_ANDROID
+  // Loads the image from Android's assets folder.
+  if (path.find("file:///android_assets/") == 0) {
+    std::string asset_path = path.substr(23);
+    std::FILE* file = aasset_fopen(asset_path.c_str(), "r");
+    if (file == NULL) {
+      return -1;
+    }
+    const int kDataSize = aasset_fsize(file);
+    unsigned char* data = \
+        reinterpret_cast<unsigned char*>(std::malloc(kDataSize));
+    int image = -1;
+    if (aasset_fread(data, 1, kDataSize, file) == kDataSize) {
+      image = nvgCreateImageMem(context, image_flags, data, kDataSize);
+      std::free(data);
+    }
+    aasset_fclose(file);
+    return image;
+  }
+#endif  // MOUI_ANDROID
+
+  return nvgCreateImage(context, path.c_str(), image_flags);
 }
 
 int nvgCreateImageFromPixels(NVGcontext* context, const int width,

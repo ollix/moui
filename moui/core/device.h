@@ -30,6 +30,8 @@ class Device {
     kUnknown,
     // The device is not plugged into power; the battery is discharging.
     kUnplugged,
+    // The device is plugged into power but the battery is not charging.
+    kNotCharging,
     // The device is plugged into power and the battery is less than 100%
     // charged.
     kCharging,

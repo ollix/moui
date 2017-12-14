@@ -55,7 +55,11 @@ class WidgetView : public View {
   void RemoveResponder(Widget* widget);
 
   // Sets the bounds for the view and its managed widget.
-  void SetBounds(const int x, const int y, const int width, const int height);
+  void SetBounds(const float x, const float y, const float width,
+                 const float height);
+
+  // Inherited from `View` class.
+  void OnSurfaceDestroyed() final;
 
   // Accessors and setters.
   NVGcontext* context();
@@ -110,7 +114,7 @@ class WidgetView : public View {
 
   // Calls the `HandleMemoryWarning()` method for the specified `widget` and
   // all of its descendants.
-  void HandleMemoryWarningRecursively(moui::Widget* widget);
+  void HandleMemoryWarningRecursively(Widget* widget);
 
   // Pops widget items from the stack and finalizes each popped widget until
   // reaching the passed level.
@@ -134,6 +138,10 @@ class WidgetView : public View {
 
   // Sets the specified `widget` and all of its descendants as invisible.
   void SetWidgetAndDescendantsInvisible(Widget* widget);
+
+  // Sets child widgets' context recursively.
+  void SetWidgetContextRecursively(Widget* widget, NVGcontext* oldContext,
+                                   NVGcontext* newContext);
 
   // Inherited from `BaseView` class.
   bool ShouldHandleEvent(const Point location) final;

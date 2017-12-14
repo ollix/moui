@@ -27,7 +27,11 @@
 
 namespace moui {
 
-NativeView::NativeView(void* native_handle) : NativeObject(native_handle) {
+NativeView::NativeView(void* native_handle, const bool releases_on_demand)
+    : NativeObject(native_handle, releases_on_demand) {
+}
+
+NativeView::NativeView(void* native_handle) : NativeView(native_handle, false) {
 }
 
 NativeView::NativeView() : NativeView(nullptr) {
@@ -60,7 +64,7 @@ float NativeView::GetAlpha() const {
   return native_view.alpha;
 }
 
-int NativeView::GetHeight() const {
+float NativeView::GetHeight() const {
   UIView* native_view = (__bridge UIView*)native_handle();
   return native_view.frame.size.height;
 }
@@ -106,7 +110,7 @@ NativeView* NativeView::GetSuperview() const {
   return new NativeView((__bridge void*)native_view.superview);
 }
 
-int NativeView::GetWidth() const {
+float NativeView::GetWidth() const {
   UIView* native_view = (__bridge UIView*)native_handle();
   return native_view.frame.size.width;
 }
@@ -137,13 +141,13 @@ void NativeView::SetAlpha(const float alpha) const {
   native_view.alpha = alpha;
 }
 
-void NativeView::SetBounds(const int x, const int y, const int width,
-                           const int height) const {
+void NativeView::SetBounds(const float x, const float y, const float width,
+                           const float height) const {
   UIView* native_view = (__bridge UIView*)native_handle();
   native_view.frame = CGRectMake(x, y, width, height);
 }
 
-bool NativeView::SetHidden(const bool hidden) const {
+void NativeView::SetHidden(const bool hidden) const {
   UIView* native_view = (__bridge UIView*)native_handle();
   native_view.hidden = hidden;
 }

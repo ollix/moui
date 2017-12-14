@@ -34,9 +34,8 @@ jobject GetJavaWindow() {
   JNIEnv* env = moui::Application::GetJNIEnv();
   jclass window_class = env->FindClass("com/ollix/moui/Window");
   jmethodID window_constructor = env->GetMethodID(
-      window_class, "<init>", "(Landroid/app/Activity;)V");
-  jobject window_obj = env->NewObject(window_class, window_constructor,
-                                      moui::Application::GetMainActivity());
+      window_class, "<init>", "()V");
+  jobject window_obj = env->NewObject(window_class, window_constructor);
   java_window = env->NewGlobalRef(window_obj);
   return java_window;
 }
@@ -47,9 +46,8 @@ namespace moui {
 
 // Instantiates the JAVA OpenGLView class and sets it as the native handle.
 Window::Window(void* native_handle) : BaseWindow(nullptr) {
-  JNIEnv* env = Application::GetJNIEnv();
-  SetNativeHandle(env->NewGlobalRef(reinterpret_cast<jobject>(native_handle)),
-                  true);
+  SetNativeHandle(native_handle,
+                  true);  // releases on demand
 }
 
 Window::~Window() {
@@ -61,9 +59,14 @@ std::unique_ptr<Window> Window::GetMainWindow() {
   JNIEnv* env = moui::Application::GetJNIEnv();
   jclass window_class = env->GetObjectClass(java_window);
   jmethodID get_main_window_method = env->GetMethodID(
-      window_class, "getMainWindow", "()Landroid/view/Window;");
-  jobject window = env->CallObjectMethod(java_window, get_main_window_method);
-  return std::unique_ptr<Window>(new Window(reinterpret_cast<void*>(window)));
+      window_class, "getWindow",
+      "(Landroid/app/Activity;)Landroid/view/Window;");
+  jobject window = env->CallObjectMethod(java_window, get_main_window_method,
+                                         moui::Application::GetMainActivity());
+  void* global_ref = reinterpret_cast<void*>(env->NewGlobalRef(window));
+  env->DeleteLocalRef(window);
+  env->DeleteLocalRef(window_class);
+  return std::unique_ptr<Window>(new Window(global_ref));
 }
 
 // Calls com.ollix.moui.Window.getRootView() on the Java side.
@@ -74,11 +77,13 @@ std::unique_ptr<NativeView> Window::GetRootView() const {
   jclass window_class = env->GetObjectClass(java_window);
   jmethodID get_root_view_method = env->GetMethodID(
       window_class, "getRootView",
-      "(Landroid/view/Window;)Landroid/view/View;");
+      "(Landroid/app/Activity;)Landroid/view/View;");
   jobject view = env->CallObjectMethod(java_window, get_root_view_method,
-                                       native_window);
-  return std::unique_ptr<NativeView>(
-      new NativeView(reinterpret_cast<void*>(view)));
+                                       moui::Application::GetMainActivity());
+  void* global_ref = reinterpret_cast<void*>(env->NewGlobalRef(view));
+  env->DeleteLocalRef(view);
+  env->DeleteLocalRef(window_class);
+  return std::unique_ptr<NativeView>(new NativeView(global_ref));
 }
 
 }  // namespace moui

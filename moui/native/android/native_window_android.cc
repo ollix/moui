@@ -17,8 +17,6 @@
 
 #include "moui/native/native_window.h"
 
-#import <UIKit/UIKit.h>
-
 #include "moui/native/native_view.h"
 
 namespace moui {

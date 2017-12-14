@@ -30,10 +30,8 @@ namespace moui {
 // place for static class methods so don't try instantiating this class.
 class Clock {
  public:
-  // The structure for holding the callback function and interval.
   struct Callback {
-    std::function<bool(void)> func;
-    float interval;
+    std::function<void()> func;
   };
 
   Clock() {}
@@ -41,23 +39,6 @@ class Clock {
 
   // Executes the `callback` function at the specified `delay` time in seconds.
   static void DispatchAfter(const float delay, std::function<void()> callback);
-
-  // Schedules function call at a reqular interval. The callback function must
-  // have the return type of bool indicating whether to stop scheduling. The
-  // function will be called only once if interval is negative.
-  template<class Function, class... Args>
-  static void ScheduleInterval(float interval, Function&& f, Args&&... args) {
-    auto callback = new Callback;
-    callback->func = std::bind(f, args...);
-    callback->interval = interval;
-    ExecuteCallback(callback);
-  }
-
-  // Executes the callback, waits the interval time in platform-specific thread,
-  // then executes it again. It stops once the callback returning `false` or
-  // the interval is negative. This method should be used internally only. It's
-  // defined here for bridging JNI code.
-  static void ExecuteCallback(Callback* callback);
 
   // Executes the specified callback on the main thread with a delay time
   // in seconds.

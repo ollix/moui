@@ -33,6 +33,7 @@ class Event {
     kMove,
     kUp,
     kCancel,
+    kUnknown,
   };
 
   explicit Event(const Type type);

@@ -1,4 +1,4 @@
-# Copyright 2014 Ollix
+# Copyright 2017 Ollix
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,21 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-{
-  'includes': [
-    '../../moui/common.gypi',
-  ],
-  'targets': [
-    {
-      'target_name': 'libmoui-jni',
-      'type': 'shared_library',
-      'sources': [
-        'application.cc',
-        'clock.cc',
-        'opengl_renderer.cc',
-        'opengl_view.cc',
-      ],
-      'dependencies': [ '../../moui/moui.gyp:libmoui' ],
-    }
-  ]
-}
+
+cmake_minimum_required(VERSION 3.4.1)
+
+add_library(moui-jni
+            SHARED
+            "src/main/cpp/clock.cc"
+            "src/main/cpp/fragment.cc"
+            "src/main/cpp/view.cc")
+
+add_subdirectory("../moui" "native-moui")
+target_link_libraries(moui-jni PUBLIC moui)

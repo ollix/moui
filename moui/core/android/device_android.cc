@@ -35,11 +35,13 @@ jobject GetJavaDevice() {
 
   JNIEnv* env = moui::Application::GetJNIEnv();
   jclass device_class = env->FindClass("com/ollix/moui/Device");
-  jmethodID device_constructor = env->GetMethodID(
-      device_class, "<init>", "(Landroid/app/Activity;)V");
-  jobject device_obj = env->NewObject(device_class, device_constructor,
+  jmethodID constructor = env->GetMethodID(device_class, "<init>",
+                                           "(Landroid/content/Context;)V");
+  jobject device_obj = env->NewObject(device_class, constructor,
                                       moui::Application::GetMainActivity());
   java_device = env->NewGlobalRef(device_obj);
+  env->DeleteLocalRef(device_class);
+  env->DeleteLocalRef(device_obj);
   return java_device;
 }
 
@@ -47,7 +49,26 @@ jobject GetJavaDevice() {
 
 namespace moui {
 
-Device::BatteryState BatteryState Device::GetBatteryState() {
+Device::BatteryState Device::GetBatteryState() {
+  jobject device = GetJavaDevice();
+  JNIEnv* env = moui::Application::GetJNIEnv();
+  jclass device_class = env->GetObjectClass(device);
+  jmethodID java_method = env->GetMethodID(
+      device_class, "getBatteryState", "()I");
+  env->DeleteLocalRef(device_class);
+  const int kResult = env->CallIntMethod(device, java_method);
+  // BatteryManager.BATTERY_STATUS_CHARGING
+  if (kResult == 2)
+    return BatteryState::kCharging;
+  // BatteryManager.BATTERY_STATUS_DISCHARGING
+  if (kResult == 3)
+    return BatteryState::kUnplugged;
+  // BatteryManager.BATTERY_STATUS_NOT_CHARGING
+  if (kResult == 4)
+    return BatteryState::kNotCharging;
+  // BatteryManager.BATTERY_STATUS_FULL
+  if (kResult == 5)
+    return BatteryState::kFull;
   return BatteryState::kUnknown;
 }
 
@@ -64,10 +85,10 @@ Device::Category Device::GetCategory() {
   jobject device = GetJavaDevice();
   JNIEnv* env = moui::Application::GetJNIEnv();
   jclass device_class = env->GetObjectClass(device);
-  jmethodID get_smallest_screen_width_dp_method = env->GetMethodID(
+  jmethodID java_method = env->GetMethodID(
       device_class, "getSmallestScreenWidthDp", "()F");
-  smallest_screen_width_dp = env->CallFloatMethod(
-      device, get_smallest_screen_width_dp_method);
+  env->DeleteLocalRef(device_class);
+  smallest_screen_width_dp = env->CallFloatMethod(device, java_method);
   return GetCategory();
 }
 
@@ -80,10 +101,10 @@ float Device::GetScreenScaleFactor() {
   jobject device = GetJavaDevice();
   JNIEnv* env = moui::Application::GetJNIEnv();
   jclass device_class = env->GetObjectClass(device);
-  jmethodID get_screen_scale_factor_method = env->GetMethodID(
+  jmethodID java_method = env->GetMethodID(
       device_class, "getScreenScaleFactor", "()F");
-  screen_scale_factor = env->CallFloatMethod(device,
-                                             get_screen_scale_factor_method);
+  env->DeleteLocalRef(device_class);
+  screen_scale_factor = env->CallFloatMethod(device, java_method);
   return screen_scale_factor;
 }
 

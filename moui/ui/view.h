@@ -38,6 +38,10 @@ class View : public BaseView {
   // memory warning. Currently this method only works for iOS.
   virtual void HandleMemoryWarning() {}
 
+  // This method is called immediately before the underlying graphics surface
+  // is being destroyed.
+  virtual void OnSurfaceDestroyed() {}
+
   // Inherited from `BaseView` class.
   void Redraw() override;
 

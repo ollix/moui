@@ -7,3 +7,6 @@
 [submodule "moui/deps/MetalNanoVG"]
 	path = moui/deps/MetalNanoVG
 	url = git@github.com:ollix/MetalNanoVG.git
+[submodule "moui/deps/aasset"]
+	path = moui/deps/aasset
+	url = git@github.com:ollix/aasset.git

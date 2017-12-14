@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Ollix. All rights reserved.
+// Copyright (c) 2017 Ollix. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,18 +15,24 @@
 // ---
 // Author: olliwang@ollix.com (Olli Wang)
 
-#include <memory>
-
 #include "jni.h"
 
 #include "moui/moui.h"
 
 extern "C" {
 
-JNIEXPORT void JNICALL Java_com_ollix_moui_Clock_executeCallback
-    (JNIEnv* env, jobject obj, jlong callback_pointer) {
-  auto callback = reinterpret_cast<moui::Clock::Callback*>(callback_pointer);
-  moui::Clock::ExecuteCallback(callback);
+JNIEXPORT void
+JNICALL
+Java_com_ollix_moui_MouiFragment_initFromJNI(
+    JNIEnv* env, jobject, jobject activity, jobject asset_manager) {
+  moui::Application::InitJNI(env, activity, asset_manager);
+}
+
+JNIEXPORT void
+JNICALL
+Java_com_ollix_moui_MouiFragment_launchMouiAppFromJNI(JNIEnv *env, jobject) {
+  moui::Application* moui_app = moui::Application::GetMainApplication();
+  moui_app->OnLaunch();
 }
 
 }  // extern "C"

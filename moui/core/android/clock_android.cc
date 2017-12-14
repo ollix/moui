@@ -32,10 +32,11 @@ jobject GetJavaClock() {
 
   JNIEnv* env = moui::Application::GetJNIEnv();
   jclass clock_class = env->FindClass("com/ollix/moui/Clock");
-  jmethodID clock_constructor = env->GetMethodID(
-      clock_class, "<init>", "()V");
-  jobject clock_obj = env->NewObject(clock_class, clock_constructor);
+  jmethodID constructor = env->GetMethodID(clock_class, "<init>", "()V");
+  jobject clock_obj = env->NewObject(clock_class, constructor);
   java_clock = env->NewGlobalRef(clock_obj);
+  env->DeleteLocalRef(clock_class);
+  env->DeleteLocalRef(clock_obj);
   return java_clock;
 }
 
@@ -43,28 +44,31 @@ jobject GetJavaClock() {
 
 namespace moui {
 
-void Clock::DispatchAfter(const int delay, std::function<void()> callback) {
-  // TODO(olliwang): Implements the `Clock::DispatchAfter()` method for Android.
-}
-
-void Clock::ExecuteCallback(Callback* callback) {
-  bool func_result = callback->func();
-  if (!func_result || callback->interval < 0) {
-    delete callback;
-    return;
-  }
-
+void Clock::DispatchAfter(const float delay, std::function<void()> func) {
   JNIEnv* env = Application::GetJNIEnv();
   jobject java_clock = GetJavaClock();
   jclass clock_class = env->GetObjectClass(java_clock);
-  jmethodID execute_callback_method = env->GetMethodID(
-      clock_class, "executeCallback", "(FJ)V");
-  env->CallVoidMethod(java_clock, execute_callback_method, callback->interval,
-                      (jlong)callback);
+  jmethodID java_method = env->GetMethodID(
+      clock_class, "dispatchAfter", "(FJ)V");
+  env->DeleteLocalRef(clock_class);
+  env->CallVoidMethod(java_clock, java_method, delay,
+                      reinterpret_cast<jlong>(new Callback{func}));
 }
 
-void ExecuteCallbackOnMainThread(std::function<void()> callback) {
-  // Not yet implemented.
+void Clock::ExecuteCallbackOnMainThread(const float delay,
+                                        std::function<void()> func) {
+  JNIEnv* env = Application::GetJNIEnv();
+  jobject java_clock = GetJavaClock();
+  jclass clock_class = env->GetObjectClass(java_clock);
+  jmethodID java_method = env->GetMethodID(
+      clock_class, "executeCallbackOnMainThread", "(FJ)V");
+  env->DeleteLocalRef(clock_class);
+  env->CallVoidMethod(java_clock, java_method, delay,
+                      reinterpret_cast<jlong>(new Callback{func}));
+}
+
+void Clock::ExecuteCallbackOnMainThread(std::function<void()> callback) {
+  ExecuteCallbackOnMainThread(0, callback);
 }
 
 }  // namespace moui

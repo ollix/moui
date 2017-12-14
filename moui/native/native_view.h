@@ -40,20 +40,21 @@ class NativeView : public NativeObject {
 #ifdef MOUI_APPLE
   // Notifies that it is about to become first responder in its window.
   bool BecomeFirstResponder() const;
+#endif
 
   // Moves the specified subview so that it appears on top of its siblings.
   void BringSubviewToFront(const NativeView* subview) const;
 
   // Returns the view's alpha value.
   float GetAlpha() const;
-#endif
 
-  // Returns the height of the view.
-  int GetHeight() const;
+  // Returns the height of the view in points.
+  float GetHeight() const;
 
 #ifdef MOUI_APPLE
   // Returns the view's Core Animation layer used for rendering.
   void* GetLayer() const;
+#endif
 
   // Returns the snapshot of the native view. The returned snapshot is a
   // bitmap data with the width and height matched to the screen sacle,
@@ -62,12 +63,10 @@ class NativeView : public NativeObject {
 
   // Returns the view that is the parent of the current view.
   NativeView* GetSuperview() const;
-#endif
 
-  // Returns the width of the view.
-  int GetWidth() const;
+  // Returns the width of the view in points.
+  float GetWidth() const;
 
-#ifdef MOUI_APPLE
   // Returns `true` if the view is hidden.
   bool IsHidden() const;
 
@@ -75,26 +74,23 @@ class NativeView : public NativeObject {
   // responder chain and invalidates its cursor rectangles.
   void RemoveFromSuperview() const;
 
+#ifdef MOUI_APPLE
   // Asks to relinquish the status as first responder in its window.
   void ResignFirstResponder() const;
+#endif
 
   // Moves the specified subview so that it appears behind its siblings.
   void SendSubviewToBack(const NativeView* subview) const;
-#endif
 
-#ifdef MOUI_APPLE
   // Sets the view's alpha value.
   void SetAlpha(const float alpha) const;
-#endif
 
   // Sets the bounds of the view.
-  void SetBounds(const int x, const int y, const int width,
-                 const int height) const;
+  void SetBounds(const float x, const float y, const float width,
+                 const float height) const;
 
-#ifdef MOUI_APPLE
   // Shows or hides the view.
-  bool SetHidden(const bool hidden) const;
-#endif
+  void SetHidden(const bool hidden) const;
 
 #ifdef MOUI_IOS
   // Sets whether user events are ignored and removed from the event queue.

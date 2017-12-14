@@ -19,6 +19,11 @@
 
 #include "jni.h"  // NOLINT
 
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+
+#include "aasset.h"
+
 namespace {
 
 JavaVM* java_vm = nullptr;
@@ -28,11 +33,16 @@ jobject main_activity = nullptr;
 
 namespace moui {
 
-void Application::InitJNI(JNIEnv* env, jobject activity) {
-  if (main_activity != nullptr)
+void Application::InitJNI(JNIEnv* env, jobject activity,
+                          jobject asset_manager) {
+  if (main_activity != nullptr) {
     env->DeleteGlobalRef(main_activity);
+  }
   main_activity = reinterpret_cast<jobject>(env->NewGlobalRef(activity));
   env->GetJavaVM(&java_vm);
+
+  // Initializes the aasset library.
+  aasset_init(AAssetManager_fromJava(env, asset_manager));
 }
 
 JNIEnv* Application::GetJNIEnv() {

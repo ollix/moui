@@ -33,8 +33,12 @@ View::View() : BaseView() {
   jobject java_opengl_view = env->NewObject(opengl_view_class,
                                             opengl_view_constructor,
                                             Application::GetMainActivity(),
-                                            (jlong)this);
-  SetNativeHandle(env->NewGlobalRef(java_opengl_view), true);
+                                            reinterpret_cast<jlong>(this));
+  jobject global_ref = env->NewGlobalRef(java_opengl_view);
+  env->DeleteLocalRef(opengl_view_class);
+  env->DeleteLocalRef(java_opengl_view);
+  SetNativeHandle(reinterpret_cast<void*>(global_ref),
+                  true);  // releases on demand
 }
 
 View::~View() {
@@ -46,7 +50,7 @@ void View::Redraw() {
   JNIEnv* env = Application::GetJNIEnv();
   jclass view_class = env->GetObjectClass(native_view);
   jmethodID request_render_method = env->GetMethodID(view_class,
-                                                     "requestRender", "()V");
+                                                     "redrawView", "()V");
   env->CallVoidMethod(native_view, request_render_method);
 }
 

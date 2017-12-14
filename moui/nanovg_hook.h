@@ -18,6 +18,8 @@
 #ifndef MOUI_NANOVG_HOOK_H_
 #define MOUI_NANOVG_HOOK_H_
 
+#include <string>
+
 #include "moui/defines.h"
 
 #include "nanovg/src/nanovg.h"
@@ -96,6 +98,18 @@ bool nvgCompareColor(const NVGcolor& color1, const NVGcolor& color2);
 // Returns context flags for the specified parameters.
 int nvgContextFlags(const bool antialias, const bool stencil_strokes,
                     const int number_of_buffers);
+
+// Creates a font at the specified path and returns the font handle.
+// This function is the enhanced version of `nvgCreateFont()` that has
+// better cross-platform support.
+int nvgCreateFontAtPath(NVGcontext* context, const std::string name,
+                        const std::string path);
+
+// Creates an image at the specified path and returns the image handle.
+// This function is the enhanced version of `nvgCreateImage()` that has
+// better cross-platform support.
+int nvgCreateImageAtPath(NVGcontext* context, const std::string path,
+                         const int image_flags);
 
 // Creates an image for pixels read from `nvgReadPixels()`.
 int nvgCreateImageFromPixels(NVGcontext* context, const int width,

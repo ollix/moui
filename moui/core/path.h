@@ -31,9 +31,11 @@ class Path {
 #ifdef MOUI_APPLE
     kDocument,
     kLibrary,
+#endif  // MOUI_APPLE
     kResource,
+#ifdef MOUI_APPLE
     kTemporary,
-#endif
+#endif  // MOUI_APPLE
   };
 
   Path() {}
