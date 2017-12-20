@@ -14,6 +14,23 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
+option(MOUI_USE_OPENGL_BACKEND "Always use OpenGL backend" OFF)
+
+if(APPLE)
+    option(IOS "Build for iOS" NO)
+
+    if(CMAKE_OSX_SYSROOT STREQUAL "iphoneos" OR
+       CMAKE_OSX_SYSROOT MATCHES "iPhoneOS")
+        set(IOS YES)
+    elseif(IOS)
+        set(CMAKE_OSX_SYSROOT "iphoneos")
+    else()
+        set(MAC YES)
+    endif()
+endif()
+
+project(moui)
+
 # Freetype Library
 
 file(GLOB FREETYPE_SOURCE_FILES
@@ -57,7 +74,7 @@ target_include_directories(nanovg
 
 target_link_libraries(nanovg PUBLIC freetype)
 
-if(CMAKE_OSX_SYSROOT STREQUAL "iphoneos" OR CMAKE_OSX_SYSROOT STREQUAL "macosx")
+if(APPLE AND NOT MOUI_USE_OPENGL_BACKEND)
     target_sources(nanovg PRIVATE "deps/MetalNanoVG/src/nanovg_mtl.m")
     target_link_libraries(nanovg PRIVATE "-framework Metal")
 endif()
@@ -99,8 +116,7 @@ target_include_directories(moui PUBLIC ".." "deps")
 
 target_link_libraries(moui PUBLIC nanovg)
 
-# Android
-if(DEFINED ANDROID_PLATFORM)
+if(ANDROID)
     target_compile_definitions(moui
         PUBLIC
         "MOUI_ANDROID"
@@ -126,18 +142,12 @@ if(DEFINED ANDROID_PLATFORM)
         "native/android/native_window_android.cc"
         "ui/android/view_android.cc"
         "ui/android/window_android.cc")
-# iOS
-elseif(CMAKE_OSX_SYSROOT STREQUAL "iphoneos")
-    target_compile_definitions(moui
-        PUBLIC
-        "MOUI_IOS"
-        "MOUI_METAL")
+elseif(IOS)
+    target_compile_definitions(moui PUBLIC "MOUI_IOS")
 
     target_link_libraries(moui
         PRIVATE
         "-framework CoreGraphics"
-        "-framework Foundation"
-        "-framework Metal"
         "-framework QuartzCore"
         "-framework UIKit")
 
@@ -151,24 +161,26 @@ elseif(CMAKE_OSX_SYSROOT STREQUAL "iphoneos")
         "native/ios/native_view_ios.mm"
         "native/ios/native_view_controller_ios.mm"
         "native/ios/native_window_ios.mm"
-        "ui/ios/MOMetalView.mm"
-        "ui/ios/MOOpenGLView.mm"
         "ui/ios/MOView.mm"
         "ui/ios/view_ios.mm"
         "ui/ios/window_ios.mm")
-# Mac
-elseif(CMAKE_OSX_SYSROOT STREQUAL "macosx")
-    target_compile_definitions(moui
-        PUBLIC
-        "MOUI_MAC"
-        "MOUI_METAL")
+
+    if(MOUI_USE_OPENGL_BACKEND)
+        target_compile_definitions(moui PUBLIC "MOUI_GLES2")
+        target_link_libraries(moui PRIVATE "-framework OpenGLES")
+        target_sources(moui PRIVATE "ui/ios/MOOpenGLView.mm")
+    else()
+        target_compile_definitions(moui PUBLIC "MOUI_METAL")
+        target_link_libraries(moui PRIVATE "-framework Metal")
+        target_sources(moui PRIVATE "ui/ios/MOMetalView.mm")
+    endif()
+elseif(MAC)
+    target_compile_definitions(moui PUBLIC "MOUI_MAC")
 
     target_link_libraries(moui
         PRIVATE
-        "-framework Cocoa"
+        "-framework AppKit"
         "-framework CoreVideo"
-        "-framework Foundation"
-        "-framework Metal"
         "-framework QuartzCore")
 
     target_sources(moui
@@ -184,4 +196,14 @@ elseif(CMAKE_OSX_SYSROOT STREQUAL "macosx")
         "ui/mac/MOView.mm"
         "ui/mac/view_mac.mm"
         "ui/mac/window_mac.mm")
+
+    if(MOUI_USE_OPENGL_BACKEND)
+        target_compile_definitions(moui PUBLIC "MOUI_GL2")
+        target_link_libraries(moui PRIVATE "-framework OpenGL")
+        target_sources(moui PRIVATE "ui/mac/MOOpenGLView.mm")
+    else()
+        target_compile_definitions(moui PUBLIC "MOUI_METAL")
+        target_link_libraries(moui PRIVATE "-framework Metal")
+        target_sources(moui PRIVATE "ui/mac/MOMetalView.mm")
+    endif()
 endif()
