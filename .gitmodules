@@ -1,12 +1,12 @@
-[submodule "moui/deps/nanovg"]
-	path = moui/deps/nanovg
-	url = git@github.com:memononen/nanovg.git
 [submodule "moui/deps/freetype"]
 	path = moui/deps/freetype
 	url = git://git.sv.gnu.org/freetype/freetype2.git
+[submodule "moui/deps/nanovg"]
+	path = moui/deps/nanovg
+	url = https://github.com/memononen/nanovg.git
 [submodule "moui/deps/MetalNanoVG"]
 	path = moui/deps/MetalNanoVG
-	url = git@github.com:ollix/MetalNanoVG.git
+	url = https://github.com/ollix/MetalNanoVG.git
 [submodule "moui/deps/aasset"]
 	path = moui/deps/aasset
-	url = git@github.com:ollix/aasset.git
+	url = https://github.com/ollix/aasset.git
