@@ -123,7 +123,8 @@ bool Widget::BeginFramebufferUpdates(NVGcontext* context,
   if (scale_factor != nullptr)
     *scale_factor = kScaleFactor;
   nvgBindFramebuffer(*framebuffer);
-  nvgClearColor(kWidth, kHeight, is_opaque_ ? background_color_ : nvgRGBAf(0, 0, 0, 0));
+  nvgClearColor(context, kWidth, kHeight,
+                is_opaque_ ? background_color_ : nvgRGBAf(0, 0, 0, 0));
   return true;
 }
 

@@ -89,7 +89,7 @@ namespace moui {
 // Clears the current color buffer with the specified `clear_color`. Note that
 // this function should be called between `nvgBindFramebuffer()` and
 // `nvgBeginFrame()`.
-void nvgClearColor(const int width, const int height,
+void nvgClearColor(NVGcontext* context, const int width, const int height,
                    const NVGcolor& clear_color);
 
 // Returns `true` if passed colors are the same.

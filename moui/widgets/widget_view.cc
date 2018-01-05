@@ -315,7 +315,8 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   const float kHeight = widget->GetHeight();
   const float kScreenScaleFactor = \
       Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
-  moui::nvgClearColor(kWidth * kScreenScaleFactor,
+  moui::nvgClearColor(context,
+                      kWidth * kScreenScaleFactor,
                       kHeight * kScreenScaleFactor,
                       nvgRGBAf(0, 0, 0, 0));
 

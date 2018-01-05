@@ -47,7 +47,7 @@
 
 namespace moui {
 
-void nvgClearColor(const int width, const int height,
+void nvgClearColor(NVGcontext* context, const int width, const int height,
                    const NVGcolor& clear_color) {
 #ifdef MOUI_GL
   const float kAlpha = static_cast<float>(clear_color.a);
@@ -58,7 +58,7 @@ void nvgClearColor(const int width, const int height,
   glClearColor(kRed, kGreen, kBlue, kAlpha);
   glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 #elif MOUI_METAL
-  mnvgClearWithColor(clear_color);
+  mnvgClearWithColor(context, clear_color);
 #endif
 }
 
