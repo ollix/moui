@@ -57,7 +57,7 @@ open class MouiFragment : Fragment() {
     /** Loads native libraries. */
     companion object {
         init {
-            System.loadLibrary("moui-jni-lib")
+            System.loadLibrary("moui-jni")
         }
     }
 }
