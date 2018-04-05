@@ -28,14 +28,10 @@ namespace moui {
 class Path {
  public:
   enum class Directory {
-#ifdef MOUI_APPLE
     kDocument,
     kLibrary,
-#endif  // MOUI_APPLE
     kResource,
-#ifdef MOUI_APPLE
     kTemporary,
-#endif  // MOUI_APPLE
   };
 
   Path() {}
