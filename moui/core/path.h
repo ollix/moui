@@ -37,6 +37,10 @@ class Path {
   Path() {}
   ~Path() {}
 
+#ifdef MOUI_ANDROID
+  static void Init();
+#endif  // MOUI_ANDROID
+
   // Returns the direcotry path containing app resources.
   static std::string GetDirectory(const Directory directory);
 

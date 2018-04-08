@@ -24,6 +24,9 @@
 
 #include "aasset.h"
 
+#include "moui/core/device.h"
+#include "moui/core/path.h"
+
 namespace {
 
 JavaVM* java_vm = nullptr;
@@ -43,6 +46,10 @@ void Application::InitJNI(JNIEnv* env, jobject activity,
 
   // Initializes the aasset library.
   aasset_init(AAssetManager_fromJava(env, asset_manager));
+
+  // Initializes classes.
+  Device::Init();
+  Path::Init();
 }
 
 JNIEnv* Application::GetJNIEnv() {

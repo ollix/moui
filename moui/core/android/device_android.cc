@@ -23,6 +23,9 @@
 
 namespace {
 
+// The screen scale factor of the current device.
+float screen_scale_factor = 0;
+
 // The smallest screen dp that should consider as a tablet. This value can
 // be changed through the SetSmallestScreenWidthDpForTablet() method.
 float tablet_smallest_screen_width_dp = 600;
@@ -48,6 +51,10 @@ jobject GetJavaDevice() {
 }  // namespace
 
 namespace moui {
+
+void Device::Init() {
+  GetScreenScaleFactor();
+}
 
 Device::BatteryState Device::GetBatteryState() {
   jobject device = GetJavaDevice();
@@ -94,7 +101,6 @@ Device::Category Device::GetCategory() {
 
 // Calls com.ollix.moui.Device.getScreenScaleFactor() on the Java side.
 float Device::GetScreenScaleFactor() {
-  static float screen_scale_factor = 0;
   if (screen_scale_factor > 0)
     return screen_scale_factor;
 

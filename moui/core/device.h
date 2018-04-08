@@ -48,6 +48,10 @@ class Device {
   Device() {}
   ~Device() {}
 
+#ifdef MOUI_ANDROID
+  static void Init();
+#endif  // MOUI_ANDROID
+
   // Returns the battery state for the current device.
   static BatteryState GetBatteryState();
 

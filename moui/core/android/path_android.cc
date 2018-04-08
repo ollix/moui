@@ -20,9 +20,13 @@
 #include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
-#include "moui/core/log.h"
 
 namespace {
+
+// Caches the directory paths.
+std::string document_directory_path;
+std::string library_directory_path;
+std::string temporary_directory_path;
 
 // Returns the instance of the com.ollix.moui.Path class on the Java side.
 jobject GetJavaPath() {
@@ -46,20 +50,33 @@ jobject GetJavaPath() {
 
 namespace moui {
 
+void Path::Init() {
+  Path::GetDirectory(Path::Directory::kDocument);
+  Path::GetDirectory(Path::Directory::kLibrary);
+  Path::GetDirectory(Path::Directory::kTemporary);
+}
+
 std::string Path::GetDirectory(const Directory directory) {
   if (directory == Path::Directory::kResource) {
     return "file:///android_assets";
   }
 
   std::string java_method_name;
+  std::string* path_cache;
   if (directory == Path::Directory::kDocument) {
     java_method_name = "getExternalFilesDir";
+    path_cache = &document_directory_path;
   } else if (directory == Path::Directory::kLibrary) {
     java_method_name = "getFilesDir";
+    path_cache = &library_directory_path;
   } else if (directory == Path::Directory::kTemporary) {
     java_method_name = "getCacheDir";
+    path_cache = &temporary_directory_path;
   } else {
     return "";
+  }
+  if (!path_cache->empty()) {
+    return *path_cache;
   }
 
   jobject path_object = GetJavaPath();
@@ -71,9 +88,9 @@ std::string Path::GetDirectory(const Directory directory) {
   jstring path_string = reinterpret_cast<jstring>(
       env->CallObjectMethod(path_object, java_method));
   const char* path = env->GetStringUTFChars(path_string, 0);
-  std::string result = path;
+  *path_cache = std::string(path);
   env->ReleaseStringUTFChars(path_string, path);
-  return result;
+  return *path_cache;
 }
 
 }  // namespace moui
