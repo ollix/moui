@@ -418,6 +418,7 @@ bool Widget::InsertChildAboveSibling(Widget* child, Widget* sibling) {
   children_.insert(iterator + 1, child);
   if (widget_view_ != nullptr && !child->IsHidden())
     widget_view_->Redraw();
+  return true;
 }
 
 bool Widget::InsertChildBelowSibling(Widget* child, Widget* sibling) {
@@ -434,6 +435,7 @@ bool Widget::InsertChildBelowSibling(Widget* child, Widget* sibling) {
   children_.insert(iterator, child);
   if (widget_view_ != nullptr && !child->IsHidden())
     widget_view_->Redraw();
+  return true;
 }
 
 bool Widget::IsAnimating() const {
