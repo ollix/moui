@@ -34,6 +34,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     private var handlingEvent = false
     private var isAnimating = false
     private val mouiViewPtr: Long
+    private var pendingFrameUpdate = false
 
     init {
         displayDensity = context.getResources().getDisplayMetrics().density
@@ -43,6 +44,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
 
         frameCallback = object : Choreographer.FrameCallback {
             override fun doFrame(frameTimeNanos: Long) {
+                pendingFrameUpdate = false
                 renderFrame()
             }
         }
@@ -98,7 +100,12 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun redrawView() {
+        if (pendingFrameUpdate) {
+            return
+        }
+
         if (drawableIsValid) {
+            pendingFrameUpdate = true
             Choreographer.getInstance().postFrameCallback(frameCallback)
         }
     }
