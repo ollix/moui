@@ -20,6 +20,7 @@
 package com.ollix.moui
 
 import android.content.Context
+import android.graphics.PixelFormat
 import android.view.Choreographer
 import android.view.MotionEvent
 import android.view.SurfaceHolder
@@ -40,6 +41,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
         displayDensity = context.getResources().getDisplayMetrics().density
         this.mouiViewPtr = mouiViewPtr
         holder.addCallback(this)
+        holder.setFormat(PixelFormat.TRANSPARENT);
         setZOrderOnTop(true)
 
         frameCallback = object : Choreographer.FrameCallback {
