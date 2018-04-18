@@ -21,6 +21,7 @@ package com.ollix.moui
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.SystemClock
 import android.view.Choreographer
 import android.view.MotionEvent
 import android.view.SurfaceHolder
@@ -36,6 +37,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     private var isAnimating = false
     private val mouiViewPtr: Long
     private var pendingFrameUpdate = false
+    private var lastRedrawTime: Long = 0
 
     init {
         displayDensity = context.getResources().getDisplayMetrics().density
@@ -102,6 +104,12 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun redrawView() {
+        val redrawTime = SystemClock.elapsedRealtime()
+        if ((redrawTime - lastRedrawTime) > 500) {
+            pendingFrameUpdate = false
+        }
+        lastRedrawTime = redrawTime
+
         if (pendingFrameUpdate) {
             return
         }
