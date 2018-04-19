@@ -25,8 +25,6 @@
 #include "moui/core/device.h"
 #include "moui/native/native_object.h"
 
-#include "moui/core/log.h"
-
 namespace {
 
 // Returns the instance of the com.ollix.moui.NativeView class on the Java side.
