@@ -695,7 +695,8 @@ void Widget::set_alpha(const float alpha) {
     return;
 
   alpha_ = revised_alpha;
-  Redraw();
+  if (widget_view_ != nullptr)
+    widget_view_->Redraw(this);
 }
 
 void Widget::set_background_color(const NVGcolor background_color) {
