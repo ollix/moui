@@ -44,6 +44,14 @@ View::View() : BaseView() {
 View::~View() {
 }
 
+bool View::BackgroundIsOpaque() const {
+  jobject native_view = reinterpret_cast<jobject>(native_handle());
+  JNIEnv* env = Application::GetJNIEnv();
+  jclass view_class = env->GetObjectClass(native_view);
+  jmethodID method = env->GetMethodID(view_class, "backgroundIsOpaque", "()Z");
+  return env->CallBooleanMethod(native_view, method);
+}
+
 // Calls com.ollix.OpenGLView.requestRender() on the Java side.
 void View::Redraw() {
   jobject native_view = reinterpret_cast<jobject>(native_handle());
@@ -52,6 +60,15 @@ void View::Redraw() {
   jmethodID request_render_method = env->GetMethodID(view_class,
                                                      "redrawView", "()V");
   env->CallVoidMethod(native_view, request_render_method);
+}
+
+void View::SetBackgroundOpaque(const bool is_opaque) const {
+  jobject native_view = reinterpret_cast<jobject>(native_handle());
+  JNIEnv* env = Application::GetJNIEnv();
+  jclass view_class = env->GetObjectClass(native_view);
+  jmethodID method = env->GetMethodID(view_class, "setBackgroundOpaque",
+                                      "(Z)V");
+  env->CallVoidMethod(native_view, method, is_opaque);
 }
 
 // Calls com.ollix.OpenGLView.startUpdatingView() on the Java side.

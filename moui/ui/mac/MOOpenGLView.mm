@@ -29,12 +29,10 @@
   NSOpenGLPixelFormat* _pixelFormat;
 }
 
-- (void)lockFocus {
-  [super lockFocus];
-  if ([_context view] != self) {
-    [_context setView:self];
-  }
-  [_context makeCurrentContext];
+- (BOOL)backgroundIsOpaque {
+  GLint isOpaque;
+  [_context getValues:&isOpaque forParameter:NSOpenGLCPSurfaceOpacity];
+  return isOpaque == 0 ? NO : YES;
 }
 
 - (void)createDrawableWithSize:(NSSize)size {
@@ -66,6 +64,14 @@
   [_context makeCurrentContext];
 }
 
+- (void)lockFocus {
+  [super lockFocus];
+  if ([_context view] != self) {
+    [_context setView:self];
+  }
+  [_context makeCurrentContext];
+}
+
 - (void)presentDrawable {
   [_context flushBuffer];
   CGLUnlockContext([_context CGLContextObj]);
@@ -74,6 +80,11 @@
 - (void)prepareDrawable {
   CGLLockContext([_context CGLContextObj]);
   [_context makeCurrentContext];
+}
+
+- (void)setBackgroundOpaque:(BOOL)isOpaque {
+  GLint opaque = (GLint)isOpaque;
+  [_context setValues:&opaque forParameter:NSOpenGLCPSurfaceOpacity];
 }
 
 @end

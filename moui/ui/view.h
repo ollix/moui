@@ -34,6 +34,9 @@ class View : public BaseView {
   moui::Point GetMouseLocation();
 #endif
 
+  // Returns `true` if the background is opaque.
+  bool BackgroundIsOpaque() const;
+
   // This method is designed to be called whenever the application receives a
   // memory warning. Currently this method only works for iOS.
   virtual void HandleMemoryWarning() {}
@@ -44,6 +47,9 @@ class View : public BaseView {
 
   // Inherited from `BaseView` class.
   void Redraw() override;
+
+  // Sets whether the view's background is opaque.
+  void SetBackgroundOpaque(const bool is_opaque) const;
 
  private:
   // Inherited from `BaseView` class.

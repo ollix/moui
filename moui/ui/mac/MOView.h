@@ -34,6 +34,9 @@ class View;
 
 - (id)initWithMouiView:(moui::View *)mouiView;
 
+// Returns `YES` if the view's background is opaque.
+- (BOOL)backgroundIsOpaque;
+
 // Creates the drawable for presenting on the screen. This method should be
 // implemented in the subclass.
 - (void)createDrawableWithSize:(NSSize)size;
@@ -50,6 +53,9 @@ class View;
 // Prepares the environment for drawable to render. This method should be
 // implemented in the subclass.
 - (void)prepareDrawable;
+
+// Sets whether the view's background is opaque.
+- (void)setBackgroundOpaque:(BOOL)isOpaque;
 
 // Guarantees the view to update in the next refresh cycle of the display.
 - (void)setNeedsRedraw;
