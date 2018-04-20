@@ -105,7 +105,6 @@
     _mouiView = mouiView;
     _needsRedraw = NO;
 
-    self.layer.opaque = NO;
     self.layer.contentsScale = [UIScreen mainScreen].scale;
     [self createDrawableWithSize:CGSizeMake(0, 0)];
 

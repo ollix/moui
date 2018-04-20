@@ -24,12 +24,19 @@
 
 @implementation MOMetalView
 
+- (BOOL)backgroundIsOpaque {
+  return self.layer.opaque;
+}
+
 - (void)createDrawableWithSize:(NSSize)size {
   if (!self.wantsLayer) {
     self.layer = [CAMetalLayer new];
-    self.layer.opaque = NO;
     self.wantsLayer = YES;
   }
+}
+
+- (void)setBackgroundOpaque:(BOOL)isOpaque {
+  self.layer.opaque = isOpaque;
 }
 
 @end

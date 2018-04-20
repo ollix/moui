@@ -40,11 +40,21 @@ View::View() : BaseView() {
 View::~View() {
 }
 
+bool View::BackgroundIsOpaque() const {
+  MOView* native_view = (__bridge MOView*)native_handle();
+  return native_view.layer.opaque;
+}
+
 // Calls `CALayer`'s `setNeedsDisplay` method to trigger the `displayLayer:`
 // method defined in `MOView`.
 void View::Redraw() {
   MOView* native_view = (__bridge MOView*)native_handle();
-  [[native_view layer] setNeedsDisplay];
+  [native_view.layer setNeedsDisplay];
+}
+
+void View::SetBackgroundOpaque(const bool is_opaque) const {
+  MOView* native_view = (__bridge MOView*)native_handle();
+  native_view.layer.opaque = is_opaque;
 }
 
 void View::StartUpdatingNativeView() {

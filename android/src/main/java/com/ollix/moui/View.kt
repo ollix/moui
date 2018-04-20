@@ -30,6 +30,7 @@ import android.view.SurfaceView
 abstract class View(context: Context, mouiViewPtr: Long)
         : SurfaceView(context), SurfaceHolder.Callback {
     private var animationIsPaused = false
+    private var backgroundIsOpaque = true
     private val displayDensity: Float
     private var drawableIsValid = false
     private val frameCallback: Choreographer.FrameCallback
@@ -43,7 +44,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
         displayDensity = context.getResources().getDisplayMetrics().density
         this.mouiViewPtr = mouiViewPtr
         holder.addCallback(this)
-        holder.setFormat(PixelFormat.TRANSPARENT);
+        holder.setFormat(PixelFormat.TRANSPARENT)
         setZOrderOnTop(true)
 
         frameCallback = object : Choreographer.FrameCallback {
@@ -52,6 +53,10 @@ abstract class View(context: Context, mouiViewPtr: Long)
                 renderFrame()
             }
         }
+    }
+
+    fun backgroundIsOpaque(): Boolean {
+        return backgroundIsOpaque
     }
 
     /**
@@ -118,6 +123,10 @@ abstract class View(context: Context, mouiViewPtr: Long)
             pendingFrameUpdate = true
             Choreographer.getInstance().postFrameCallback(frameCallback)
         }
+    }
+
+    fun setBackgroundOpaque(isOpaque: Boolean) {
+        backgroundIsOpaque = isOpaque
     }
 
     fun startUpdatingView() {
