@@ -155,7 +155,7 @@ void WidgetView::PopAndFinalizeWidgetItems(const int level,
 
     stack->pop();
     top_item->widget->WidgetDidRender(context_);
-    delete top_item;
+    reusable_widget_items_.push(top_item);
     nvgRestore(context_);
   }
 }
@@ -166,74 +166,102 @@ void WidgetView::PopAndFinalizeWidgetItems(const int level,
 void WidgetView::PopulateWidgetList(const int level, const float scale,
                                     WidgetList* widget_list, Widget* widget,
                                     WidgetItem* parent_item) {
-  if (level != 0 && widget->IsHidden())
+  static float widget_view_width;
+  static float widget_view_height;
+  if (level == 0) {
+    widget_view_width = GetWidth();
+    widget_view_height = GetHeight();
+  } else if (widget->IsHidden()) {
     return SetWidgetAndDescendantsInvisible(widget);
-  const float kWidgetWidth = widget->GetWidth();
-  if (kWidgetWidth <= 0) return;
-  const float kWidgetHeight = widget->GetHeight();
-  if (kWidgetHeight <= 0) return;
-  const float kWidgetX = level == 0 ? 0 : widget->GetX();
-  const float kWidgetY = level == 0 ? 0 : widget->GetY();
-  const float kScaledWidgetWidth = kWidgetWidth * scale * widget->scale();
-  const float kScaledWidgetHeight = kWidgetHeight * scale * widget->scale();
+  }
+
+  WidgetItem* item;
+  if (reusable_widget_items_.empty()) {
+    item = new WidgetItem;
+    reusable_widget_items_.push(item);
+  } else {
+    item = reusable_widget_items_.front();
+  }
+
+  item->width = widget->GetWidth();
+  if (item->width <= 0) return;
+  item->height = widget->GetHeight();
+  if (item->height <= 0) return;
+  item->origin.x = level == 0 ? 0 : widget->GetX();
+  item->origin.y = level == 0 ? 0 : widget->GetY();
+  const float kScaledWidgetWidth = item->width * scale * widget->scale();
+  const float kScaledWidgetHeight = item->height * scale * widget->scale();
 
   // Determines the translate origin and the scissor area.
-  Point translated_origin = {0.0f, 0.0f};
-  Point scissor_origin = {0.0f, 0.0f};
-  float scissor_width = kScaledWidgetWidth;
-  float scissor_height = kScaledWidgetHeight;
-  if (parent_item != nullptr) {
-    translated_origin.x = parent_item->translated_origin.x + kWidgetX * scale;
-    translated_origin.y = parent_item->translated_origin.y + kWidgetY * scale;
+  item->translated_origin = {0.0f, 0.0f};
+  item->scissor_origin = {0.0f, 0.0f};
+  item->scissor_width = kScaledWidgetWidth;
+  item->scissor_height = kScaledWidgetHeight;
+  if (parent_item == nullptr) {
+    item->alpha = widget->alpha();
+  } else {
+    item->translated_origin.x = parent_item->translated_origin.x
+                                + item->origin.x * scale;
+    item->translated_origin.y = parent_item->translated_origin.y
+                                + item->origin.y * scale;
     // Determines the scissor's horizontal position.
-    scissor_origin.x = std::max(parent_item->scissor_origin.x,
-                                translated_origin.x);
-    if (scissor_origin.x >= GetWidth())
+    item->scissor_origin.x = std::max(parent_item->scissor_origin.x,
+                                      item->translated_origin.x);
+    if (item->scissor_origin.x >= widget_view_width)
       return SetWidgetAndDescendantsInvisible(widget);
     // Determines the scissor's vertical position.
-    scissor_origin.y = std::max(parent_item->scissor_origin.y,
-                                translated_origin.y);
-    if (scissor_origin.y >= GetHeight())
+    item->scissor_origin.y = std::max(parent_item->scissor_origin.y,
+                                      item->translated_origin.y);
+    if (item->scissor_origin.y >= widget_view_height)
       return SetWidgetAndDescendantsInvisible(widget);
     // Stops if the widget is invisible on the scissor's left or top.
-    if ((translated_origin.x + kScaledWidgetWidth - 1) < scissor_origin.x ||
-        (translated_origin.y + kScaledWidgetHeight - 1) < scissor_origin.y)
+    if ((item->translated_origin.x + kScaledWidgetWidth - 1)
+            < item->scissor_origin.x ||
+        (item->translated_origin.y + kScaledWidgetHeight - 1)
+            < item->scissor_origin.y)
       return SetWidgetAndDescendantsInvisible(widget);
     // Determines the scissor width.
     const float kParentOriginX = parent_item->scissor_origin.x;
-    scissor_width = std::min(
-        scissor_width,
-        kParentOriginX + parent_item->scissor_width - scissor_origin.x);
-    scissor_width = std::min(
-        scissor_width,
-        scissor_origin.x + kScaledWidgetWidth - kParentOriginX);
-    if (scissor_width <= 0 || (scissor_origin.x + scissor_width - 1) < 0)
+    item->scissor_width = std::min(
+        item->scissor_width,
+        kParentOriginX + parent_item->scissor_width - item->scissor_origin.x);
+    item->scissor_width = std::min(
+        item->scissor_width,
+        item->scissor_origin.x + kScaledWidgetWidth - kParentOriginX);
+    if (item->scissor_width <= 0 ||
+        (item->scissor_origin.x + item->scissor_width - 1) < 0)
       return SetWidgetAndDescendantsInvisible(widget);
     // Determines the scissor height.
     const float kParentOriginY = parent_item->scissor_origin.y;
-    scissor_height = std::min(
-        scissor_height,
-        kParentOriginY + parent_item->scissor_height - scissor_origin.y);
-    scissor_height = std::min(
-        scissor_height,
-        scissor_origin.y + kScaledWidgetHeight - kParentOriginY);
-    if (scissor_height <= 0 || (scissor_origin.y + scissor_height - 1) < 0)
+    item->scissor_height = std::min(
+        item->scissor_height,
+        kParentOriginY + parent_item->scissor_height - item->scissor_origin.y);
+    item->scissor_height = std::min(
+        item->scissor_height,
+        item->scissor_origin.y + kScaledWidgetHeight - kParentOriginY);
+    if (item->scissor_height <= 0 ||
+        (item->scissor_origin.y + item->scissor_height - 1) < 0)
       return SetWidgetAndDescendantsInvisible(widget);
+    // Determines the alpha value.
+    item->alpha = widget->alpha() * parent_item->alpha;
   }
 
   // The widget is visible. Adds it to the widget list and checks its children.
   visible_widgets_.push_back(widget);
   widget->set_is_visible(true);
-  const float kParentAlpha = (parent_item == nullptr ? 1 : parent_item->alpha);
-  auto item = new WidgetItem{widget, {kWidgetX, kWidgetY}, kWidgetWidth,
-                             kWidgetHeight, level, parent_item,
-                             widget->scale(), widget->alpha() * kParentAlpha,
-                             translated_origin, scissor_origin, scissor_width,
-                             scissor_height};
+  item->widget = widget;
+  item->level = level;
+  item->parent_item = parent_item;
+  reusable_widget_items_.pop();
   widget_list->push_back(item);
-  const float kChildWidgetScale = scale * widget->scale();
-  for (Widget* child : *(widget->children()))
-    PopulateWidgetList(level + 1, kChildWidgetScale, widget_list, child, item);
+  for (Widget* child : *(widget->children())) {
+    if (child->IsHidden()) {
+      SetWidgetAndDescendantsInvisible(child);
+    } else {
+      PopulateWidgetList(level + 1, scale * widget->scale(), widget_list,
+                         child, item);
+    }
+  }
 }
 
 void WidgetView::Redraw() {
@@ -296,7 +324,7 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
     WidgetViewWillRender(widget);
   }
   preparing_for_rendering_ = false;
-  WidgetList widget_list;
+  std::vector<WidgetItem*> widget_list;
   PopulateWidgetList(0, widget->GetMeasuredScale(), &widget_list, widget,
                      nullptr);
 
@@ -334,7 +362,7 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
     nvgSave(context);
     nvgGlobalAlpha(context, item->alpha);
     nvgTranslate(context, item->origin.x, item->origin.y);
-    nvgScale(context, item->scale, item->scale);
+    nvgScale(context, item->widget->scale(), item->widget->scale());
     nvgIntersectScissor(context, 0, 0, item->width, item->height);
     item->widget->WidgetWillRender(context);
     nvgSave(context);
@@ -401,9 +429,7 @@ bool WidgetView::UpdateEventResponders(const Point location, Widget* widget) {
 
 void WidgetView::WidgetViewDidRender(Widget* widget) {
   NVGcontext* context = this->context();
-  nvgSave(context);
   widget->WidgetViewDidRender(context);
-  nvgRestore(context);
   for (Widget* child : *(widget->children()))
     WidgetViewDidRender(child);
 }
@@ -412,9 +438,7 @@ void WidgetView::WidgetViewWillRender(Widget* widget) {
   NVGcontext* context = this->context();
   bool result = false;
   while (!result) {
-    nvgSave(context);
     result = widget->WidgetViewWillRender(context);
-    nvgRestore(context);
 
     for (Widget* child : *(widget->children()))
       WidgetViewWillRender(child);
