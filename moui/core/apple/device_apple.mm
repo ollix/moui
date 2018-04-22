@@ -59,12 +59,18 @@ Device::Category Device::GetCategory() {
 }
 
 float Device::GetScreenScaleFactor() {
+  static float screen_scale_factor = 0;
+  if (screen_scale_factor > 0)
+    return screen_scale_factor;
+
 #if MOUI_IOS
-  return [[UIScreen mainScreen] scale];
+  screen_scale_factor = [[UIScreen mainScreen] scale];
 #elif MOUI_MAC
-  return [[NSScreen mainScreen] backingScaleFactor];
-#endif
+  screen_scale_factor = [[NSScreen mainScreen] backingScaleFactor];
+#else
   assert(false);
+#endif  // MOUI_IOS
+  return screen_scale_factor;
 }
 
 }  // namespace moui

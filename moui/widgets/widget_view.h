@@ -19,6 +19,7 @@
 #define MOUI_WIDGETS_WIDGET_VIEW_H_
 
 #include <stack>
+#include <queue>
 #include <vector>
 
 #include "moui/base.h"
@@ -85,8 +86,6 @@ class WidgetView : public View {
     // The pointer to the widget item that corresponds to the current widget's
     // parent widget.
     WidgetItem* parent_item;
-    // The rendering scale of the widget.
-    float scale;
     // The opacity value of the widget.
     float alpha;
     // The origin of the widget that related to the current coordinate system.
@@ -172,6 +171,9 @@ class WidgetView : public View {
   // Keeps a list of widgets to handle events passed to the `HandleEvent()`
   // method. The list could be updated by `UpdateEventResponders()`.
   std::vector<Widget*> event_responders_;
+
+  // Keeps a list of reusable `WidgetItem` instances.
+  std::queue<WidgetItem*> reusable_widget_items_;
 
   // The root widget for rendering. All its children will be rendered as well.
   Widget* root_widget_;
