@@ -130,7 +130,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun startUpdatingView() {
-        if (drawableIsValid) {
+        if (drawableIsValid && !isAnimating) {
             isAnimating = true
             redrawView()
         }
@@ -139,7 +139,6 @@ abstract class View(context: Context, mouiViewPtr: Long)
     fun stopUpdatingView() {
         if (drawableIsValid) {
             isAnimating = false
-            Choreographer.getInstance().removeFrameCallback(frameCallback)
         }
     }
 
