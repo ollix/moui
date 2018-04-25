@@ -54,7 +54,7 @@ TableViewCell::TableViewCell(const Style style,
   set_frees_children_on_destruction(true);
 
   // Initializes content view.
-  content_view_ = new moui::Widget;
+  content_view_ = new moui::Widget(true);
   content_view_->BindRenderFunction(&TableViewCell::RenderContentView, this);
   AddChild(content_view_);
 

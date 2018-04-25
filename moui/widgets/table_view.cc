@@ -58,7 +58,7 @@ TableView::TableView() :
   set_always_scroll_both_directions(false);
   set_background_color(nvgRGBA(240, 239, 245, 255));
 
-  layout_view_ = new moui::Widget();
+  layout_view_ = new moui::Widget(true);
   layout_view_->set_is_opaque(false);
   layout_view_->BindRenderFunction(&TableView::RenderLayoutView, this);
   layout_view_->SetWidth(Widget::Unit::kPercent, 100);
