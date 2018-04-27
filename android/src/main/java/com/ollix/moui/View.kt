@@ -170,9 +170,9 @@ abstract class View(context: Context, mouiViewPtr: Long)
             isAnimating = true
             animationIsPaused = true
         }
-        destroyDrawable()
         drawableIsValid = false
         onSurfaceDestroyedFromJNI(mouiViewPtr)
+        destroyDrawable()
     }
 
     /** Abstract functions */
