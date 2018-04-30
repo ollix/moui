@@ -65,7 +65,7 @@ TableViewCell::TableViewCell(const Style style,
   content_view_->AddChild(text_label_);
 
   // Initializes image view.
-  image_view_ = new Widget();
+  image_view_ = new Widget(true);
   image_view_->SetWidth(kDefaultImageViewLength);
   image_view_->SetHeight(kDefaultImageViewLength);
   image_view_->SetHidden(true);
@@ -201,25 +201,23 @@ bool TableViewCell::WidgetViewWillRender(NVGcontext* context) {
 }
 
 void TableViewCell::set_accessory_type(const AccessoryType accessory_type) {
-  if (accessory_type == accessory_type_)
-    return;
-  accessory_type_ = accessory_type;
-  Redraw();
+  if (accessory_type != accessory_type_) {
+    accessory_type_ = accessory_type;
+    content_view_->Redraw();
+  }
 }
 
 void TableViewCell::set_highlighted(const bool highlighted) {
   if (highlighted != highlighted_) {
     highlighted_ = highlighted;
-    if (widget_view() != nullptr)
-      widget_view()->Redraw();
+    content_view_->Redraw();
   }
 }
 
 void TableViewCell::set_selected(const bool selected) {
   if (selected != selected_) {
     selected_ = selected;
-    if (widget_view() != nullptr)
-      widget_view()->Redraw();
+    content_view_->Redraw();
   }
 }
 
