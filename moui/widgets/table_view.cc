@@ -18,6 +18,7 @@
 #include "moui/widgets/table_view.h"
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <string>
 #include <queue>
@@ -174,9 +175,14 @@ bool TableView::HandleEvent(Event* event) {
   if (down_event_cell_ == nullptr)
     return kResult;
 
+  // Determines the cell's current origin related to the corresponded
+  // widget view's coordinate system.
+  Point origin;
+  down_event_cell_->GetMeasuredBounds(&origin, nullptr);
+
   const Point location = static_cast<Point>(event->locations()->front());
   if (event->type() == Event::Type::kDown) {
-    down_event_location_ = location;
+    down_event_origin_ = origin;
     // Delay highlights the `down_event_cell_`.
     Clock::ExecuteCallbackOnMainThread(
         0.01,  // delay in seconds
@@ -191,8 +197,8 @@ bool TableView::HandleEvent(Event* event) {
       DeselectRow(kCellIndex);
     down_event_cell_ = nullptr;
   } else if (event->type() == Event::Type::kMove &&
-             (location.x != down_event_location_.x ||
-              location.y != down_event_location_.y)) {
+             (std::abs(origin.x - down_event_origin_.x) >= 1.2 ||
+              std::abs(origin.y - down_event_origin_.y) >= 1.2)) {
     SetCellHighlighted(down_event_cell_, false);
     down_event_cell_ = nullptr;
   } else if (event->type() == Event::Type::kCancel) {
