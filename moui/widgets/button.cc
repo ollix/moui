@@ -116,18 +116,30 @@ void Button::BindRenderFunction(
   if (states & ControlState::kNormal) {
     render_functions_[GetControlStateIndex(ControlState::kNormal)] = \
         render_function;
+    nvgDeleteFramebuffer(normal_state_framebuffer_);
+    nvgDeleteFramebuffer(normal_state_with_highlighted_effect_framebuffer_);
+    normal_state_framebuffer_ = nullptr;
+    normal_state_with_highlighted_effect_framebuffer_ = nullptr;
   }
   if (states & ControlState::kHighlighted) {
     render_functions_[GetControlStateIndex(ControlState::kHighlighted)] = \
         render_function;
+    nvgDeleteFramebuffer(highlighted_state_framebuffer_);
+    highlighted_state_framebuffer_ = nullptr;
   }
   if (states & ControlState::kDisabled) {
     render_functions_[GetControlStateIndex(ControlState::kDisabled)] = \
         render_function;
+    nvgDeleteFramebuffer(disabled_state_framebuffer_);
+    disabled_state_framebuffer_ = nullptr;
   }
   if (states & ControlState::kSelected) {
     render_functions_[GetControlStateIndex(ControlState::kSelected)] = \
         render_function;
+    nvgDeleteFramebuffer(selected_state_framebuffer_);
+    nvgDeleteFramebuffer(selected_state_with_highlighted_effect_framebuffer_);
+    selected_state_framebuffer_ = nullptr;
+    selected_state_with_highlighted_effect_framebuffer_ = nullptr;
   }
 }
 
