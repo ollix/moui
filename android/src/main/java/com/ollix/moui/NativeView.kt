@@ -27,7 +27,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
-import android.widget.FrameLayout
+import android.widget.RelativeLayout
 
 class NativeView(context: Context) {
 
@@ -116,10 +116,9 @@ class NativeView(context: Context) {
 
     /** Sets the position and dimension of the view. */
     fun setBounds(view: View, x: Float, y: Float, width: Float, height: Float) {
-        val layoutParams = FrameLayout.LayoutParams(
+        val layoutParams = RelativeLayout.LayoutParams(
                 (width * displayDensity).toInt(),
-                (height * displayDensity).toInt(),
-                Gravity.TOP)
+                (height * displayDensity).toInt())
         layoutParams.leftMargin = (x * displayDensity).toInt()
         layoutParams.topMargin = (y * displayDensity).toInt()
         view.layoutParams = layoutParams
