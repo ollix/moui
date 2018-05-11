@@ -74,8 +74,8 @@ abstract class View(context: Context, mouiViewPtr: Long)
         /** Determines the action location. */
         var coords = IntArray(2)
         getLocationInWindow(coords)
-        val X: Float = (event.getRawX() - coords[0]) / displayDensity
-        val Y: Float = (event.getRawY() - coords[1]) / displayDensity
+        val X: Float = (event.getX() - coords[0]) / displayDensity
+        val Y: Float = (event.getY() - coords[1]) / displayDensity
         /**
          * If it's an initial action, checks if it should handle consequent
          * events.
