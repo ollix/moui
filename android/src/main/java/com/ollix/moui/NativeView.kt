@@ -99,14 +99,14 @@ class NativeView(context: Context) {
     fun sendSubviewToBack(parentView: View, subview: View) {
         if (parentView is ViewGroup) {
             val subviewIndex: Int = parentView.indexOfChild(subview);
-            if (subviewIndex == -1) {
+            if (subviewIndex <= 0) {
                 return
             }
-            var s = 1
-            for (i in 1 until parentView.childCount) {
+            var s = 0
+            for (i in 0 until parentView.childCount) {
                 val child: View = parentView.getChildAt(s)
                 if (child == subview) {
-                    s = 2
+                    s = 1
                 } else {
                     child.bringToFront()
                 }
