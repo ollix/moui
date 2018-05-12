@@ -300,8 +300,6 @@ void WidgetView::RemoveResponder(Widget* widget) {
 }
 
 void WidgetView::Render() {
-  root_widget_->SetWidth(GetWidth());
-  root_widget_->SetHeight(GetHeight());
   Render(root_widget_, nullptr);
 }
 
