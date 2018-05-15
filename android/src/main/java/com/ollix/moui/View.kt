@@ -71,21 +71,29 @@ abstract class View(context: Context, mouiViewPtr: Long)
         if (!handlingEvent && event.getAction() != MotionEvent.ACTION_DOWN) {
             return false
         }
-        /** Determines the action location. */
+        /** Populates the action locations. */
         var coords = IntArray(2)
         getLocationInWindow(coords)
-        val X: Float = (event.getX() - coords[0]) / displayDensity
-        val Y: Float = (event.getY() - coords[1]) / displayDensity
+        val locations = FloatArray(event.pointerCount * 2)
+        var index = 0
+        for (i in 0 until event.pointerCount) {
+            locations[index++] = (event.getX(i) - coords[0]) / displayDensity
+            locations[index++] = (event.getY(i) - coords[1]) / displayDensity
+        }
+
         /**
          * If it's an initial action, checks if it should handle consequent
          * events.
          */
-        if (!handlingEvent && !shouldHandleEventFromJNI(mouiViewPtr, X, Y)) {
+        if (!handlingEvent && !shouldHandleEventFromJNI(mouiViewPtr,
+                                                        locations[0],
+                                                        locations[1])) {
             return false
         }
+
         handlingEvent = true
         /** Handles the event in corresponded moui view. */
-        handleEventFromJNI(mouiViewPtr, event.getAction(), X, Y)
+        handleEventFromJNI(mouiViewPtr, event.getAction(), locations)
         /** Resets `handlingEvent` if the action is complete. */
         if (event.getAction() == MotionEvent.ACTION_UP ||
                 event.getAction() == MotionEvent.ACTION_CANCEL) {
@@ -186,8 +194,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
 
     external fun handleEventFromJNI(mouiViewPtr: Long,
                                     action: Int,
-                                    x: Float,
-                                    y: Float)
+                                    locations: FloatArray)
 
     external fun shouldHandleEventFromJNI(mouiViewPtr: Long,
                                           x: Float,
