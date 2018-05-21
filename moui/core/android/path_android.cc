@@ -64,7 +64,7 @@ std::string Path::GetDirectory(const Directory directory) {
   std::string java_method_name;
   std::string* path_cache;
   if (directory == Path::Directory::kDocument) {
-    java_method_name = "getExternalFilesDir";
+    java_method_name = "getDocumentDir";
     path_cache = &document_directory_path;
   } else if (directory == Path::Directory::kLibrary) {
     java_method_name = "getFilesDir";

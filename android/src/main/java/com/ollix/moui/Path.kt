@@ -30,18 +30,18 @@ class Path(context: Context) {
         this.context = context
     }
 
-    fun getFilesDir(): String {
-        val file = context.getFilesDir()
-        return file.getAbsolutePath()
-    }
-
-    fun getExternalFilesDir(): String {
-        val file = context.getExternalFilesDir(null)
-        return file.getAbsolutePath()
-    }
-
     fun getCacheDir(): String {
         val file = context.getCacheDir()
+        return file.getAbsolutePath()
+    }
+
+    fun getDocumentDir(): String {
+        val file = context.getDir("Document", 0)
+        return file.getAbsolutePath()
+    }
+
+    fun getFilesDir(): String {
+        val file = context.getFilesDir()
         return file.getAbsolutePath()
     }
 }
