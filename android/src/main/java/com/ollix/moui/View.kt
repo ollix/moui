@@ -29,6 +29,7 @@ import android.view.SurfaceView
 
 abstract class View(context: Context, mouiViewPtr: Long)
         : SurfaceView(context), SurfaceHolder.Callback {
+
     private var animationIsPaused = false
     private var backgroundIsOpaque = true
     private val displayDensity: Float
@@ -36,9 +37,9 @@ abstract class View(context: Context, mouiViewPtr: Long)
     private val frameCallback: Choreographer.FrameCallback
     private var handlingEvent = false
     private var isAnimating = false
+    private var lastRedrawTime: Long = 0
     private val mouiViewPtr: Long
     private var pendingFrameUpdate = false
-    private var lastRedrawTime: Long = 0
 
     init {
         displayDensity = context.getResources().getDisplayMetrics().density
@@ -163,6 +164,11 @@ abstract class View(context: Context, mouiViewPtr: Long)
         if (createDrawable()) {
             animationIsPaused = false
             drawableIsValid = true
+            /** Restarts animation. */
+            if (isAnimating) {
+                isAnimating = false
+                startUpdatingView()
+            }
         } else {
             destroyDrawable()
         }
