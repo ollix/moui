@@ -50,7 +50,11 @@ class NativeView(context: Context) {
     }
 
     /** Returns the int array of view's snapshot colors. */
-    fun getSnapshot(view: View): IntArray {
+    fun getSnapshot(view: View): IntArray? {
+        if (view.width == 0 || view.height == 0) {
+            return null
+        }
+
         val bitmap = Bitmap.createBitmap(view.width , view.height,
                                          Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
