@@ -45,7 +45,6 @@ abstract class View(context: Context, mouiViewPtr: Long)
         this.mouiViewPtr = mouiViewPtr
         holder.addCallback(this)
         holder.setFormat(PixelFormat.TRANSPARENT)
-        setZOrderOnTop(true)
 
         frameCallback = object : Choreographer.FrameCallback {
             override fun doFrame(frameTimeNanos: Long) {

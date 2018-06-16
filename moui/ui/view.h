@@ -51,6 +51,13 @@ class View : public BaseView {
   // Sets whether the view's background is opaque.
   void SetBackgroundOpaque(const bool is_opaque) const;
 
+#ifdef MOUI_ANDROID
+  // Controls whether the surface view's surface is placed on top of its window.
+  // Checks the description of `SurfaceView.setZOrderOnTop()` in Android
+  // documentation.
+  void SetSurfaceZOrderOnTop(const bool on_top);
+#endif  // MOUI_ANDROID
+
  private:
   // Inherited from `BaseView` class.
   void StartUpdatingNativeView() final;
