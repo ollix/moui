@@ -114,6 +114,7 @@ int nvgCreateImageAtPath(NVGcontext* context, const std::string path,
 // Creates an image for pixels read from `nvgReadPixels()`.
 int nvgCreateImageFromPixels(NVGcontext* context, const int width,
                              const int height, const int image_flags,
+                             const bool flips_image_vertically_on_demand,
                              const unsigned char* data);
 
 // Deletes the passed image and set the image id to -1.

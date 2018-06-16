@@ -129,11 +129,14 @@ int nvgCreateImageAtPath(NVGcontext* context, const std::string path,
 
 int nvgCreateImageFromPixels(NVGcontext* context, const int width,
                              const int height, const int image_flags,
+                             const bool flips_image_vertically_on_demand,
                              const unsigned char* data) {
   int flags = image_flags | NVG_IMAGE_PREMULTIPLIED;
 #ifdef MOUI_GL
-  flags |= NVG_IMAGE_FLIPY;
-#endif
+  if (flips_image_vertically_on_demand) {
+    flags |= NVG_IMAGE_FLIPY;
+  }
+#endif  // MOUI_GL
   return nvgCreateImageRGBA(context, width, height, flags, data);
 }
 
