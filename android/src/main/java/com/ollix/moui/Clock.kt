@@ -38,11 +38,6 @@ class Clock {
 
     /** Executes a callback on main thread */
     fun executeCallbackOnMainThread(delaySeconds: Float, callbackPtr: Long) {
-        if (delaySeconds == 0f && Looper.myLooper() == Looper.getMainLooper()) {
-            executeCallbackFromJNI(callbackPtr)
-            return
-        }
-
         handler.postDelayed({
             executeCallbackFromJNI(callbackPtr)
         }, (delaySeconds * 1000).toLong())
