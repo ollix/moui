@@ -71,16 +71,6 @@ void View::SetBackgroundOpaque(const bool is_opaque) const {
   env->CallVoidMethod(native_view, method, is_opaque);
 }
 
-void View::SetSurfaceZOrderOnTop(const bool on_top) {
-  jobject activity = moui::Application::GetMainActivity();
-
-  jobject native_view = reinterpret_cast<jobject>(native_handle());
-  JNIEnv* env = Application::GetJNIEnv();
-  jclass view_class = env->GetObjectClass(native_view);
-  jmethodID method = env->GetMethodID(view_class, "setZOrderOnTop", "(Z)V");
-  env->CallVoidMethod(native_view, method, on_top);
-}
-
 // Calls com.ollix.OpenGLView.startUpdatingView() on the Java side.
 void View::StartUpdatingNativeView() {
   jobject native_view = reinterpret_cast<jobject>(native_handle());

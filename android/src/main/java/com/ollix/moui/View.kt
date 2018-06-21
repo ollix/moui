@@ -20,18 +20,16 @@
 package com.ollix.moui
 
 import android.content.Context
-import android.graphics.PixelFormat
+import android.graphics.SurfaceTexture
 import android.os.SystemClock
 import android.view.Choreographer
 import android.view.MotionEvent
-import android.view.SurfaceHolder
-import android.view.SurfaceView
+import android.view.TextureView
 
 abstract class View(context: Context, mouiViewPtr: Long)
-        : SurfaceView(context), SurfaceHolder.Callback {
+        : TextureView(context), TextureView.SurfaceTextureListener {
 
     private var animationIsPaused = false
-    private var backgroundIsOpaque = true
     private val displayDensity: Float
     private var drawableIsValid = false
     private val frameCallback: Choreographer.FrameCallback
@@ -44,8 +42,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     init {
         displayDensity = context.getResources().getDisplayMetrics().density
         this.mouiViewPtr = mouiViewPtr
-        holder.addCallback(this)
-        holder.setFormat(PixelFormat.TRANSPARENT)
+        setOpaque(false)
 
         frameCallback = object : Choreographer.FrameCallback {
             override fun doFrame(frameTimeNanos: Long) {
@@ -53,10 +50,11 @@ abstract class View(context: Context, mouiViewPtr: Long)
                 renderFrame()
             }
         }
+        setSurfaceTextureListener(this)
     }
 
     fun backgroundIsOpaque(): Boolean {
-        return backgroundIsOpaque
+        return isOpaque()
     }
 
     /**
@@ -117,6 +115,9 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun redrawView() {
+        if (!drawableIsValid) {
+            return
+        }
         val redrawTime = SystemClock.elapsedRealtime()
         if ((redrawTime - lastRedrawTime) > 500) {
             pendingFrameUpdate = false
@@ -134,7 +135,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun setBackgroundOpaque(isOpaque: Boolean) {
-        backgroundIsOpaque = isOpaque
+        setOpaque(isOpaque)
     }
 
     fun startUpdatingView() {
@@ -150,46 +151,53 @@ abstract class View(context: Context, mouiViewPtr: Long)
         }
     }
 
-    /** Implmenets SurfaceHolder.Callback methods */
+    /** Implements TextureView.SurfaceTextureListener methods */
 
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int,
-                                height: Int) {
-        redrawView()
-    }
-
-    override fun surfaceCreated(holder: SurfaceHolder) {
+    override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture,
+                                           width: Int,
+                                           height: Int) {
         if (drawableIsValid) {
             destroyDrawable()
         }
-        if (createDrawable()) {
-            animationIsPaused = false
+        if (createDrawable(surfaceTexture as Object)) {
             drawableIsValid = true
-            /** Restarts animation. */
-            if (isAnimating) {
-                isAnimating = false
+            if (animationIsPaused) {
+                animationIsPaused = false
                 startUpdatingView()
+            } else {
+                redrawView()
             }
         } else {
             destroyDrawable()
         }
     }
 
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
+    override fun onSurfaceTextureSizeChanged(st: SurfaceTexture,
+                                             width: Int,
+                                             height: Int) {
+        redrawView()
+    }
+
+    override fun onSurfaceTextureDestroyed(st: SurfaceTexture): Boolean {
         if (!drawableIsValid) {
-            return
+            return true
         }
         if (isAnimating) {
             stopUpdatingView()
             isAnimating = true
             animationIsPaused = true
         }
+        destroyDrawable()
         drawableIsValid = false
         onSurfaceDestroyedFromJNI(mouiViewPtr)
-        destroyDrawable()
+        return true
+    }
+
+    override fun onSurfaceTextureUpdated(st: SurfaceTexture) {
     }
 
     /** Abstract functions */
-    abstract fun createDrawable(): Boolean
+    abstract fun createDrawable(surface: Object): Boolean
     abstract fun destroyDrawable()
     abstract fun prepareDrawable()
     abstract fun presentDrawable()
