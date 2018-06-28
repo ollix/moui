@@ -38,6 +38,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     private var lastRedrawTime: Long = 0
     private val mouiViewPtr: Long
     private var pendingFrameUpdate = false
+    private var textureSizeChanged = false
 
     init {
         displayDensity = context.getResources().getDisplayMetrics().density
@@ -111,6 +112,9 @@ abstract class View(context: Context, mouiViewPtr: Long)
 
         if (isAnimating && !animationIsPaused) {
             redrawView()
+        } else if (textureSizeChanged) {
+            textureSizeChanged = false
+            redrawView()
         }
     }
 
@@ -175,6 +179,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     override fun onSurfaceTextureSizeChanged(st: SurfaceTexture,
                                              width: Int,
                                              height: Int) {
+        textureSizeChanged = true
         redrawView()
     }
 

@@ -377,8 +377,7 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
 void WidgetView::SetBounds(const float x, const float y, const float width,
                            const float height) {
   NativeView::SetBounds(x, y, width, height);
-  root_widget_->SetWidth(Widget::Unit::kPoint, width);
-  root_widget_->SetHeight(Widget::Unit::kPoint, height);
+  root_widget_->SetBounds(0, 0, width, height);
 }
 
 void WidgetView::SetWidgetAndDescendantsInvisible(Widget* widget) {
