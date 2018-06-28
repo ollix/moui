@@ -33,7 +33,7 @@ class OpenGLView(context: Context, mouiViewPtr: Long)
     private var eglContext: EGLContext = EGL14.EGL_NO_CONTEXT
     private var eglSurface: EGLSurface = EGL14.EGL_NO_SURFACE
 
-    override fun createDrawable(surface: Object): Boolean {
+    override fun createDrawable(surface: Any): Boolean {
         EGL14.eglGetCurrentContext()
         eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
         if (eglDisplay == EGL14.EGL_NO_DISPLAY) {

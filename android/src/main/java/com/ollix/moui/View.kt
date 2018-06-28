@@ -163,7 +163,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
         if (drawableIsValid) {
             destroyDrawable()
         }
-        if (createDrawable(surfaceTexture as Object)) {
+        if (createDrawable(surfaceTexture as Any)) {
             drawableIsValid = true
             if (animationIsPaused) {
                 animationIsPaused = false
@@ -202,7 +202,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     /** Abstract functions */
-    abstract fun createDrawable(surface: Object): Boolean
+    abstract fun createDrawable(surface: Any): Boolean
     abstract fun destroyDrawable()
     abstract fun prepareDrawable()
     abstract fun presentDrawable()
