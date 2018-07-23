@@ -27,6 +27,8 @@
 #include "moui/ui/ui.h"
 #include "moui/widgets/widgets.h"
 
+// The main function that is responsible for creating and keeping strong
+// reference of the moui application instance.
 void moui_main();
 
 #endif  // MOUI_MOUI_H_
