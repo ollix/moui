@@ -90,6 +90,7 @@ std::string Path::GetDirectory(const Directory directory) {
   const char* path = env->GetStringUTFChars(path_string, 0);
   *path_cache = std::string(path);
   env->ReleaseStringUTFChars(path_string, path);
+  env->DeleteLocalRef(path_string);
   return *path_cache;
 }
 
