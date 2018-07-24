@@ -35,10 +35,10 @@ open class MouiFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: android.view.LayoutInflater,
-                              container: android.view.ViewGroup,
+                              container: android.view.ViewGroup?,
                               savedInstanceState: Bundle?): android.view.View? {
         /** Launches the app once the layout is ready. */
-        container.viewTreeObserver.addOnGlobalLayoutListener(
+        container?.viewTreeObserver?.addOnGlobalLayoutListener(
             object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     val viewTreeObserver = container.viewTreeObserver
