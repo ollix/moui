@@ -20,10 +20,11 @@
 package com.ollix.moui
 
 import android.app.Activity
-import android.app.Fragment
 import android.content.res.AssetManager
 import android.os.Bundle
 import android.view.ViewTreeObserver
+
+import androidx.fragment.app.Fragment
 
 open class MouiFragment : Fragment() {
 
@@ -31,6 +32,7 @@ open class MouiFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         /** Initializes the JNI environemnt for the moui app */
+        val activity = getActivity() as Activity
         initFromJNI(activity, activity.getAssets())
     }
 
