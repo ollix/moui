@@ -26,11 +26,13 @@
 namespace {
 
 jobject GetJavaClock() {
+  static JNIEnv* jni_env = nullptr;
   static jobject java_clock = nullptr;
-  if (java_clock != nullptr)
-    return java_clock;
-
   JNIEnv* env = moui::Application::GetJNIEnv();
+  if (env == jni_env && java_clock != nullptr) {
+    return java_clock;
+  }
+  jni_env = env;
   jclass clock_class = env->FindClass("com/ollix/moui/Clock");
   jmethodID constructor = env->GetMethodID(clock_class, "<init>", "()V");
   jobject clock_obj = env->NewObject(clock_class, constructor);
