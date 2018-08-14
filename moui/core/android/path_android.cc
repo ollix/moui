@@ -30,11 +30,13 @@ std::string temporary_directory_path;
 
 // Returns the instance of the com.ollix.moui.Path class on the Java side.
 jobject GetJavaPath() {
+  static JNIEnv* jni_env = nullptr;
   static jobject java_path = nullptr;
-  if (java_path != nullptr)
-    return java_path;
-
   JNIEnv* env = moui::Application::GetJNIEnv();
+  if (env == jni_env && java_path != nullptr) {
+    return java_path;
+  }
+  jni_env = env;
   jclass path_class = env->FindClass("com/ollix/moui/Path");
   jmethodID constructor = env->GetMethodID(path_class, "<init>",
                                            "(Landroid/content/Context;)V");

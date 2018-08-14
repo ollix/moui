@@ -27,11 +27,13 @@ namespace {
 
 // Returns the instance of the com.ollix.moui.Window class on the Java side.
 jobject GetJavaWindow() {
+  static JNIEnv* jni_env = nullptr;
   static jobject java_window = nullptr;
-  if (java_window != nullptr)
-    return java_window;
-
   JNIEnv* env = moui::Application::GetJNIEnv();
+  if (env == jni_env && java_window != nullptr) {
+    return java_window;
+  }
+  jni_env = env;
   jclass window_class = env->FindClass("com/ollix/moui/Window");
   jmethodID window_constructor = env->GetMethodID(
       window_class, "<init>", "()V");

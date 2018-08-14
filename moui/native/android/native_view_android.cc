@@ -29,11 +29,13 @@ namespace {
 
 // Returns the instance of the com.ollix.moui.NativeView class on the Java side.
 jobject GetJavaNativeView() {
+  static JNIEnv* jni_env = nullptr;
   static jobject java_native_view = nullptr;
-  if (java_native_view != nullptr)
-    return java_native_view;
-
   JNIEnv* env = moui::Application::GetJNIEnv();
+  if (env == jni_env && java_native_view != nullptr) {
+    return java_native_view;
+  }
+  jni_env = env;
   jclass native_view_class = env->FindClass("com/ollix/moui/NativeView");
   jmethodID constructor = env->GetMethodID(native_view_class, "<init>",
                                            "(Landroid/content/Context;)V");

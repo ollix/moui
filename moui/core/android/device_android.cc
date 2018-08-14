@@ -32,11 +32,13 @@ float tablet_smallest_screen_width_dp = 600;
 
 // Returns the instance of the com.ollix.moui.Device class on the Java side.
 jobject GetJavaDevice() {
+  static JNIEnv* jni_env = nullptr;
   static jobject java_device = nullptr;
-  if (java_device != nullptr)
-    return java_device;
-
   JNIEnv* env = moui::Application::GetJNIEnv();
+  if (env == jni_env && java_device != nullptr) {
+    return java_device;
+  }
+  jni_env = env;
   jclass device_class = env->FindClass("com/ollix/moui/Device");
   jmethodID constructor = env->GetMethodID(device_class, "<init>",
                                            "(Landroid/content/Context;)V");
