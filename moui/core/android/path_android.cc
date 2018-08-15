@@ -17,6 +17,8 @@
 
 #include "moui/core/path.h"
 
+#include <map>
+
 #include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
@@ -28,24 +30,24 @@ std::string document_directory_path;
 std::string library_directory_path;
 std::string temporary_directory_path;
 
+std::map<JNIEnv*, jobject> global_paths;
+
 // Returns the instance of the com.ollix.moui.Path class on the Java side.
-jobject GetJavaPath() {
-  static JNIEnv* jni_env = nullptr;
-  static jobject java_path = nullptr;
-  JNIEnv* env = moui::Application::GetJNIEnv();
-  if (env == jni_env && java_path != nullptr) {
-    return java_path;
+jobject GetJavaPath(JNIEnv* env) {
+  auto match = global_paths.find(env);
+  if (match != global_paths.end()) {
+    return match->second;
   }
-  jni_env = env;
   jclass path_class = env->FindClass("com/ollix/moui/Path");
   jmethodID constructor = env->GetMethodID(path_class, "<init>",
                                            "(Landroid/content/Context;)V");
   jobject path_obj = env->NewObject(path_class, constructor,
                                     moui::Application::GetMainActivity());
-  java_path = env->NewGlobalRef(path_obj);
+  jobject global_path = env->NewGlobalRef(path_obj);
   env->DeleteLocalRef(path_class);
   env->DeleteLocalRef(path_obj);
-  return java_path;
+  global_paths[env] = global_path;
+  return global_path;
 }
 
 }  // namespace
@@ -81,8 +83,8 @@ std::string Path::GetDirectory(const Directory directory) {
     return *path_cache;
   }
 
-  jobject path_object = GetJavaPath();
   JNIEnv* env = moui::Application::GetJNIEnv();
+  jobject path_object = GetJavaPath(env);
   jclass path_class = env->GetObjectClass(path_object);
   jmethodID java_method = env->GetMethodID(
       path_class, java_method_name.c_str(), "()Ljava/lang/String;");

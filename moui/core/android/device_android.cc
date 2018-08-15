@@ -17,6 +17,8 @@
 
 #include "moui/core/device.h"
 
+#include <map>
+
 #include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
@@ -30,24 +32,24 @@ float screen_scale_factor = 0;
 // be changed through the SetSmallestScreenWidthDpForTablet() method.
 float tablet_smallest_screen_width_dp = 600;
 
+std::map<JNIEnv*, jobject> global_devices;
+
 // Returns the instance of the com.ollix.moui.Device class on the Java side.
-jobject GetJavaDevice() {
-  static JNIEnv* jni_env = nullptr;
-  static jobject java_device = nullptr;
-  JNIEnv* env = moui::Application::GetJNIEnv();
-  if (env == jni_env && java_device != nullptr) {
-    return java_device;
+jobject GetJavaDevice(JNIEnv* env) {
+  auto match = global_devices.find(env);
+  if (match != global_devices.end()) {
+    return match->second;
   }
-  jni_env = env;
   jclass device_class = env->FindClass("com/ollix/moui/Device");
   jmethodID constructor = env->GetMethodID(device_class, "<init>",
                                            "(Landroid/content/Context;)V");
   jobject device_obj = env->NewObject(device_class, constructor,
                                       moui::Application::GetMainActivity());
-  java_device = env->NewGlobalRef(device_obj);
+  jobject global_device = env->NewGlobalRef(device_obj);
   env->DeleteLocalRef(device_class);
   env->DeleteLocalRef(device_obj);
-  return java_device;
+  global_devices[env] = global_device;
+  return global_device;
 }
 
 }  // namespace
@@ -59,8 +61,8 @@ void Device::Init() {
 }
 
 Device::BatteryState Device::GetBatteryState() {
-  jobject device = GetJavaDevice();
   JNIEnv* env = moui::Application::GetJNIEnv();
+  jobject device = GetJavaDevice(env);
   jclass device_class = env->GetObjectClass(device);
   jmethodID java_method = env->GetMethodID(
       device_class, "getBatteryState", "()I");
@@ -91,8 +93,8 @@ Device::Category Device::GetCategory() {
   }
   // Determines the smallest_screen_width_dp for the first time calling this
   // method.
-  jobject device = GetJavaDevice();
   JNIEnv* env = moui::Application::GetJNIEnv();
+  jobject device = GetJavaDevice(env);
   jclass device_class = env->GetObjectClass(device);
   jmethodID java_method = env->GetMethodID(
       device_class, "getSmallestScreenWidthDp", "()F");
@@ -106,8 +108,8 @@ float Device::GetScreenScaleFactor() {
   if (screen_scale_factor > 0)
     return screen_scale_factor;
 
-  jobject device = GetJavaDevice();
   JNIEnv* env = moui::Application::GetJNIEnv();
+  jobject device = GetJavaDevice(env);
   jclass device_class = env->GetObjectClass(device);
   jmethodID java_method = env->GetMethodID(
       device_class, "getScreenScaleFactor", "()F");
