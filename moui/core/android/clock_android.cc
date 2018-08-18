@@ -74,4 +74,8 @@ void Clock::ExecuteCallbackOnMainThread(std::function<void()> callback) {
   ExecuteCallbackOnMainThread(0, callback);
 }
 
+void Clock::Reset() {
+  global_clocks.clear();
+}
+
 }  // namespace moui

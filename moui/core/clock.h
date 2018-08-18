@@ -59,6 +59,9 @@ class Clock {
         std::chrono::steady_clock::now() - start).count();
   }
 
+  // Resets the clock.
+  static void Reset();
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Clock);
 };

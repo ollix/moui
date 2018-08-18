@@ -92,4 +92,8 @@ std::unique_ptr<NativeView> Window::GetRootView() const {
   return std::unique_ptr<NativeView>(new NativeView(global_ref));
 }
 
+void Window::Reset() {
+  global_windows.clear();
+}
+
 }  // namespace moui

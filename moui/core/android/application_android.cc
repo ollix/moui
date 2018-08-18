@@ -24,12 +24,14 @@
 
 #include "aasset.h"
 
+#include "moui/core/base_application.h"
 #include "moui/core/device.h"
 #include "moui/core/path.h"
 
 namespace {
 
 JavaVM* java_vm = nullptr;
+JNIEnv* jni_env = nullptr;
 jobject main_activity = nullptr;
 
 }  // namespace
@@ -38,11 +40,14 @@ namespace moui {
 
 void Application::InitJNI(JNIEnv* env, jobject activity,
                           jobject asset_manager) {
-  if (main_activity != nullptr) {
+  ResetMainApplication();
+  if (main_activity != nullptr && env == jni_env) {
     env->DeleteGlobalRef(main_activity);
   }
-  main_activity = reinterpret_cast<jobject>(env->NewGlobalRef(activity));
+
+  jni_env = env;
   env->GetJavaVM(&java_vm);
+  main_activity = reinterpret_cast<jobject>(env->NewGlobalRef(activity));
 
   // Initializes the aasset library.
   aasset_init(AAssetManager_fromJava(env, asset_manager));

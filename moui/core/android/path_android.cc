@@ -98,4 +98,8 @@ std::string Path::GetDirectory(const Directory directory) {
   return *path_cache;
 }
 
+void Path::Reset() {
+  global_paths.clear();
+}
+
 }  // namespace moui

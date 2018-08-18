@@ -118,6 +118,10 @@ float Device::GetScreenScaleFactor() {
   return screen_scale_factor;
 }
 
+void Device::Reset() {
+  global_devices.clear();
+}
+
 void Device::SetSmallestScreenWidthDpForTablet(float screen_width_dp) {
   tablet_smallest_screen_width_dp = screen_width_dp;
 }

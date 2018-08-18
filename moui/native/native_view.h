@@ -70,6 +70,9 @@ class NativeView : public NativeObject {
   // Returns `true` if the view is hidden.
   bool IsHidden() const;
 
+  // Resets the native view.
+  static void Reset();
+
   // Unlinks the view from its superview and its window, removes it from the
   // responder chain and invalidates its cursor rectangles.
   void RemoveFromSuperview() const;

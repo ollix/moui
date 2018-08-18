@@ -44,6 +44,9 @@ class Path {
   // Returns the direcotry path containing app resources.
   static std::string GetDirectory(const Directory directory);
 
+  // Resets the path.
+  static void Reset();
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Path);
 };

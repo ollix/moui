@@ -221,6 +221,10 @@ void NativeView::RemoveFromSuperview() const {
                       reinterpret_cast<jobject>(native_handle()));
 }
 
+void NativeView::Reset() {
+  global_native_views.clear();
+}
+
 // Calls com.ollix.moui.NativeView.sendSubviewToBack() on the Java side.
 void NativeView::SendSubviewToBack(const NativeView* subview) const {
   JNIEnv* env = Application::GetJNIEnv();

@@ -63,6 +63,9 @@ class Device {
   // coordinate space into the device coordinate space of the screen.
   static float GetScreenScaleFactor();
 
+  // Resets the device.
+  static void Reset();
+
 #ifdef MOUI_ANDROID
   // Sets the required minimum screen width dp for tablet. The value will
   // affect the returned result of the `GetCategory()` method. The default

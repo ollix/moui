@@ -23,13 +23,6 @@ extern "C" {
 
 JNIEXPORT void
 JNICALL
-Java_com_ollix_moui_MouiFragment_initFromJNI(
-    JNIEnv* env, jobject, jobject activity, jobject asset_manager) {
-  moui::Application::InitJNI(env, activity, asset_manager);
-}
-
-JNIEXPORT void
-JNICALL
 Java_com_ollix_moui_MouiFragment_launchMouiAppFromJNI(JNIEnv *env, jobject) {
   moui::Application* moui_app = moui::Application::GetMainApplication();
   moui_app->OnLaunch();

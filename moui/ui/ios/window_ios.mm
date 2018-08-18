@@ -45,4 +45,7 @@ std::unique_ptr<NativeView> Window::GetRootView() const {
       new NativeView((__bridge void*)native_view));
 }
 
+void Window::Reset() {
+}
+
 }  // namespace moui

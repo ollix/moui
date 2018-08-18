@@ -19,22 +19,12 @@
 
 package com.ollix.moui
 
-import android.app.Activity
-import android.content.res.AssetManager
 import android.os.Bundle
 import android.view.ViewTreeObserver
 
 import androidx.fragment.app.Fragment
 
 open class MouiFragment : Fragment() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        /** Initializes the JNI environemnt for the moui app */
-        val activity = getActivity() as Activity
-        initFromJNI(activity, activity.getAssets())
-    }
 
     override fun onCreateView(inflater: android.view.LayoutInflater,
                               container: android.view.ViewGroup?,
@@ -53,7 +43,6 @@ open class MouiFragment : Fragment() {
     }
 
     /** JNI functions. */
-    external fun initFromJNI(activity: Activity, assetManager: AssetManager)
     external fun launchMouiAppFromJNI()
 
     /** Loads native libraries. */

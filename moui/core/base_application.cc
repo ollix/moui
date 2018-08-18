@@ -16,6 +16,11 @@
 // Author: olliwang@ollix.com (Olli Wang)
 
 #include "moui/core/base_application.h"
+#include "moui/core/clock.h"
+#include "moui/core/device.h"
+#include "moui/core/path.h"
+#include "moui/native/native_view.h"
+#include "moui/ui/window.h"
 
 namespace {
 
@@ -33,6 +38,15 @@ BaseApplication::~BaseApplication() {
 
 BaseApplication* BaseApplication::GetMainApplication() {
   return main_application;
+}
+
+void BaseApplication::ResetMainApplication() {
+  Clock::Reset();
+  Device::Reset();
+  Path::Reset();
+  NativeView::Reset();
+  Window::Reset();
+  main_application = nullptr;
 }
 
 void BaseApplication::RegisterMainApplication() {
