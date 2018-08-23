@@ -39,7 +39,10 @@ class Device(context: Context) {
 
     /** Returns the current battery state. */
     fun getBatteryState(): Int {
-        val batteryStatus = context.registerReceiver(null, batteryStatusFilter);
+        val batteryStatus = context.registerReceiver(null, batteryStatusFilter)
+        if (batteryStatus == null) {
+            return 0
+        }
         return batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
     }
 
