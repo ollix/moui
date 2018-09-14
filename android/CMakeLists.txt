@@ -21,4 +21,4 @@ add_library(moui-jni
             "src/main/cpp/view.cc")
 
 add_subdirectory("../moui" "native-moui")
-target_link_libraries(moui-jni PUBLIC moui)
+target_link_libraries(moui-jni LINK_PUBLIC moui)
