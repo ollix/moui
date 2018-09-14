@@ -72,11 +72,11 @@ target_include_directories(nanovg
     PUBLIC "deps/nanovg/src"
     PRIVATE "deps/3rdparty")  # for freetype
 
-target_link_libraries(nanovg PUBLIC freetype)
+target_link_libraries(nanovg LINK_PUBLIC freetype)
 
 if(APPLE AND NOT MOUI_USE_OPENGL_BACKEND)
     target_sources(nanovg PRIVATE "deps/MetalNanoVG/src/nanovg_mtl.m")
-    target_link_libraries(nanovg PRIVATE "-framework Metal")
+    target_link_libraries(nanovg LINK_PRIVATE "-framework Metal")
 endif()
 
 # Moui Library
@@ -114,7 +114,7 @@ set_target_properties(moui
 
 target_include_directories(moui PUBLIC ".." "deps")
 
-target_link_libraries(moui PUBLIC nanovg)
+target_link_libraries(moui LINK_PUBLIC nanovg)
 
 if(ANDROID)
     target_compile_definitions(moui
@@ -124,9 +124,9 @@ if(ANDROID)
 
     add_subdirectory(deps/aasset)
     target_link_libraries(moui
-        PUBLIC
+        LINK_PUBLIC
         log
-        PRIVATE
+        LINK_PRIVATE
         aasset
         android
         GLESv2)
@@ -146,7 +146,7 @@ elseif(IOS)
     target_compile_definitions(moui PUBLIC "MOUI_IOS")
 
     target_link_libraries(moui
-        PRIVATE
+        LINK_PRIVATE
         "-framework CoreGraphics"
         "-framework QuartzCore"
         "-framework UIKit")
@@ -167,18 +167,18 @@ elseif(IOS)
 
     if(MOUI_USE_OPENGL_BACKEND)
         target_compile_definitions(moui PUBLIC "MOUI_GLES2")
-        target_link_libraries(moui PRIVATE "-framework OpenGLES")
+        target_link_libraries(moui LINK_PRIVATE "-framework OpenGLES")
         target_sources(moui PRIVATE "ui/ios/MOOpenGLView.mm")
     else()
         target_compile_definitions(moui PUBLIC "MOUI_METAL")
-        target_link_libraries(moui PRIVATE "-framework Metal")
+        target_link_libraries(moui LINK_PRIVATE "-framework Metal")
         target_sources(moui PRIVATE "ui/ios/MOMetalView.mm")
     endif()
 elseif(MAC)
     target_compile_definitions(moui PUBLIC "MOUI_MAC")
 
     target_link_libraries(moui
-        PRIVATE
+        LINK_PRIVATE
         "-framework AppKit"
         "-framework CoreVideo"
         "-framework QuartzCore")
@@ -192,18 +192,17 @@ elseif(MAC)
         "native/mac/native_view_mac.mm"
         "native/mac/native_window_mac.mm"
         "ui/mac/MOMetalView.mm"
-        "ui/mac/MOOpenGLView.mm"
         "ui/mac/MOView.mm"
         "ui/mac/view_mac.mm"
         "ui/mac/window_mac.mm")
 
     if(MOUI_USE_OPENGL_BACKEND)
         target_compile_definitions(moui PUBLIC "MOUI_GL2")
-        target_link_libraries(moui PRIVATE "-framework OpenGL")
+        target_link_libraries(moui LINK_PRIVATE "-framework OpenGL")
         target_sources(moui PRIVATE "ui/mac/MOOpenGLView.mm")
     else()
         target_compile_definitions(moui PUBLIC "MOUI_METAL")
-        target_link_libraries(moui PRIVATE "-framework Metal")
+        target_link_libraries(moui LINK_PRIVATE "-framework Metal")
         target_sources(moui PRIVATE "ui/mac/MOMetalView.mm")
     endif()
 endif()
