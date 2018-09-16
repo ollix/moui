@@ -180,7 +180,6 @@ bool TableView::HandleEvent(Event* event) {
   Point origin;
   down_event_cell_->GetMeasuredBounds(&origin, nullptr);
 
-  const Point location = static_cast<Point>(event->locations()->front());
   if (event->type() == Event::Type::kDown) {
     down_event_origin_ = origin;
     // Delay highlights the `down_event_cell_`.
