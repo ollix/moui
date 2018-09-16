@@ -118,12 +118,12 @@ class TableViewCell : public Widget {
   // Indicates whether the cell is selected.
   bool selected_;
 
+  // Indicates the style applied to the cell.
+  Style style_;
+
   // The strong reference to the label used for the main textual content of
   // the table cell.
   Label* text_label_;
-
-  // Indicates the style applied to the cell.
-  Style style_;
 
   DISALLOW_COPY_AND_ASSIGN(TableViewCell);
 };

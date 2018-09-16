@@ -31,7 +31,6 @@ Device::BatteryState Device::GetBatteryState() {
 #ifdef MOUI_MAC
   return BatteryState::kUnknown;
 #else
-  UIDeviceBatteryState state;
   switch ([UIDevice currentDevice].batteryState) {
     case UIDeviceBatteryStateUnplugged:
       return BatteryState::kUnplugged;

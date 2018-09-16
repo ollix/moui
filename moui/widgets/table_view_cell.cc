@@ -49,8 +49,8 @@ namespace moui {
 TableViewCell::TableViewCell(const Style style,
                              const std::string& reuse_identifier)
     : accessory_type_(AccessoryType::kNone), detail_text_label_(nullptr),
-      highlighted_(false), selected_(false), style_(style),
-      reuse_identifier_(reuse_identifier) {
+      highlighted_(false), reuse_identifier_(reuse_identifier),
+      selected_(false), style_(style) {
   set_frees_children_on_destruction(true);
 
   // Initializes content view.

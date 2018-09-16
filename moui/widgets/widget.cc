@@ -57,7 +57,7 @@ Widget::Widget(const bool caches_rendering)
       box_sizing_(BoxSizing::kContentBox), caches_rendering_(caches_rendering),
       default_framebuffer_(nullptr), frees_children_on_destruction_(false),
       height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
-      is_visible_(false), left_padding_(0), is_opaque_(true),
+      is_opaque_(true), is_visible_(false), left_padding_(0),
       measured_scale_(-1), parent_(nullptr), paused_animation_(false),
       real_parent_(nullptr), render_function_(NULL), rendering_offset_({0, 0}),
       rendering_scale_(1), right_padding_(0), scale_(1),
@@ -363,7 +363,7 @@ float Widget::GetX() const {
       x = kParentWidth - parent_right_padding - GetWidth() * scale_ - kOffset;
       break;
     default:
-      assert(false);
+      x = 0;
   }
   return x;
 }
@@ -394,7 +394,7 @@ float Widget::GetY() const {
       y = kParentHeight - parent_top_padding - GetHeight() * scale_ - kOffset;
       break;
     default:
-      assert(false);
+      y = 0;
   }
   return y;
 }

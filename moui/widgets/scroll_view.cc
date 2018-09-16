@@ -70,8 +70,8 @@ namespace moui {
 ScrollView::ScrollView()
     : always_bounce_horizontal_(false), always_bounce_vertical_(false),
       always_scroll_both_directions_(true), always_scroll_to_next_page_(false),
-      deceleration_rate_(kDefaultDecelerationRate), bounces_(true),
-      content_view_(new Widget(false)), enables_paging_(false),
+      bounces_(true), content_view_(new Widget(false)),
+      deceleration_rate_(kDefaultDecelerationRate), enables_paging_(false),
       enables_scroll_(true), moves_content_view_to_page_(0), page_width_(0),
       scroll_indicator_insets_({0, 0, 0, 0}),
       shows_horizontal_scroll_indicator_(true),
@@ -796,6 +796,8 @@ void ScrollView::UpdateAnimationOriginAndStates(const double timestamp,
     view_length = GetHeight();
     always_bounces = always_bounce_vertical_ ||
                      content_view_->GetHeight() > GetHeight();
+  } else {
+    return;
   }
   const float kMaxOverflowPadding = view_length / 3;
 

@@ -22,8 +22,12 @@
 namespace moui {
 
 void NativeObject::ReleaseNativeHandle() {
-  if (native_handle_ != nullptr)
-    NSObject* object = (__bridge_transfer id)native_handle_;
+  if (native_handle_ != nullptr) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-value"
+    (__bridge_transfer id)native_handle_;
+#pragma clang diagnostic pop
+  }
 }
 
 }  // namespace moui
