@@ -381,13 +381,13 @@ class ScrollView : public Widget {
   // `ShouldHandleEvent()` and updated in `HandleEvent()`.
   ScrollDirection locked_scroll_directions_;
 
+  // The page to move to when `enables_paging_` is `true`.
+  int moves_content_view_to_page_;
+
   // Indicates the width of every page. The value should always be greater than
   // 0 and lesser than the scroll view's width, or `page_width()` will return
   // the scroll view's width instead of the actual value.
   float page_width_;
-
-  // The page to move to when `enables_paging_` is `true`.
-  int moves_content_view_to_page_;
 
   // Indicates the distance the scroll indicators are inset from the edge of
   // the scroll view.

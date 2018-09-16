@@ -172,12 +172,6 @@ class WidgetView : public View {
   // method. The list could be updated by `UpdateEventResponders()`.
   std::vector<Widget*> event_responders_;
 
-  // Keeps a list of reusable `WidgetItem` instances.
-  std::queue<WidgetItem*> reusable_widget_items_;
-
-  // The root widget for rendering. All its children will be rendered as well.
-  Widget* root_widget_;
-
   // Indicating whether the widget view is preparing for rendering in the
   // `Render()` method.
   bool preparing_for_rendering_;
@@ -187,6 +181,12 @@ class WidgetView : public View {
   // `preparing_for_rendering_` are both true in the `Render()` method.
   // It won't start another round of the rendering process.
   bool requests_redraw_;
+
+  // Keeps a list of reusable `WidgetItem` instances.
+  std::queue<WidgetItem*> reusable_widget_items_;
+
+  // The root widget for rendering. All its children will be rendered as well.
+  Widget* root_widget_;
 
   // Keeps a list of currently visible widgets. The list will be updated
   // whenever executing the `Render()` method.

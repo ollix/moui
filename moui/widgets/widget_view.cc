@@ -50,11 +50,9 @@ WidgetView::~WidgetView() {
 }
 
 void WidgetView::HandleEvent(Event* event) {
-  const bool kEventTypeIsDown = event->type() == Event::Type::kDown;
   const bool kEventTypeIsUpOrCancel = event->type() == Event::Type::kUp ||
                                       event->type() == Event::Type::kCancel;
 
-  bool ignores_scroll_view_responders = false;
   bool scroll_view_horizontal_scrolling_is_acceptable = true;
   bool scroll_view_vertical_scrolling_is_acceptable = true;
 

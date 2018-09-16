@@ -62,8 +62,6 @@ Button::Button() : Control(false),
                    current_framebuffer_(nullptr),
                    default_disabled_style_(Style::kSemiTransparent),
                    default_highlighted_style_(Style::kSemiTransparent),
-                   semi_transparent_style_opacity_(
-                       kDefaultSemiTransparentStyleOpacity),
                    disabled_state_framebuffer_(nullptr),
                    final_framebuffer_(nullptr),
                    highlighted_state_framebuffer_(nullptr),
@@ -72,6 +70,8 @@ Button::Button() : Control(false),
                    previous_framebuffer_(nullptr),
                    selected_state_framebuffer_(nullptr),
                    selected_state_with_highlighted_effect_framebuffer_(nullptr),
+                   semi_transparent_style_opacity_(
+                       kDefaultSemiTransparentStyleOpacity),
                    title_edge_insets_({0, 0, 0, 0}),
                    title_label_(new Label) {
   transition_states_.is_transitioning = false;

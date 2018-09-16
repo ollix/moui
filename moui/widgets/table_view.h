@@ -192,16 +192,6 @@ class TableView : public ScrollView {
   // the layout such as separators.
   moui::Widget* layout_view_;
 
-  // The weak reference to the accessory view that is displayed below the table.
-  // The default value is `nullptr`. The table view is different from a section
-  // footer.
-  moui::Widget* table_footer_view_;
-
-  // The weak reference to the accessory view that is displayed above the table.
-  // The default value is `nullptr`. The table view is different from a section
-  // header.
-  moui::Widget* table_header_view_;
-
   // Keeps strong reference to the cell objects that are marked as reusable.
   // The key indicates the cells' `reuse_identifier` property.
   std::map<std::string, std::queue<TableViewCell*>> reusable_cells_;
@@ -218,6 +208,16 @@ class TableView : public ScrollView {
   // Indicates the default inset of cell separators. Note that only left and
   // right insets are honered.
   EdgeInsets separator_insets_;
+
+  // The weak reference to the accessory view that is displayed below the table.
+  // The default value is `nullptr`. The table view is different from a section
+  // footer.
+  moui::Widget* table_footer_view_;
+
+  // The weak reference to the accessory view that is displayed above the table.
+  // The default value is `nullptr`. The table view is different from a section
+  // header.
+  moui::Widget* table_header_view_;
 
   // The table cells that are visible in the table view.
   std::vector<TableViewCell*> visible_cells_;
@@ -259,7 +259,7 @@ class TableViewDataSource {
 class TableViewDelegate {
  public:
   TableViewDelegate() {}
-  ~TableViewDelegate() {}
+  virtual ~TableViewDelegate() {}
 
   // Asks the delegate for a footer widget to display in the footer of the
   // specified section of the table view. This method only works correctly

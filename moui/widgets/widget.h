@@ -463,13 +463,6 @@ class Widget {
   // Indicates whether the widget is hidden.
   bool hidden_;
 
-  // The padding in points on the left side of the widget.
-  float left_padding_;
-
-  // This property can be set to an arbitrary integer and use that number to
-  // identify the widget later. The default value is 0.
-  int tag_;
-
   // Indicates whether the widget is opaque. If `true`, the background color
   // will be filled to the entire bounding rectangle. The default value is
   // `true`.
@@ -477,6 +470,9 @@ class Widget {
 
   // Indicates if the widget is visible to the corresponded widget view.
   bool is_visible_;
+
+  // The padding in points on the left side of the widget.
+  float left_padding_;
 
   // Keeps the calculated scale related to the corresponded widget view's
   // coordinate system. This property should never be accessed directly.
@@ -519,6 +515,10 @@ class Widget {
 
   // Indicates whether the `default_framebuffer_` should be drawn.
   bool should_redraw_default_framebuffer_;
+
+  // This property can be set to an arbitrary integer and use that number to
+  // identify the widget later. The default value is 0.
+  int tag_;
 
   // The padding in points on the top side of the widget.
   float top_padding_;
