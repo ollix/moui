@@ -54,7 +54,7 @@ Device::Category Device::GetCategory() {
   else if (user_interface_idiom == UIUserInterfaceIdiomPad)
     return Category::kTablet;
 #endif
-  assert(false);
+  return Category::kUnknown;
 }
 
 float Device::GetScreenScaleFactor() {
