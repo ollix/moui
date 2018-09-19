@@ -210,7 +210,7 @@ void Widget::ExecuteRenderFunction(NVGcontext* context) {
 
 float Widget::GetHeight() const {
   float parent_height = parent_ == nullptr ? 0 : parent_->GetHeight();
-  if (box_sizing_ == BoxSizing::kBorderBox) {
+  if (parent_ != nullptr && box_sizing_ == BoxSizing::kBorderBox) {
     parent_height -= (parent_->top_padding() + parent_->bottom_padding());
   }
   return CalculatePoints(height_unit_, height_value_, parent_height);
@@ -331,7 +331,7 @@ unsigned char* Widget::GetSnapshot() {
 
 float Widget::GetWidth() const {
   float parent_width = parent_ == nullptr ? 0 : parent_->GetWidth();
-  if (box_sizing_ == BoxSizing::kBorderBox) {
+  if (parent_ != nullptr && box_sizing_ == BoxSizing::kBorderBox) {
     parent_width -= (parent_->left_padding() + parent_->right_padding());
   }
   return CalculatePoints(width_unit_, width_value_, parent_width);
@@ -373,13 +373,10 @@ float Widget::GetY() const {
                               0 : real_parent_->GetHeight();
   const float kOffset = CalculatePoints(y_unit_, y_value_, kParentHeight);
   float parent_top_padding = 0;
-  float parent_bottom_padding = 0;
   if (real_parent_ != nullptr &&
       real_parent_->box_sizing() == BoxSizing::kContentBox) {
     parent_top_padding = real_parent_ == nullptr ?
                          0 : real_parent_->top_padding();
-    parent_bottom_padding = real_parent_ == nullptr ?
-                            0 : real_parent_->bottom_padding();
   }
   float y;
   switch (y_alignment_) {
