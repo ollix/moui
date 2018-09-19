@@ -72,7 +72,7 @@ void Label::ConfigureTextAttributes(NVGcontext* context) {
     case Alignment::kLeft: horizontal_alignment = NVG_ALIGN_LEFT; break;
     case Alignment::kCenter: horizontal_alignment = NVG_ALIGN_CENTER; break;
     case Alignment::kRight: horizontal_alignment = NVG_ALIGN_RIGHT; break;
-    default: assert(false);
+    default: return;
   }
   nvgFillColor(context, text_color_);
   nvgFontFace(context, font_name().c_str());
@@ -107,7 +107,7 @@ void Label::Render(NVGcontext* context) {
       y = GetHeight() - bounds[3] + font_baseline();
       break;
     default:
-      assert(false);
+      return;
   }
   nvgTextBox(context, 0, y, GetWidth(), text_to_render_.c_str(), NULL);
 }

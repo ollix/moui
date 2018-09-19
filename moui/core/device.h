@@ -43,6 +43,7 @@ class Device {
     kDesktop,
     kPhone,
     kTablet,
+    kUnknown,
   };
 
   Device() {}
