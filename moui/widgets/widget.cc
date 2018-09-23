@@ -787,6 +787,14 @@ void Widget::set_widget_view(WidgetView* widget_view) {
   if (widget_view_ == widget_view)
     return;
 
+  if (widget_view == nullptr) {
+    if (real_parent_ != nullptr) {
+      real_parent_->RemoveChild(this);
+    }
+    parent_ = nullptr;
+    real_parent_ = nullptr;
+  }
+
   NVGcontext* old_context = nullptr;
   if (widget_view_ != nullptr) {
     widget_view_->RemoveResponder(this);
