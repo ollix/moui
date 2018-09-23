@@ -26,9 +26,18 @@ import android.view.Choreographer
 import android.view.MotionEvent
 import android.view.TextureView
 
-abstract class View(context: Context, mouiViewPtr: Long)
-        : TextureView(context), TextureView.SurfaceTextureListener {
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 
+abstract class View(context: Context, mouiViewPtr: Long)
+        : TextureView(context),
+          TextureView.SurfaceTextureListener,
+          LifecycleObserver {
+
+    private lateinit var activityLifecycle: Lifecycle
+    private var allowsRendering = false
     private var animationIsPaused = false
     private val displayDensity: Float
     private var drawableIsValid = false
@@ -41,6 +50,10 @@ abstract class View(context: Context, mouiViewPtr: Long)
     private var textureSizeChanged = false
 
     init {
+        if (context is FragmentActivity) {
+            context.lifecycle.addObserver(this)
+        }
+
         displayDensity = context.getResources().getDisplayMetrics().density
         this.mouiViewPtr = mouiViewPtr
         setOpaque(false)
@@ -52,6 +65,18 @@ abstract class View(context: Context, mouiViewPtr: Long)
             }
         }
         setSurfaceTextureListener(this)
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    fun onPause() {
+        allowsRendering = false
+        pendingFrameUpdate = false
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    fun onResume() {
+        allowsRendering = true
+        redrawView()
     }
 
     fun backgroundIsOpaque(): Boolean {
@@ -102,7 +127,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun renderFrame() {
-        if (!drawableIsValid) {
+        if (!drawableIsValid || !allowsRendering) {
             return
         }
 
@@ -119,7 +144,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun redrawView() {
-        if (!drawableIsValid) {
+        if (!drawableIsValid || !allowsRendering) {
             return
         }
         val redrawTime = SystemClock.elapsedRealtime()
@@ -128,11 +153,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
         }
         lastRedrawTime = redrawTime
 
-        if (pendingFrameUpdate) {
-            return
-        }
-
-        if (drawableIsValid) {
+        if (drawableIsValid && !pendingFrameUpdate) {
             pendingFrameUpdate = true
             Choreographer.getInstance().postFrameCallback(frameCallback)
         }
