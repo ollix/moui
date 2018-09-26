@@ -72,10 +72,12 @@ Widget::Widget() : Widget(false) {
 
 Widget::~Widget() {
   StopAnimation(true);
+  RemoveFromParent();
   set_widget_view(nullptr);
   if (frees_children_on_destruction_) {
-    for (Widget* child : children_)
+    for (Widget* child : children_) {
       delete child;
+    }
   }
 }
 
@@ -786,14 +788,6 @@ void Widget::set_top_padding(const float padding) {
 void Widget::set_widget_view(WidgetView* widget_view) {
   if (widget_view_ == widget_view)
     return;
-
-  if (widget_view == nullptr) {
-    if (real_parent_ != nullptr) {
-      real_parent_->RemoveChild(this);
-    }
-    parent_ = nullptr;
-    real_parent_ = nullptr;
-  }
 
   NVGcontext* old_context = nullptr;
   if (widget_view_ != nullptr) {

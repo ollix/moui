@@ -73,10 +73,8 @@
 }
 
 - (void)render {
-  if (self.frame.size.width == 0 || self.frame.size.height == 0 ||
-      self.isHidden ||
-      [UIApplication sharedApplication].applicationState == \
-          UIApplicationStateBackground) {
+  if (!_applicationIsActive || self.frame.size.width == 0 ||
+      self.frame.size.height == 0 || self.isHidden) {
     return;
   }
 
