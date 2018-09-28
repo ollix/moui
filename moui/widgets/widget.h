@@ -219,6 +219,10 @@ class Widget {
   // Sets the vertical position to the parent's origin in points.
   void SetY(const float y);
 
+  // Releases the specified widget and its children if `auto_release_children`
+  // is `true`.
+  static void SmartRelease(moui::Widget* widget);
+
   // Starts updating the widget synchronized to the refresh rate of the display
   // continuously. If the widget is not yet attached to a `WidgetView` object,
   // nothing happened.
@@ -235,6 +239,12 @@ class Widget {
   // Setters and accessors.
   float alpha() const { return alpha_; }
   void set_alpha(const float alpha);
+  bool auto_release_children() const {
+    return auto_release_children_;
+  }
+  void set_auto_release_children(const bool value) {
+    auto_release_children_ = value;
+  }
   NVGcolor background_color() const { return background_color_; }
   void set_background_color(const NVGcolor background_color);
   virtual float bottom_padding() const { return bottom_padding_; }
@@ -242,12 +252,6 @@ class Widget {
   virtual BoxSizing box_sizing() const { return box_sizing_; }
   virtual void set_box_sizing(const BoxSizing box_sizing);
   std::vector<Widget*>* children() { return &children_; }
-  bool frees_children_on_destruction() const {
-    return frees_children_on_destruction_;
-  }
-  void set_frees_children_on_destruction(const bool value) {
-    frees_children_on_destruction_ = value;
-  }
   virtual float left_padding() const { return left_padding_; }
   virtual void set_left_padding(const float padding);
   bool is_opaque() const { return is_opaque_; }
@@ -316,6 +320,9 @@ class Widget {
   // Note that this method should only be called in the
   // `WidgetView::HandleEvent()` method.
   virtual bool HandleEvent(Event* event) { return false; }
+
+  // Releases the widget ifself and its direct children on demand.
+  void ReleaseSelfAndChildrenOnDemand();
 
   // Implements the logic for rendering the widget. The actual implementation
   // should be done in subclass. Note that this method should only be called by
@@ -423,6 +430,10 @@ class Widget {
   // `StopAnimation()`. The widget is animating if this value is greater than 0.
   int animation_count_;
 
+  // Indicates whether release children when calling `SmartRelease()`.
+  // The default value is `false`.
+  bool auto_release_children_;
+
   // The background color of the widget that will be rendered automatically if
   // `is_opaque_` is true. The default color is white.
   NVGcolor background_color_;
@@ -449,10 +460,6 @@ class Widget {
 
   // The `NVGpaint` object corresonded to the `default_framebuffer_`.
   NVGpaint default_framebuffer_paint_;
-
-  // Indicates whether all the widget's children should be freed when
-  // executing the widget's destructor. The default value is `false`.
-  bool frees_children_on_destruction_;
 
   // The unit of the `height_value_`.
   Unit height_unit_;

@@ -69,8 +69,7 @@ TableView::TableView() :
 TableView::~TableView() {
   // Releases visible cells.
   for (TableViewCell* cell : visible_cells_) {
-    cell->RemoveFromParent();
-    delete cell;
+    moui::Widget::SmartRelease(cell);
   }
   // Releases reusable cells.
   for (auto iterator = reusable_cells_.begin();
@@ -80,11 +79,11 @@ TableView::~TableView() {
     while (!table_view_cells->empty()) {
       TableViewCell* cell = table_view_cells->front();
       table_view_cells->pop();
-      delete cell;
+      moui::Widget::SmartRelease(cell);
     }
   }
   // Releases managed widgets.
-  delete layout_view_;
+  moui::Widget::SmartRelease(layout_view_);
 }
 
 void TableView::DeselectRow(const CellIndex cell_index) {
@@ -232,7 +231,7 @@ void TableView::ReuseCell(TableViewCell* cell) {
   cell->RemoveFromParent();
   const std::string kReuseIdentifier = cell->reuse_identifier();
   if (kReuseIdentifier.empty()) {
-    delete cell;
+    moui::Widget::SmartRelease(cell);
     return;
   }
 

@@ -33,7 +33,7 @@ View::View() : BaseView() {
 #elif defined(MOUI_METAL)
   MOMetalView* view = [[MOMetalView alloc] initWithMouiView:this];
 #endif
-  SetNativeHandle((__bridge_retained void*)view, true);
+  SetNativeHandle((__bridge void*)view, true);
 }
 
 View::~View() {

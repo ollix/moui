@@ -44,7 +44,7 @@ WidgetView::WidgetView() : WidgetView(nvgContextFlags(true, true, 3)) {
 }
 
 WidgetView::~WidgetView() {
-  delete root_widget_;
+  moui::Widget::SmartRelease(root_widget_);
   if (context_ != nullptr)
     nvgDeleteContext(context_);
 }

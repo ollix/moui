@@ -64,6 +64,11 @@
   [_context makeCurrentContext];
 }
 
+- (void)dealloc {
+  _pixelFormat = nil;
+  _context = nil;
+}
+
 - (void)lockFocus {
   [super lockFocus];
   if ([_context view] != self) {
