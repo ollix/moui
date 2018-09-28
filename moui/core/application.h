@@ -38,8 +38,8 @@ class Application : public BaseApplication {
   Application() {}
   ~Application() {}
 
-  // This method gets called when the application has finished launching.
-  virtual void OnLaunch() {}
+  // Calls this method to destroy the user interface.
+  virtual void DestroyUserInterface() {}
 
   // Returns the main application. The main application must be registered
   // before calling this method. To register the main application, call the
@@ -53,6 +53,9 @@ class Application : public BaseApplication {
   // This method is designed to be called whenever the application receives a
   // memory warning.
   virtual void HandleMemoryWarning() {}
+
+  // Calls this method to launch the user interface.
+  virtual void LaunchUserInterface() {}
 
 #ifdef MOUI_ANDROID
   // Initializes the JNI environemnt. This method must be called at least once.
