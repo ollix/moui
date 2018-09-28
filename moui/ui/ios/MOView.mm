@@ -34,10 +34,6 @@
 // Dispatches received events to the corresponded moui view.
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type;
 
-// This method will get called when receiving the
-// `UIApplicationDidReceiveMemoryWarningNotification`.
-- (void)handleMemoryWarning:(NSNotification *)notification;
-
 // Asks corresponded moui view to render. This method should never be called
 // directly. Instead, calling `startUpdatingView` to execute this method
 // automatically.
@@ -48,6 +44,9 @@
 @implementation MOView (PrivateDelegateHandling)
 
 - (void)applicationDidBecomeActive {
+  if (_displayLink == nil) {
+    return;
+  }
   _applicationIsActive = YES;
   if (_isUpdatingView)
     [self startUpdatingView];
@@ -57,8 +56,10 @@
 }
 
 - (void)applicationWillResignActive {
-  _applicationIsActive = NO;
-  _displayLink.paused = YES;
+  if (_displayLink != nil) {
+    _applicationIsActive = NO;
+    _displayLink.paused = YES;
+  }
 }
 
 - (void)handleEvent:(UIEvent *)event withType:(moui::Event::Type)type {
@@ -71,11 +72,11 @@
   _mouiView->HandleEvent(&mouiEvent);
 }
 
-- (void)handleMemoryWarning:(NSNotification *)notification {
-  _mouiView->HandleMemoryWarning();
-}
-
 - (void)render {
+  if (_mouiView == nullptr) {
+    return;
+  }
+
   if (!_applicationIsActive) {
     UIApplication* application = [UIApplication sharedApplication];
     _applicationIsActive = \
@@ -136,27 +137,16 @@
         selector:@selector(applicationWillResignActive)
         name:UIApplicationWillResignActiveNotification
         object:[UIApplication sharedApplication]];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-        selector:@selector(handleMemoryWarning:)
-        name:UIApplicationDidReceiveMemoryWarningNotification
-        object:[UIApplication sharedApplication]];
   }
   return self;
 }
 
 - (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  _mouiView = nullptr;
   [self destroyDrawable];
   [_displayLink invalidate];
-
-  [[NSNotificationCenter defaultCenter] removeObserver:self
-      name:UIApplicationDidBecomeActiveNotification
-      object:[UIApplication sharedApplication]];
-  [[NSNotificationCenter defaultCenter] removeObserver:self
-      name:UIApplicationWillResignActiveNotification
-      object:[UIApplication sharedApplication]];
-  [[NSNotificationCenter defaultCenter] removeObserver:self
-      name:UIApplicationDidReceiveMemoryWarningNotification
-      object:[UIApplication sharedApplication]];
+  _displayLink = nil;
 }
 
 // Triggered by `setNeedsDisplay` from _mouiView's Redraw(). This method
