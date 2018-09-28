@@ -51,6 +51,9 @@
   _applicationIsActive = YES;
   if (_isUpdatingView)
     [self startUpdatingView];
+  else if (_needsRedraw) {
+    [self setNeedsDisplay];
+  }
 }
 
 - (void)applicationWillResignActive {
@@ -73,8 +76,20 @@
 }
 
 - (void)render {
+  if (!_applicationIsActive) {
+    UIApplication* application = [UIApplication sharedApplication];
+    _applicationIsActive = \
+        (application.applicationState == UIApplicationStateActive);
+  }
+
   if (!_applicationIsActive || self.frame.size.width == 0 ||
       self.frame.size.height == 0 || self.isHidden) {
+    _isUpdatingView = !_displayLink.paused;
+    if (_isUpdatingView) {
+      _displayLink.paused = YES;
+    } else {
+      _isUpdatingView = YES;
+    }
     return;
   }
 
