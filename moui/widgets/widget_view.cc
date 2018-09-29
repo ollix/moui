@@ -34,7 +34,7 @@
 namespace moui {
 
 WidgetView::WidgetView(const int context_flags)
-    : context_(nullptr), context_flags_(context_flags),
+    : context_(nullptr), context_flags_(context_flags), is_ready_(false),
       preparing_for_rendering_(false), requests_redraw_(false),
       root_widget_(new Widget) {
   root_widget_->set_widget_view(this);
@@ -370,6 +370,7 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
 
   // Notifies all attached widgets that the rendering process is done.
   WidgetViewDidRender(widget);
+  is_ready_ = true;
 }
 
 void WidgetView::SetBounds(const float x, const float y, const float width,
