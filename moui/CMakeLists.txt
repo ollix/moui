@@ -82,8 +82,11 @@ target_include_directories(nanovg
 target_link_libraries(nanovg LINK_PUBLIC freetype)
 
 if(APPLE AND NOT MOUI_USE_OPENGL_BACKEND)
+    message("-- [moui] Build with Metal")
     target_sources(nanovg PRIVATE "deps/MetalNanoVG/src/nanovg_mtl.m")
     target_link_libraries(nanovg LINK_PRIVATE "-framework Metal")
+else()
+    message("-- [moui] Build with OpenGL")
 endif()
 
 # Moui Library
