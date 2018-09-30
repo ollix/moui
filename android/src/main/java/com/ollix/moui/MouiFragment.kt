@@ -35,7 +35,7 @@ open class MouiFragment : Fragment() {
                 override fun onGlobalLayout() {
                     val viewTreeObserver = container.viewTreeObserver
                     viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    launchMouiAppFromJNI()
+                    launchUserInterfaceFromJNI()
                 }
             }
         )
@@ -43,7 +43,7 @@ open class MouiFragment : Fragment() {
     }
 
     /** JNI functions. */
-    external fun launchMouiAppFromJNI()
+    external fun launchUserInterfaceFromJNI()
 
     /** Loads native libraries. */
     companion object {
