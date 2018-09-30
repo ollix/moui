@@ -30,8 +30,8 @@ Layout::Layout() : adjusts_size_to_fit_contents_(false),
 }
 
 Layout::~Layout() {
-  for (Widget* cell : GetCells())
-    delete cell;
+  for (Widget* cell : all_cells_)
+    moui::Widget::SmartRelease(cell);
 }
 
 // When adding a child widget, the child is actually added to a newly created
@@ -42,6 +42,7 @@ void Layout::AddChild(Widget* child) {
   cell->AddChild(child);
   ScrollView::AddChild(cell);
   child->set_parent(this);
+  all_cells_.push_back(cell);
 }
 
 // Populates and returns a list of valid cells. Cells are actually the children
@@ -62,8 +63,7 @@ std::vector<Widget*> Layout::GetCells() {
   // Frees stale cells.
   for (auto it = stale_cells.begin(); it != stale_cells.end(); ++it) {
     Widget* cell = reinterpret_cast<Widget*>(*it);
-    cell->RemoveFromParent();
-    delete cell;
+    moui::Widget::SmartRelease(cell);
   }
 
   return valid_cells;

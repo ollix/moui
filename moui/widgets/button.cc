@@ -107,7 +107,7 @@ Button::Button() : Control(false),
 }
 
 Button::~Button() {
-  delete title_label_;
+  moui::Widget::SmartRelease(title_label_);
 }
 
 void Button::BindRenderFunction(

@@ -38,6 +38,9 @@ class Application : public BaseApplication {
   Application() {}
   ~Application() {}
 
+  // Calls this method to destroy the user interface.
+  virtual void DestroyUserInterface() {}
+
 #ifdef MOUI_ANDROID
   // Returns the `JNIEnv` variable that set in the `InitJNI()` method.
   static JNIEnv* GetJNIEnv();
@@ -59,13 +62,13 @@ class Application : public BaseApplication {
   // memory warning.
   virtual void HandleMemoryWarning() {}
 
+  // Calls this method to launch the user interface.
+  virtual void LaunchUserInterface() {}
+
 #ifdef MOUI_ANDROID
   // Initializes the JNI environemnt. This method must be called at least once.
   static void InitJNI(JNIEnv* env, jobject activity, jobject asset_manager);
 #endif  // MOUI_ANDROID
-
-  // This method gets called when the application has finished launching.
-  virtual void OnLaunch() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Application);

@@ -99,12 +99,12 @@ ScrollView::ScrollView()
 }
 
 ScrollView::~ScrollView() {
-  if (frees_children_on_destruction())
+  if (auto_release_children())
     return;
 
-  delete content_view_;
-  delete horizontal_scroller_;
-  delete vertical_scroller_;
+  moui::Widget::SmartRelease(content_view_);
+  moui::Widget::SmartRelease(horizontal_scroller_);
+  moui::Widget::SmartRelease(vertical_scroller_);
 }
 
 // Adds the passed child to the internal `content_view_` actually and sets the

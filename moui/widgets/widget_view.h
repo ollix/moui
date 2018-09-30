@@ -64,6 +64,7 @@ class WidgetView : public View {
 
   // Accessors and setters.
   NVGcontext* context();
+  bool is_ready() const { return is_ready_; }
   Widget* root_widget() const { return root_widget_; }
 
  private:
@@ -171,6 +172,9 @@ class WidgetView : public View {
   // Keeps a list of widgets to handle events passed to the `HandleEvent()`
   // method. The list could be updated by `UpdateEventResponders()`.
   std::vector<Widget*> event_responders_;
+
+  // Indicates whether the widget view is ready to display.
+  bool is_ready_;
 
   // Indicating whether the widget view is preparing for rendering in the
   // `Render()` method.

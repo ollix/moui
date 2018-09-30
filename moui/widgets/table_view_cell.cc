@@ -51,7 +51,7 @@ TableViewCell::TableViewCell(const Style style,
     : accessory_type_(AccessoryType::kNone), detail_text_label_(nullptr),
       highlighted_(false), reuse_identifier_(reuse_identifier),
       selected_(false), style_(style) {
-  set_frees_children_on_destruction(true);
+  set_auto_release_children(true);
 
   // Initializes content view.
   content_view_ = new moui::Widget(true);
@@ -85,13 +85,13 @@ TableViewCell::TableViewCell(const Style style) : TableViewCell(style, "") {
 }
 
 TableViewCell::~TableViewCell() {
-  if (frees_children_on_destruction())
+  if (auto_release_children())
     return;
 
-  delete content_view_;
-  delete image_view_;
-  delete text_label_;
-  delete detail_text_label_;
+  moui::Widget::SmartRelease(content_view_);
+  moui::Widget::SmartRelease(image_view_);
+  moui::Widget::SmartRelease(text_label_);
+  moui::Widget::SmartRelease(detail_text_label_);
 }
 
 void TableViewCell::PrepareForReuse() {

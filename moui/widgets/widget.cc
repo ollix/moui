@@ -52,19 +52,19 @@ float CalculatePoints(const moui::Widget::Unit unit, const float value,
 namespace moui {
 
 Widget::Widget(const bool caches_rendering)
-    : alpha_(1), animation_count_(0),
+    : alpha_(1), animation_count_(0), auto_release_children_(false),
       background_color_(nvgRGBA(255, 255, 255, 255)), bottom_padding_(0),
       box_sizing_(BoxSizing::kContentBox), caches_rendering_(caches_rendering),
-      default_framebuffer_(nullptr), frees_children_on_destruction_(false),
-      height_unit_(Unit::kPoint), height_value_(0), hidden_(false),
-      is_opaque_(true), is_visible_(false), left_padding_(0),
-      measured_scale_(-1), parent_(nullptr), paused_animation_(false),
-      real_parent_(nullptr), render_function_(NULL), rendering_offset_({0, 0}),
-      rendering_scale_(1), right_padding_(0), scale_(1),
-      should_redraw_default_framebuffer_(false), tag_(0), top_padding_(0),
-      widget_view_(nullptr), width_unit_(Unit::kPoint), width_value_(0),
-      x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint), x_value_(0),
-      y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint), y_value_(0) {
+      default_framebuffer_(nullptr), height_unit_(Unit::kPoint),
+      height_value_(0), hidden_(false), is_opaque_(true), is_visible_(false),
+      left_padding_(0), measured_scale_(-1), parent_(nullptr),
+      paused_animation_(false), real_parent_(nullptr), render_function_(NULL),
+      rendering_offset_({0, 0}), rendering_scale_(1), right_padding_(0),
+      scale_(1), should_redraw_default_framebuffer_(false), tag_(0),
+      top_padding_(0), widget_view_(nullptr), width_unit_(Unit::kPoint),
+      width_value_(0), x_alignment_(Alignment::kLeft), x_unit_(Unit::kPoint),
+      x_value_(0), y_alignment_(Alignment::kTop), y_unit_(Unit::kPoint),
+      y_value_(0) {
 }
 
 Widget::Widget() : Widget(false) {
@@ -72,13 +72,6 @@ Widget::Widget() : Widget(false) {
 
 Widget::~Widget() {
   StopAnimation(true);
-  RemoveFromParent();
-  set_widget_view(nullptr);
-  if (frees_children_on_destruction_) {
-    for (Widget* child : children_) {
-      delete child;
-    }
-  }
 }
 
 void Widget::AddChild(Widget* child) {
@@ -464,6 +457,17 @@ void Widget::Redraw() {
     widget_view_->Redraw(this);
 }
 
+void Widget::ReleaseSelfAndChildrenOnDemand() {
+  if (auto_release_children_) {
+    while (!children_.empty()) {
+      moui::Widget* child = children_[0];
+      child->ReleaseSelfAndChildrenOnDemand();
+    }
+  }
+  RemoveFromParent();
+  delete this;
+}
+
 bool Widget::RemoveChild(Widget* child) {
   auto iterator = std::find(children_.begin(), children_.end(), child);
   if (iterator == children_.end())
@@ -657,6 +661,10 @@ void Widget::SetY(const float y) {
 
 bool Widget::ShouldHandleEvent(const Point location) {
   return false;
+}
+
+void Widget::SmartRelease(moui::Widget* widget) {
+  if (widget != nullptr) widget->ReleaseSelfAndChildrenOnDemand();
 }
 
 void Widget::StartAnimation() {

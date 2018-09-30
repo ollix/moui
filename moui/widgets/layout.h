@@ -91,6 +91,9 @@ class Layout : public ScrollView {
   // fit its contents.
   bool adjusts_size_to_fit_contents_;
 
+  // Keeps the strong references to all cells.
+  std::vector<Widget*> all_cells_;
+
   // Keeps a list of weak references to the actual widgets to be layouted.
   std::vector<Widget*> managed_children_;
 
