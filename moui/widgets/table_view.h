@@ -176,8 +176,9 @@ class TableView : public ScrollView {
   // The weak reference to the cell that receives the last down event.
   TableViewCell* down_event_cell_;
 
-  // Keeps the location of the last down event.
-  Point down_event_location_;
+  // Records the cell's origin related to the corresponded widget view's
+  // coordinate system when receiving the `Event::Type::kDown` event.
+  Point down_event_origin_;
 
   // Indicates the height in points between sections.
   float height_between_sections_;

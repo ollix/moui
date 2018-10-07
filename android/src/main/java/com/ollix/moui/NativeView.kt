@@ -27,7 +27,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
-import android.widget.FrameLayout
+import android.widget.RelativeLayout
 
 class NativeView(context: Context) {
 
@@ -50,7 +50,11 @@ class NativeView(context: Context) {
     }
 
     /** Returns the int array of view's snapshot colors. */
-    fun getSnapshot(view: View): IntArray {
+    fun getSnapshot(view: View): IntArray? {
+        if (view.width == 0 || view.height == 0) {
+            return null
+        }
+
         val bitmap = Bitmap.createBitmap(view.width , view.height,
                                          Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -99,14 +103,14 @@ class NativeView(context: Context) {
     fun sendSubviewToBack(parentView: View, subview: View) {
         if (parentView is ViewGroup) {
             val subviewIndex: Int = parentView.indexOfChild(subview);
-            if (subviewIndex == -1) {
+            if (subviewIndex <= 0) {
                 return
             }
-            var s = 1
-            for (i in 1 until parentView.childCount) {
+            var s = 0
+            for (i in 0 until parentView.childCount) {
                 val child: View = parentView.getChildAt(s)
                 if (child == subview) {
-                    s = 2
+                    s = 1
                 } else {
                     child.bringToFront()
                 }
@@ -116,10 +120,9 @@ class NativeView(context: Context) {
 
     /** Sets the position and dimension of the view. */
     fun setBounds(view: View, x: Float, y: Float, width: Float, height: Float) {
-        val layoutParams = FrameLayout.LayoutParams(
+        val layoutParams = RelativeLayout.LayoutParams(
                 (width * displayDensity).toInt(),
-                (height * displayDensity).toInt(),
-                Gravity.TOP)
+                (height * displayDensity).toInt())
         layoutParams.leftMargin = (x * displayDensity).toInt()
         layoutParams.topMargin = (y * displayDensity).toInt()
         view.layoutParams = layoutParams

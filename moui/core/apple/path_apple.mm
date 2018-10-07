@@ -54,4 +54,7 @@ std::string Path::GetDirectory(const Directory directory) {
   return [[[results lastObject] path] UTF8String];
 }
 
+void Path::Reset() {
+}
+
 }  // namespace moui

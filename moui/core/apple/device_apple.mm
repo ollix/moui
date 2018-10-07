@@ -72,4 +72,7 @@ float Device::GetScreenScaleFactor() {
   return screen_scale_factor;
 }
 
+void Device::Reset() {
+}
+
 }  // namespace moui

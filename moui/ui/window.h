@@ -42,6 +42,9 @@ class Window : public BaseWindow {
   // Returns the root view of the current window.
   std::unique_ptr<NativeView> GetRootView() const;
 
+  // Resets the window.
+  static void Reset();
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Window);
 };

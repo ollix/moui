@@ -17,6 +17,7 @@
 
 #include "moui/widgets/control.h"
 
+#include <cmath>
 #include <cstdint>
 #include <vector>
 
@@ -96,8 +97,8 @@ bool Control::HandleEvent(Event* event) {
   // happens when underlying scroll view is scrolling.
   } else if (down_event_origin_.x != INT_MIN &&
              down_event_origin_.y != INT_MIN &&
-             (origin.x != down_event_origin_.x ||
-              origin.y != down_event_origin_.y)) {
+             (std::abs(origin.x - down_event_origin_.x) >= 1.2 ||
+              std::abs(origin.y - down_event_origin_.y) >= 1.2)) {
     control_events |= ControlEvents::kTouchCancel;
     ignores_upcoming_events_ = true;
   // Move.

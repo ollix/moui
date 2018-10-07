@@ -17,13 +17,94 @@
 
 #include "moui/core/path.h"
 
+#include <map>
+
+#include "jni.h"  // NOLINT
+
+#include "moui/core/application.h"
+
+namespace {
+
+// Caches the directory paths.
+std::string document_directory_path;
+std::string library_directory_path;
+std::string temporary_directory_path;
+
+std::map<JNIEnv*, jobject> global_paths;
+
+// Returns the instance of the com.ollix.moui.Path class on the Java side.
+jobject GetJavaPath(JNIEnv* env) {
+  auto match = global_paths.find(env);
+  if (match != global_paths.end()) {
+    return match->second;
+  }
+  jclass path_class = env->FindClass("com/ollix/moui/Path");
+  jmethodID constructor = env->GetMethodID(path_class, "<init>",
+                                           "(Landroid/content/Context;)V");
+  jobject path_obj = env->NewObject(path_class, constructor,
+                                    moui::Application::GetMainActivity());
+  jobject global_path = env->NewGlobalRef(path_obj);
+  env->DeleteLocalRef(path_class);
+  env->DeleteLocalRef(path_obj);
+  global_paths[env] = global_path;
+  return global_path;
+}
+
+}  // namespace
+
 namespace moui {
+
+void Path::Init() {
+  Path::GetDirectory(Path::Directory::kDocument);
+  Path::GetDirectory(Path::Directory::kLibrary);
+  Path::GetDirectory(Path::Directory::kTemporary);
+}
 
 std::string Path::GetDirectory(const Directory directory) {
   if (directory == Path::Directory::kResource) {
     return "file:///android_assets";
   }
-  return "";
+
+  std::string java_method_name;
+  std::string* path_cache;
+  if (directory == Path::Directory::kDocument) {
+    java_method_name = "getDocumentDir";
+    path_cache = &document_directory_path;
+  } else if (directory == Path::Directory::kLibrary) {
+    java_method_name = "getFilesDir";
+    path_cache = &library_directory_path;
+  } else if (directory == Path::Directory::kTemporary) {
+    java_method_name = "getCacheDir";
+    path_cache = &temporary_directory_path;
+  } else {
+    return "";
+  }
+  if (!path_cache->empty()) {
+    return *path_cache;
+  }
+
+  JNIEnv* env = moui::Application::GetJNIEnv();
+  jobject path_object = GetJavaPath(env);
+  jclass path_class = env->GetObjectClass(path_object);
+  jmethodID java_method = env->GetMethodID(
+      path_class, java_method_name.c_str(), "()Ljava/lang/String;");
+  env->DeleteLocalRef(path_class);
+  jstring path_string = reinterpret_cast<jstring>(
+      env->CallObjectMethod(path_object, java_method));
+  const char* path = env->GetStringUTFChars(path_string, 0);
+  *path_cache = std::string(path);
+  env->ReleaseStringUTFChars(path_string, path);
+  env->DeleteLocalRef(path_string);
+  return *path_cache;
+}
+
+void Path::Reset() {
+  for (auto& pair : global_paths) {
+    JNIEnv* env = pair.first;
+    jobject global_path = pair.second;
+    env->DeleteGlobalRef(global_path);
+  }
+  global_paths.clear();
 }
 
 }  // namespace moui

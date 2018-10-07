@@ -129,7 +129,6 @@ if(ANDROID)
     target_link_libraries(moui
         LINK_PUBLIC
         log
-        LINK_PRIVATE
         aasset
         android
         GLESv2)

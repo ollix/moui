@@ -34,6 +34,9 @@ class BaseApplication {
   // `RegisterMainApplication()` method.
   static BaseApplication* GetMainApplication();
 
+  // Resets the main application.
+  static void ResetMainApplication();
+
   // Registers the current instance as the main application. The instance can
   // later be retrieved through the `GetMainApplication()` method. If this
   // method is called multiple times, the last instance calling this method

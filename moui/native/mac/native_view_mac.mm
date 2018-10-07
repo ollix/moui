@@ -137,6 +137,9 @@ void NativeView::RemoveFromSuperview() const {
   [native_view removeFromSuperview];
 }
 
+void NativeView::Reset() {
+}
+
 void NativeView::ResignFirstResponder() const {
   NSView* native_view = (__bridge NSView*)native_handle();
   [native_view resignFirstResponder];

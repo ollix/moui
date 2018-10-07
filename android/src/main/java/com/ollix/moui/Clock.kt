@@ -26,20 +26,29 @@ import kotlinx.coroutines.experimental.launch
 
 class Clock {
 
+    private var cancelled = false
     private val handler: Handler = Handler(Looper.getMainLooper())
+
+    fun cancel() {
+        cancelled = true
+    }
 
     /** Executes a callback in background. */
     fun dispatchAfter(delaySeconds: Float, callbackPtr: Long) {
         launch {
             delay((delaySeconds * 1000).toLong())
-            executeCallbackFromJNI(callbackPtr)
+            if (!cancelled) {
+                executeCallbackFromJNI(callbackPtr)
+            }
         }
     }
 
     /** Executes a callback on main thread */
     fun executeCallbackOnMainThread(delaySeconds: Float, callbackPtr: Long) {
         handler.postDelayed({
-            executeCallbackFromJNI(callbackPtr)
+            if (!cancelled) {
+                executeCallbackFromJNI(callbackPtr)
+            }
         }, (delaySeconds * 1000).toLong())
     }
 

@@ -41,6 +41,14 @@ class Application : public BaseApplication {
   // Calls this method to destroy the user interface.
   virtual void DestroyUserInterface() {}
 
+#ifdef MOUI_ANDROID
+  // Returns the `JNIEnv` variable that set in the `InitJNI()` method.
+  static JNIEnv* GetJNIEnv();
+
+  // Returns the `Activity` object that set in the `InitJNI()` method.
+  static jobject GetMainActivity();
+#endif  // MOUI_ANDROID
+
   // Returns the main application. The main application must be registered
   // before calling this method. To register the main application, call the
   // `BaseApplication::RegisterMainApplication()` method on an application
@@ -60,12 +68,6 @@ class Application : public BaseApplication {
 #ifdef MOUI_ANDROID
   // Initializes the JNI environemnt. This method must be called at least once.
   static void InitJNI(JNIEnv* env, jobject activity, jobject asset_manager);
-
-  // Returns the `JNIEnv` variable that set in the `InitJNI()` method.
-  static JNIEnv* GetJNIEnv();
-
-  // Returns the `Activity` object that set in the `InitJNI()` method.
-  static jobject GetMainActivity();
 #endif  // MOUI_ANDROID
 
  private:

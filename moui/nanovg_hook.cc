@@ -87,23 +87,20 @@ int nvgCreateFontAtPath(NVGcontext* context, const std::string name,
                         const std::string path) {
 #ifdef MOUI_ANDROID
   // Loads the image from Android's assets folder.
-  if (path.find("file:///android_assets/") == 0) {
-    std::string asset_path = path.substr(23);
-    std::FILE* file = aasset_fopen(asset_path.c_str(), "r");
-    if (file == NULL) {
-      return -1;
-    }
-    const int kDataSize = aasset_fsize(file);
-    unsigned char* data = \
-        reinterpret_cast<unsigned char*>(std::malloc(kDataSize));
-    int image = -1;
-    if (aasset_fread(data, 1, kDataSize, file) == kDataSize) {
-      image = nvgCreateFontMem(context, name.c_str(), data, kDataSize,
-                               true);  // frees data
-    }
-    aasset_fclose(file);
-    return image;
+  std::FILE* file = aasset_fopen(path.c_str(), "r");
+  if (file == NULL) {
+    return -1;
   }
+  const int kDataSize = aasset_fsize(file);
+  unsigned char* data = \
+      reinterpret_cast<unsigned char*>(std::malloc(kDataSize));
+  int font = -1;
+  if (aasset_fread(data, 1, kDataSize, file) == kDataSize) {
+    font = nvgCreateFontMem(context, name.c_str(), data, kDataSize,
+                             true);  // frees data
+  }
+  aasset_fclose(file);
+  return font;
 #endif  // MOUI_ANDROID
 
   return nvgCreateFont(context, name.c_str(), path.c_str());
@@ -113,23 +110,18 @@ int nvgCreateImageAtPath(NVGcontext* context, const std::string path,
                          const int image_flags) {
 #ifdef MOUI_ANDROID
   // Loads the image from Android's assets folder.
-  if (path.find("file:///android_assets/") == 0) {
-    std::string asset_path = path.substr(23);
-    std::FILE* file = aasset_fopen(asset_path.c_str(), "r");
-    if (file == NULL) {
-      return -1;
-    }
-    const int kDataSize = aasset_fsize(file);
-    unsigned char* data = \
-        reinterpret_cast<unsigned char*>(std::malloc(kDataSize));
-    int image = -1;
-    if (aasset_fread(data, 1, kDataSize, file) == kDataSize) {
-      image = nvgCreateImageMem(context, image_flags, data, kDataSize);
-      std::free(data);
-    }
-    aasset_fclose(file);
-    return image;
+  std::FILE* file = aasset_fopen(path.c_str(), "r");
+  if (file == NULL) {
+    return -1;
   }
+  const int kDataSize = aasset_fsize(file);
+  unsigned char data[kDataSize];
+  int image = -1;
+  if (aasset_fread(data, 1, kDataSize, file) == kDataSize) {
+    image = nvgCreateImageMem(context, image_flags, data, kDataSize);
+  }
+  aasset_fclose(file);
+  return image;
 #endif  // MOUI_ANDROID
 
   return nvgCreateImage(context, path.c_str(), image_flags);
@@ -141,7 +133,7 @@ int nvgCreateImageFromPixels(NVGcontext* context, const int width,
   int flags = image_flags | NVG_IMAGE_PREMULTIPLIED;
 #ifdef MOUI_GL
   flags |= NVG_IMAGE_FLIPY;
-#endif
+#endif  // MOUI_GL
   return nvgCreateImageRGBA(context, width, height, flags, data);
 }
 

@@ -49,6 +49,10 @@ class Device {
   Device() {}
   ~Device() {}
 
+#ifdef MOUI_ANDROID
+  static void Init();
+#endif  // MOUI_ANDROID
+
   // Returns the battery state for the current device.
   static BatteryState GetBatteryState();
 
@@ -59,6 +63,9 @@ class Device {
   // reflects the scale factor needed to convert from the default logical
   // coordinate space into the device coordinate space of the screen.
   static float GetScreenScaleFactor();
+
+  // Resets the device.
+  static void Reset();
 
 #ifdef MOUI_ANDROID
   // Sets the required minimum screen width dp for tablet. The value will

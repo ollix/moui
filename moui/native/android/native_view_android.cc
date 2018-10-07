@@ -18,6 +18,7 @@
 #include "moui/native/native_view.h"
 
 #include <cstdlib>
+#include <map>
 
 #include "jni.h"  // NOLINT
 
@@ -25,26 +26,26 @@
 #include "moui/core/device.h"
 #include "moui/native/native_object.h"
 
-#include "moui/core/log.h"
-
 namespace {
 
-// Returns the instance of the com.ollix.moui.NativeView class on the Java side.
-jobject GetJavaNativeView() {
-  static jobject java_native_view = nullptr;
-  if (java_native_view != nullptr)
-    return java_native_view;
+std::map<JNIEnv*, jobject> global_native_views;
 
-  JNIEnv* env = moui::Application::GetJNIEnv();
+// Returns the instance of the com.ollix.moui.NativeView class on the Java side.
+jobject GetJavaNativeView(JNIEnv* env) {
+  auto match = global_native_views.find(env);
+  if (match != global_native_views.end()) {
+    return match->second;
+  }
   jclass native_view_class = env->FindClass("com/ollix/moui/NativeView");
   jmethodID constructor = env->GetMethodID(native_view_class, "<init>",
                                            "(Landroid/content/Context;)V");
   jobject native_view = env->NewObject(native_view_class, constructor,
                                        moui::Application::GetMainActivity());
-  java_native_view = env->NewGlobalRef(native_view);
+  jobject global_native_view = env->NewGlobalRef(native_view);
   env->DeleteLocalRef(native_view_class);
   env->DeleteLocalRef(native_view);
-  return java_native_view;
+  global_native_views[env] = global_native_view;
+  return global_native_view;
 }
 
 }  // namespace
@@ -77,8 +78,8 @@ NativeView::~NativeView() {
 
 // Calls com.ollix.moui.NativeView.addSubview() on the Java side.
 void NativeView::AddSubview(const NativeView* subview) const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(
       java_class, "addSubview", "(Landroid/view/View;Landroid/view/View;)V");
@@ -112,8 +113,8 @@ float NativeView::GetAlpha() const {
 
 // Calls com.ollix.moui.NativeView.getHeight() on the Java side.
 float NativeView::GetHeight() const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(
       java_class, "getHeight", "(Landroid/view/View;)F");
@@ -124,8 +125,8 @@ float NativeView::GetHeight() const {
 
 // Calls com.ollix.moui.NativeView.getSnapshot() on the Java side.
 unsigned char* NativeView::GetSnapshot() const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(
       java_class, "getSnapshot", "(Landroid/view/View;)[I");
@@ -167,8 +168,8 @@ unsigned char* NativeView::GetSnapshot() const {
 
 // Calls com.ollix.moui.NativeView.getSuperview() on the Java side.
 NativeView* NativeView::GetSuperview() const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(
       java_class, "getSuperview",
@@ -186,8 +187,8 @@ NativeView* NativeView::GetSuperview() const {
 
 // Calls com.ollix.moui.NativeView.getWidth() on the Java side.
 float NativeView::GetWidth() const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(
       java_class, "getWidth", "(Landroid/view/View;)F");
@@ -198,8 +199,8 @@ float NativeView::GetWidth() const {
 
 // Calls com.ollix.moui.NativeView.isHidden() on the Java side.
 bool NativeView::IsHidden() const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(
       java_class, "isHidden", "(Landroid/view/View;)Z");
@@ -210,8 +211,8 @@ bool NativeView::IsHidden() const {
 
 // Calls com.ollix.moui.NativeView.removeFromSuperview() on the Java side.
 void NativeView::RemoveFromSuperview() const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(java_class, "removeFromSuperview",
                                            "(Landroid/view/View;)V");
@@ -220,10 +221,19 @@ void NativeView::RemoveFromSuperview() const {
                       reinterpret_cast<jobject>(native_handle()));
 }
 
+void NativeView::Reset() {
+  for (auto& pair : global_native_views) {
+    JNIEnv* env = pair.first;
+    jobject global_native_view = pair.second;
+    env->DeleteGlobalRef(global_native_view);
+  }
+  global_native_views.clear();
+}
+
 // Calls com.ollix.moui.NativeView.sendSubviewToBack() on the Java side.
 void NativeView::SendSubviewToBack(const NativeView* subview) const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(
       java_class, "sendSubviewToBack",
@@ -247,8 +257,8 @@ void NativeView::SetAlpha(const float alpha) const {
 // Calls com.ollix.moui.NativeView.setBounds() on the Java side.
 void NativeView::SetBounds(const float x, const float y, const float width,
                            const float height) const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(java_class, "setBounds",
                                            "(Landroid/view/View;FFFF)V");
@@ -260,8 +270,8 @@ void NativeView::SetBounds(const float x, const float y, const float width,
 
 // Calls com.ollix.moui.NativeView.setHidden() on the Java side.
 void NativeView::SetHidden(const bool hidden) const {
-  jobject native_view = GetJavaNativeView();
   JNIEnv* env = Application::GetJNIEnv();
+  jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);
   jmethodID java_method = env->GetMethodID(java_class, "setHidden",
                                            "(Landroid/view/View;Z)V");

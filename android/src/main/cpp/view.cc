@@ -36,8 +36,8 @@ Java_com_ollix_moui_View_drawFrameFromJNI(
 JNIEXPORT void
 JNICALL
 Java_com_ollix_moui_View_handleEventFromJNI(
-    JNIEnv* env, jobject, jlong moui_view_ptr, jint action, jfloat x,
-    jfloat y) {
+    JNIEnv* env, jobject, jlong moui_view_ptr, jint action,
+    jfloatArray raw_locations) {
   // Converts the received MotionEvent action to moui event type.
   moui::Event::Type event_type;
   switch (action) {
@@ -54,8 +54,12 @@ Java_com_ollix_moui_View_handleEventFromJNI(
   }
   // Initializes the event object and asks moui view to handle the event.
   moui::Event moui_event(event_type);
-  moui_event.locations()->push_back({static_cast<float>(x),
-                                     static_cast<float>(y)});
+  const int kNumberOfLocations = \
+      static_cast<int>(env->GetArrayLength(raw_locations)) / 2;
+  jfloat* locations = env->GetFloatArrayElements(raw_locations, 0);
+  for (int i = 0; i < kNumberOfLocations; ++i) {
+    moui_event.locations()->push_back({*locations++, *locations++});
+  }
   auto moui_view = reinterpret_cast<moui::View*>(moui_view_ptr);
   moui_view->HandleEvent(&moui_event);
 }

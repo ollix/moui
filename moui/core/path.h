@@ -28,21 +28,24 @@ namespace moui {
 class Path {
  public:
   enum class Directory {
-#ifdef MOUI_APPLE
     kDocument,
     kLibrary,
-#endif  // MOUI_APPLE
     kResource,
-#ifdef MOUI_APPLE
     kTemporary,
-#endif  // MOUI_APPLE
   };
 
   Path() {}
   ~Path() {}
 
+#ifdef MOUI_ANDROID
+  static void Init();
+#endif  // MOUI_ANDROID
+
   // Returns the direcotry path containing app resources.
   static std::string GetDirectory(const Directory directory);
+
+  // Resets the path.
+  static void Reset();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Path);

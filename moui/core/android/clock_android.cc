@@ -18,26 +18,30 @@
 #include "moui/core/clock.h"
 
 #include <functional>
+#include <map>
 
 #include "jni.h"  // NOLINT
 
 #include "moui/core/application.h"
+#include "moui/core/log.h"
 
 namespace {
 
-jobject GetJavaClock() {
-  static jobject java_clock = nullptr;
-  if (java_clock != nullptr)
-    return java_clock;
+std::map<JNIEnv*, jobject> global_clocks;
 
-  JNIEnv* env = moui::Application::GetJNIEnv();
+jobject GetJavaClock(JNIEnv* env) {
+  auto match = global_clocks.find(env);
+  if (match != global_clocks.end()) {
+    return match->second;
+  }
   jclass clock_class = env->FindClass("com/ollix/moui/Clock");
   jmethodID constructor = env->GetMethodID(clock_class, "<init>", "()V");
   jobject clock_obj = env->NewObject(clock_class, constructor);
-  java_clock = env->NewGlobalRef(clock_obj);
+  jobject global_clock = env->NewGlobalRef(clock_obj);
   env->DeleteLocalRef(clock_class);
   env->DeleteLocalRef(clock_obj);
-  return java_clock;
+  global_clocks[env] = global_clock;
+  return global_clock;
 }
 
 }  // namespace
@@ -46,7 +50,7 @@ namespace moui {
 
 void Clock::DispatchAfter(const float delay, std::function<void()> func) {
   JNIEnv* env = Application::GetJNIEnv();
-  jobject java_clock = GetJavaClock();
+  jobject java_clock = GetJavaClock(env);
   jclass clock_class = env->GetObjectClass(java_clock);
   jmethodID java_method = env->GetMethodID(
       clock_class, "dispatchAfter", "(FJ)V");
@@ -58,7 +62,7 @@ void Clock::DispatchAfter(const float delay, std::function<void()> func) {
 void Clock::ExecuteCallbackOnMainThread(const float delay,
                                         std::function<void()> func) {
   JNIEnv* env = Application::GetJNIEnv();
-  jobject java_clock = GetJavaClock();
+  jobject java_clock = GetJavaClock(env);
   jclass clock_class = env->GetObjectClass(java_clock);
   jmethodID java_method = env->GetMethodID(
       clock_class, "executeCallbackOnMainThread", "(FJ)V");
@@ -69,6 +73,20 @@ void Clock::ExecuteCallbackOnMainThread(const float delay,
 
 void Clock::ExecuteCallbackOnMainThread(std::function<void()> callback) {
   ExecuteCallbackOnMainThread(0, callback);
+}
+
+void Clock::Reset() {
+  for (auto& pair : global_clocks) {
+    JNIEnv* env = pair.first;
+    jobject global_clock = pair.second;
+    jclass clock_class = env->GetObjectClass(global_clock);
+    jmethodID java_method = env->GetMethodID(
+        clock_class, "cancel", "()V");
+    env->DeleteLocalRef(clock_class);
+    env->CallVoidMethod(global_clock, java_method);
+    env->DeleteGlobalRef(global_clock);
+  }
+  global_clocks.clear();
 }
 
 }  // namespace moui
