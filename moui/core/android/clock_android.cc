@@ -77,7 +77,7 @@ void Clock::ExecuteCallbackOnMainThread(std::function<void()> callback) {
 
 void Clock::Reset() {
   for (auto& pair : global_clocks) {
-    JNIEnv* env = pair.first;
+    JNIEnv* env = Application::GetJNIEnv();
     jobject global_clock = pair.second;
     jclass clock_class = env->GetObjectClass(global_clock);
     jmethodID java_method = env->GetMethodID(

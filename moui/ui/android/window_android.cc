@@ -94,7 +94,7 @@ std::unique_ptr<NativeView> Window::GetRootView() const {
 
 void Window::Reset() {
   for (auto& pair : global_windows) {
-    JNIEnv* env = pair.first;
+    JNIEnv* env = Application::GetJNIEnv();
     jobject global_window = pair.second;
     env->DeleteGlobalRef(global_window);
   }

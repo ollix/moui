@@ -100,7 +100,7 @@ std::string Path::GetDirectory(const Directory directory) {
 
 void Path::Reset() {
   for (auto& pair : global_paths) {
-    JNIEnv* env = pair.first;
+    JNIEnv* env = Application::GetJNIEnv();
     jobject global_path = pair.second;
     env->DeleteGlobalRef(global_path);
   }

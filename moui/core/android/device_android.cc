@@ -120,7 +120,7 @@ float Device::GetScreenScaleFactor() {
 
 void Device::Reset() {
   for (auto& pair : global_devices) {
-    JNIEnv* env = pair.first;
+    JNIEnv* env = Application::GetJNIEnv();
     jobject global_device = pair.second;
     env->DeleteGlobalRef(global_device);
   }

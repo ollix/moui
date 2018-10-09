@@ -223,7 +223,7 @@ void NativeView::RemoveFromSuperview() const {
 
 void NativeView::Reset() {
   for (auto& pair : global_native_views) {
-    JNIEnv* env = pair.first;
+    JNIEnv* env = Application::GetJNIEnv();
     jobject global_native_view = pair.second;
     env->DeleteGlobalRef(global_native_view);
   }
