@@ -55,7 +55,7 @@ NativeView::NativeView(void* native_handle) : NativeView(native_handle, false) {
 
 NativeView::NativeView() : NativeView(nullptr) {
   NSView* view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-  SetNativeHandle((__bridge void*)view, true);
+  SetNativeHandle((__bridge_retained void*)view, true);
 }
 
 NativeView::~NativeView() {
