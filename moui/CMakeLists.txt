@@ -78,6 +78,9 @@ if(APPLE AND NOT MOUI_USE_OPENGL_BACKEND)
     message("-- [moui] Build with Metal")
     target_sources(nanovg PRIVATE "deps/MetalNanoVG/src/nanovg_mtl.m")
     target_link_libraries(nanovg LINK_PRIVATE "-framework Metal")
+    set_target_properties(nanovg
+        PROPERTIES
+        XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
 else()
     message("-- [moui] Build with OpenGL")
 endif()
