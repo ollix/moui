@@ -101,8 +101,8 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 
 - (void)renderOnMainThread {
   [self performSelectorOnMainThread:@selector(render)
-      withObject:nil
-      waitUntilDone:NO];
+                         withObject:nil
+                      waitUntilDone:NO];
 }
 
 - (BOOL)updateDrawableIfSizeChanged {

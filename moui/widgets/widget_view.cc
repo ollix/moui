@@ -302,6 +302,12 @@ void WidgetView::Render() {
 }
 
 void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
+  const float kWidth = widget->GetWidth();
+  const float kHeight = widget->GetHeight();
+  if (kWidth == 0 || kHeight == 0) {
+    return;
+  }
+
   preparing_for_rendering_ = true;
   NVGcontext* context = this->context();
   visible_widgets_.clear();
@@ -335,8 +341,6 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
     nvgBindFramebuffer(framebuffer);
 
   // Clears the render buffer.
-  const float kWidth = widget->GetWidth();
-  const float kHeight = widget->GetHeight();
   const float kScreenScaleFactor = \
       Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
 #ifdef MOUI_GL
