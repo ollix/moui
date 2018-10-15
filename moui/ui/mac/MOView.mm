@@ -74,7 +74,7 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
                                CVOptionFlags flagsIn,
                                CVOptionFlags* flagsOut,
                                void *view) {
-  [(__bridge MOView *)view renderOnMainThread];
+  [(__bridge MOView *)view render];
   return kCVReturnSuccess;
 }
 
@@ -97,12 +97,6 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
     else
       _needsRedraw = NO;
   }
-}
-
-- (void)renderOnMainThread {
-  [self performSelectorOnMainThread:@selector(render)
-                         withObject:nil
-                      waitUntilDone:NO];
 }
 
 - (BOOL)updateDrawableIfSizeChanged {
