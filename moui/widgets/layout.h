@@ -46,6 +46,9 @@ class Layout : public ScrollView {
   // Inherited from `Widget` class.
   void Redraw() override;
 
+  // Resets cells.
+  void ResetCells();
+
   // Accessors and setters.
   bool adjusts_size_to_fit_contents() const {
     return adjusts_size_to_fit_contents_;

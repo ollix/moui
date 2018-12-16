@@ -30,8 +30,7 @@ Layout::Layout() : adjusts_size_to_fit_contents_(false),
 }
 
 Layout::~Layout() {
-  for (Widget* cell : all_cells_)
-    moui::Widget::SmartRelease(cell);
+  ResetCells();
 }
 
 // When adding a child widget, the child is actually added to a newly created
@@ -72,6 +71,19 @@ std::vector<Widget*> Layout::GetCells() {
 void Layout::Redraw() {
   should_rearrange_cells_ = true;
   Widget::Redraw();
+}
+
+void Layout::ResetCells() {
+  for (Widget* cell : all_cells_) {
+    cell->RemoveFromParent();
+    moui::Widget::SmartRelease(cell);
+  }
+  all_cells_.clear();
+
+  for (auto child : *children()) {
+    child->RemoveFromParent();
+    moui::Widget::SmartRelease(child);
+  }
 }
 
 // Checks if there is any difference between the current child widgets and the
