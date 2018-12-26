@@ -48,9 +48,10 @@
     return;
   }
   _applicationIsActive = YES;
-  if (_isUpdatingView)
+  if (_isUpdatingView) {
     [self startUpdatingView];
-  else if (_needsRedraw) {
+    [self stopUpdatingView];
+  } else if (_needsRedraw) {
     [self setNeedsDisplay];
   }
 }
