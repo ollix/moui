@@ -28,12 +28,12 @@
 - (void)handleEvent:(NSEvent*)event withType:(moui::Event::Type)type;
 
 // The callback function of `CVDisplayLink`.
-static CVReturn renderCallback(CVDisplayLinkRef displayLink,
-                               const CVTimeStamp* now,
-                               const CVTimeStamp* outputTime,
-                               CVOptionFlags flagsIn,
-                               CVOptionFlags* flagsOut,
-                               void *view);
+static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
+                                  const CVTimeStamp* now,
+                                  const CVTimeStamp* outputTime,
+                                  CVOptionFlags flagsIn,
+                                  CVOptionFlags* flagsOut,
+                                  void *context);
 
 // Asks corresponded moui view to render. This method should never be called
 // directly. Instead, calling `startUpdatingView` to execute this method
@@ -66,15 +66,15 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
   _mouiView->HandleEvent(&mouiEvent);
 }
 
-// The callback function of MOView's `_displayLink` that marks the view's
-// content as needing to be updated.
-static CVReturn renderCallback(CVDisplayLinkRef displayLink,
-                               const CVTimeStamp* now,
-                               const CVTimeStamp* outputTime,
-                               CVOptionFlags flagsIn,
-                               CVOptionFlags* flagsOut,
-                               void *view) {
-  [(__bridge MOView *)view render];
+// The callback function of MOView's `_displayLink` for updating the view.
+static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
+                                  const CVTimeStamp* now,
+                                  const CVTimeStamp* outputTime,
+                                  CVOptionFlags flagsIn,
+                                  CVOptionFlags* flagsOut,
+                                  void *context) {
+  __weak dispatch_source_t source = (__bridge dispatch_source_t)context;
+  dispatch_source_merge_data(source, 1);
   return kCVReturnSuccess;
 }
 
@@ -134,11 +134,21 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
     [self createDrawableWithSize:NSMakeSize(0, 0)];
 
     // Creates a display link capable of being used with all active displays
+    _displaySource = dispatch_source_create(DISPATCH_SOURCE_TYPE_DATA_ADD,
+                                            0, 0, dispatch_get_main_queue());
+    __block MOView* weakSelf = self;
+    dispatch_source_set_event_handler(_displaySource, ^(){
+        [weakSelf render];
+    });
+    dispatch_resume(_displaySource);
+
     CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
 
     // Sets the renderer output callback function.
-    CVDisplayLinkSetOutputCallback(_displayLink, renderCallback,
-                                   (__bridge void*)self);
+    CVDisplayLinkSetOutputCallback(_displayLink, &displaySourceLoop,
+                                   (__bridge void*)_displaySource);
+
+    CVDisplayLinkSetCurrentCGDisplay(_displayLink, CGMainDisplayID());
 
     // Observes view size changes.
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -150,6 +160,8 @@ static CVReturn renderCallback(CVDisplayLinkRef displayLink,
 }
 
 - (void)dealloc {
+  CVDisplayLinkStop(_displayLink);
+  dispatch_source_cancel(_displaySource);
   CVDisplayLinkRelease(_displayLink);
 
   [[NSNotificationCenter defaultCenter] removeObserver:self

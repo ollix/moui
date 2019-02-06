@@ -26,6 +26,7 @@ class View;
 @interface MOView : NSView {
  @private
   CVDisplayLinkRef _displayLink;
+  dispatch_source_t _displaySource;
   NSSize _drawableSize;
   moui::View* _mouiView;
   BOOL _needsRedraw;  // requests the view to update in the next refresh cycle
