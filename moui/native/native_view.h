@@ -89,8 +89,8 @@ class NativeView : public NativeObject {
   void SetAlpha(const float alpha) const;
 
   // Sets the bounds of the view.
-  void SetBounds(const float x, const float y, const float width,
-                 const float height) const;
+  virtual void SetBounds(const float x, const float y, const float width,
+                         const float height);
 
   // Shows or hides the view.
   void SetHidden(const bool hidden) const;

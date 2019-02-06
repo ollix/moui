@@ -57,7 +57,7 @@ class WidgetView : public View {
 
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const float x, const float y, const float width,
-                 const float height);
+                 const float height) final;
 
   // Inherited from `View` class.
   void OnSurfaceDestroyed() final;

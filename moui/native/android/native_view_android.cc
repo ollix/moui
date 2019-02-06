@@ -256,7 +256,7 @@ void NativeView::SetAlpha(const float alpha) const {
 
 // Calls com.ollix.moui.NativeView.setBounds() on the Java side.
 void NativeView::SetBounds(const float x, const float y, const float width,
-                           const float height) const {
+                           const float height) {
   JNIEnv* env = Application::GetJNIEnv();
   jobject native_view = GetJavaNativeView(env);
   jclass java_class = env->GetObjectClass(native_view);

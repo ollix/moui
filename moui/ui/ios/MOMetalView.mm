@@ -27,6 +27,11 @@
   return [CAMetalLayer class];
 }
 
+- (void)createDrawableWithSize:(CGSize)size {
+  CAMetalLayer* layer = (CAMetalLayer*)self.layer;
+  layer.drawableSize = size;
+}
+
 @end
 
 #endif  // MOUI_METAL

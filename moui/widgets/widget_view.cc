@@ -381,6 +381,7 @@ void WidgetView::SetBounds(const float x, const float y, const float width,
                            const float height) {
   NativeView::SetBounds(x, y, width, height);
   root_widget_->SetBounds(0, 0, width, height);
+  Redraw();
 }
 
 void WidgetView::SetWidgetAndDescendantsInvisible(Widget* widget) {

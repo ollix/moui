@@ -145,7 +145,7 @@ void NativeView::SetAlpha(const float alpha) const {
 }
 
 void NativeView::SetBounds(const float x, const float y, const float width,
-                           const float height) const {
+                           const float height) {
   UIView* native_view = (__bridge UIView*)native_handle();
   native_view.frame = CGRectMake(x, y, width, height);
 }

@@ -167,6 +167,7 @@
   if (self.bounds.size.width != _drawableSize.width ||
       self.bounds.size.height != _drawableSize.height) {
     _drawableSize = self.bounds.size;
+    _mouiView->SetBounds(0, 0, self.bounds.size.width, self.bounds.size.height);
     [self destroyDrawable];
     [self createDrawableWithSize:
         CGSizeMake(_drawableSize.width * self.layer.contentsScale,
