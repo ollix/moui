@@ -30,19 +30,23 @@
 
 - (void)createDrawableWithSize:(NSSize)size {
   if (self.layer == nil) {
+    NSScreen* screen = [NSScreen mainScreen];
     self.layer = [CAMetalLayer new];
     self.wantsLayer = YES;
     self.layer.backgroundColor = [NSColor clearColor].CGColor;
+    self.layer.contentsScale = screen.backingScaleFactor;
 
     // Creates the `CAMetalLayer` as a sublayer with large drawable size to
     // avoid unwanted effect while resizing the drawable. Learn more about
     // this issue at https://goo.gl/bXV9s9
     CAMetalLayer* metalLayer = [CAMetalLayer new];
+    metalLayer.contentsScale = screen.backingScaleFactor;
     metalLayer.autoresizingMask = kCALayerMinYMargin;
     metalLayer.backgroundColor = self.layer.backgroundColor;
-    metalLayer.bounds = [NSScreen mainScreen].frame;
-    metalLayer.drawableSize = CGSizeMake(metalLayer.bounds.size.width * 2,
-                                         metalLayer.bounds.size.height * 2);
+    metalLayer.bounds = screen.frame;
+    metalLayer.drawableSize = CGSizeMake(
+        metalLayer.bounds.size.width * screen.backingScaleFactor,
+        metalLayer.bounds.size.height * screen.backingScaleFactor);
     metalLayer.opaque = self.layer.opaque;
     CGFloat y = self.frame.size.height - CGRectGetHeight(metalLayer.bounds);
     metalLayer.frame = CGRectMake(0, y, CGRectGetWidth(metalLayer.bounds),
