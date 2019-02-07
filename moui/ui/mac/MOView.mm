@@ -119,13 +119,15 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
 @implementation MOView
 
 - (id)initWithMouiView:(moui::View *)mouiView {
-  if((self = [super initWithFrame:NSMakeRect(0, 0, 0, 0)])) {
+  if((self = [super initWithFrame:NSZeroRect])) {
     _mouiView = mouiView;
     _needsRedraw = NO;
     _stopsUpdatingView = YES;
 
+#ifdef MOUI_GL
     // Supports Retina resolution.
     self.wantsBestResolutionOpenGLSurface = YES;
+#endif  // MOUI_GL
 
     // Enables autoresizing.
     self.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
@@ -191,6 +193,13 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
 
 - (void)mouseUp:(NSEvent *)event {
   [self handleEvent:event withType:moui::Event::Type::kUp];
+}
+
+// Makes sure the `CAMetalLayer` is adequately resized.
+- (void)resizeWithOldSuperviewSize:(NSSize)oldSize {
+  [super resizeWithOldSuperviewSize:oldSize];
+  [self updateDrawableIfSizeChanged];
+  [self render];
 }
 
 - (void)setNeedsRedraw {

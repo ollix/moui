@@ -29,14 +29,33 @@
 }
 
 - (void)createDrawableWithSize:(NSSize)size {
-  if (!self.wantsLayer) {
+  if (self.layer == nil) {
     self.layer = [CAMetalLayer new];
     self.wantsLayer = YES;
+    self.layer.backgroundColor = [NSColor clearColor].CGColor;
+
+    // Creates the `CAMetalLayer` as a sublayer with large drawable size to
+    // avoid unwanted effect while resizing the drawable. Learn more about
+    // this issue at https://goo.gl/bXV9s9
+    CAMetalLayer* metalLayer = [CAMetalLayer new];
+    metalLayer.autoresizingMask = kCALayerMinYMargin;
+    metalLayer.backgroundColor = self.layer.backgroundColor;
+    metalLayer.bounds = [NSScreen mainScreen].frame;
+    metalLayer.drawableSize = CGSizeMake(metalLayer.bounds.size.width * 2,
+                                         metalLayer.bounds.size.height * 2);
+    metalLayer.opaque = self.layer.opaque;
+    CGFloat y = self.frame.size.height - CGRectGetHeight(metalLayer.bounds);
+    metalLayer.frame = CGRectMake(0, y, CGRectGetWidth(metalLayer.bounds),
+                                  CGRectGetHeight(metalLayer.bounds));
+    [self.layer addSublayer:metalLayer];
   }
 }
 
 - (void)setBackgroundOpaque:(BOOL)isOpaque {
   self.layer.opaque = isOpaque;
+  for (CALayer* layer in self.layer.sublayers) {
+    layer.opaque = isOpaque;
+  }
 }
 
 @end
