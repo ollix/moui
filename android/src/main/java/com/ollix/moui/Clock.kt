@@ -21,8 +21,7 @@ package com.ollix.moui
 
 import android.os.Handler
 import android.os.Looper
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.*
 
 class Clock {
 
@@ -35,7 +34,7 @@ class Clock {
 
     /** Executes a callback in background. */
     fun dispatchAfter(delaySeconds: Float, callbackPtr: Long) {
-        launch {
+        GlobalScope.launch {
             delay((delaySeconds * 1000).toLong())
             if (!cancelled) {
                 executeCallbackFromJNI(callbackPtr)
