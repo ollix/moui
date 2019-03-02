@@ -15,6 +15,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 option(MOUI_USE_OPENGL_BACKEND "Always use OpenGL backend" OFF)
+option(MOUI_FREETYPE_WITHOUT_MD5 "Build freetype without md5" OFF)
 
 if(APPLE)
     option(IOS "Build for iOS" NO)
@@ -52,6 +53,10 @@ target_compile_definitions(freetype
     PRIVATE
     "FT2_BUILD_LIBRARY=1"
     "DARWIN_NO_CARBON")
+
+if(MOUI_FREETYPE_WITHOUT_MD5)
+    target_compile_definitions(freetype PRIVATE "HAVE_OPENSSL")
+endif()
 
 target_compile_options(freetype
     PRIVATE
