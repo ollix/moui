@@ -115,7 +115,12 @@ unsigned char* NativeView::GetSnapshot() const {
       kCGBitmapAlphaInfoMask & kCGImageAlphaPremultipliedLast);
   CGColorSpaceRelease(color_space);
   NSView* native_view = (__bridge NSView*)native_handle();
+#ifdef MOUI_METAL
+  CGContextTranslateCTM(context, 0, kHeight);
+  CGContextScaleCTM(context, kScreenScaleFactor, -kScreenScaleFactor);
+#else
   CGContextScaleCTM(context, kScreenScaleFactor, kScreenScaleFactor);
+#endif
   [native_view.layer renderInContext:context];
   CGContextRelease(context);
   return image;
