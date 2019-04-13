@@ -128,21 +128,44 @@ void Label::SetDefaultFontSizeScale(const float font_size_scale) {
   default_font_size_scale = font_size_scale;
 }
 
-void Label::UpdateWidthToFitText(NVGcontext* context) {
+// Updates the label's width to fit the text.
+void Label::UpdateWidthToFitText(NVGcontext* context, const float max_width) {
   font_size_to_render_ = font_size_ > 0 ? font_size_ : default_font_size;
   if (font_size_to_render_ <= 0 || text_.empty())
     return;
 
+  float result = 0;
   ConfigureTextAttributes(context);
-  float bounds[4];
+  if (max_width <= 0) {
+    // This is a workaround to fix the issue that `nvgTextBounds()` may not
+    // return a correct result.
+    result = std::ceil(
+        nvgTextBounds(context, 0, 0, text_.c_str(), NULL, NULL) + 3);
+  } else {
+    const char* kExpectedLastCharToRender = text_.c_str() + text_.size();
+    const int kExpectedNumberOfLines = number_of_lines_ == 0 ?
+                                       kMaximumNumberOfLines : number_of_lines_;
+    NVGtextRow text_rows[kExpectedNumberOfLines];
+    const int kActualNumberOfLines = nvgTextBreakLines(
+        context, text_.c_str(), kExpectedLastCharToRender, max_width,
+        text_rows, kExpectedNumberOfLines);
 
-  // This is a workaround to fix the issue that `nvgTextBounds()` may not
-  // return a correct result.
-  const float kWidth = std::ceil(
-      nvgTextBounds(context, 0, 0, text_.c_str(), NULL, bounds) + 3);
+    const char* last_char_to_render = nullptr;
+    for (int i = 0; i < kActualNumberOfLines; ++i) {
+      NVGtextRow* row = &text_rows[i];
+      const float kWidth = std::ceil(
+          nvgTextBounds(context, 0, 0, row->start, row->end, NULL));
+     result = std::max(result, kWidth);
+    }
+  }
 
-  if (kWidth != GetWidth())
-    SetWidth(kWidth);
+
+  if (result != GetWidth())
+    SetWidth(result);
+}
+
+void Label::UpdateWidthToFitText(NVGcontext* context) {
+  UpdateWidthToFitText(context, 0);
 }
 
 // This method begins with determining the actual text and font size to render
