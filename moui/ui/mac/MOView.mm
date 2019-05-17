@@ -48,6 +48,10 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
 
 @implementation MOView (PrivateDelegateHandling)
 
+- (BOOL)backgroundIsOpaque {
+  NSAssert(NO, @"Subclasses need to overwrite this method");
+}
+
 - (NSPoint)convertToInternalPoint:(NSPoint)parentViewPoint {
   NSPoint point;
   point.x = parentViewPoint.x - self.frame.origin.x,
@@ -151,12 +155,6 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
                                    (__bridge void*)_displaySource);
 
     CVDisplayLinkSetCurrentCGDisplay(_displayLink, CGMainDisplayID());
-
-    // Observes view size changes.
-    [[NSNotificationCenter defaultCenter] addObserver:self
-        selector:@selector(updateDrawableIfSizeChanged)
-        name:NSViewGlobalFrameDidChangeNotification
-        object:self];
   }
   return self;
 }
@@ -165,10 +163,6 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
   CVDisplayLinkStop(_displayLink);
   dispatch_source_cancel(_displaySource);
   CVDisplayLinkRelease(_displayLink);
-
-  [[NSNotificationCenter defaultCenter] removeObserver:self
-      name:NSViewGlobalFrameDidChangeNotification
-      object:self];
 }
 
 - (void)drawRect:(NSRect)rect {
@@ -240,6 +234,10 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
 
 - (void)prepareDrawable {
   // Implmenets this method in subclass.
+}
+
+- (void)setBackgroundOpaque:(BOOL)isOpaque {
+  NSAssert(NO, @"Subclasses need to overwrite this method");
 }
 
 - (void)startUpdatingView {
