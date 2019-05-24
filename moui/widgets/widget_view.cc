@@ -343,15 +343,23 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   // Clears the render buffer.
   const float kScreenScaleFactor = \
       Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
-#ifdef MOUI_GL
-  glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
-#endif  // MOUI_GL
-  if (!BackgroundIsOpaque()) {
+
+  bool clears_color = !BackgroundIsOpaque();
+  if (!clears_color) {
+#if defined(MOUI_MAC) && defined(MOUI_METAL)
+    clears_color = (widget != root_widget_ && !widget->is_opaque());
+#endif  // defined(MOUI_MAC) && defined(MOUI_METAL)
+  }
+  if (clears_color) {
     moui::nvgClearColor(context,
                         kWidth * kScreenScaleFactor,
                         kHeight * kScreenScaleFactor,
                         nvgRGBAf(0, 0, 0, 0));
   }
+
+#ifdef MOUI_GL
+  glViewport(0, 0, kWidth * kScreenScaleFactor, kHeight * kScreenScaleFactor);
+#endif  // MOUI_GL
 
   // Renders visible widgets on screen.
   nvgBeginFrame(context, kWidth , kHeight, kScreenScaleFactor);
