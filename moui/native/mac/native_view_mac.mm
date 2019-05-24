@@ -31,7 +31,12 @@ static NSComparisonResult BringSubviewToFrontComparator(__kindof NSView* view1,
                                                         __kindof NSView* view2,
                                                         void* context) {
   NSView* subview = (__bridge NSView*)context;
-  return view1 == subview ? NSOrderedDescending : NSOrderedAscending;
+  if (subview == view1) {
+    return NSOrderedDescending;
+  } else if (subview == view2) {
+    return NSOrderedAscending;
+  }
+  return NSOrderedSame;
 }
 
 // The comparator function for `NativeView::SendSubviewToBack()`.
@@ -39,7 +44,12 @@ static NSComparisonResult SendSubviewToBackComparator(__kindof NSView* view1,
                                                       __kindof NSView* view2,
                                                       void* context) {
   NSView* subview = (__bridge NSView*)context;
-  return view1 == subview ?  NSOrderedAscending : NSOrderedDescending;
+  if (subview == view1) {
+    return NSOrderedAscending;
+  } else if (subview == view2) {
+    return NSOrderedDescending;
+  }
+  return NSOrderedSame;
 }
 
 }  // namespace
