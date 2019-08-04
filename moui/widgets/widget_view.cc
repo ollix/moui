@@ -345,11 +345,14 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
       Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
 
   bool clears_color = !BackgroundIsOpaque();
+#ifdef MOUI_METAL
   if (!clears_color) {
-#if defined(MOUI_MAC) && defined(MOUI_METAL)
-    clears_color = (widget != root_widget_ && !widget->is_opaque());
-#endif  // defined(MOUI_MAC) && defined(MOUI_METAL)
+    MNVGTarget target = mnvgTarget();
+    if (target == MNVG_MACOS || target == MNVG_SIMULATOR) {
+      clears_color = (widget != root_widget_ && !widget->is_opaque());
+    }
   }
+#endif  // MOUI_METAL
   if (clears_color) {
     moui::nvgClearColor(context,
                         kWidth * kScreenScaleFactor,
