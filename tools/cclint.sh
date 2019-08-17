@@ -27,4 +27,5 @@ cclint --expanddir=recursive \
        --excludedir=moui/*/apple \
        --excludedir=moui/*/ios \
        --excludedir=moui/*/mac \
+       --root=$BASEDIR/moui \
        moui/

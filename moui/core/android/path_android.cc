@@ -25,11 +25,6 @@
 
 namespace {
 
-// Caches the directory paths.
-std::string document_directory_path;
-std::string library_directory_path;
-std::string temporary_directory_path;
-
 std::map<JNIEnv*, jobject> global_paths;
 
 // Returns the instance of the com.ollix.moui.Path class on the Java side.
@@ -65,8 +60,14 @@ std::string Path::GetDirectory(const Directory directory) {
     return "file:///android_assets";
   }
 
+  // Caches the directory paths.
+  static std::string document_directory_path;
+  static std::string library_directory_path;
+  static std::string temporary_directory_path;
+
   std::string java_method_name;
   std::string* path_cache;
+
   if (directory == Path::Directory::kDocument) {
     java_method_name = "getDocumentDir";
     path_cache = &document_directory_path;

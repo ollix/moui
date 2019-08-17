@@ -37,7 +37,7 @@ class Widget;
 // managed widget for rendering.
 class WidgetView : public View {
  public:
-  WidgetView(const int context_flags);
+  explicit WidgetView(const int context_flags);
   WidgetView();
   ~WidgetView();
 

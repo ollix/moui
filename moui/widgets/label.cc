@@ -37,7 +37,7 @@ const int kMaximumNumberOfLines = 100;
 const float kMinimumFontSize = 1;
 
 // Default configuration for the label.
-std::string default_font_name;
+std::string* default_font_name = new std::string("");
 float default_font_baseline = 0;
 float default_font_size = 12;
 float default_font_size_scale = 1;
@@ -117,7 +117,8 @@ void Label::SetDefaultFontBaseline(const float font_baseline) {
 }
 
 void Label::SetDefaultFontName(const std::string& name) {
-  default_font_name = name;
+  delete default_font_name;
+  default_font_name = new std::string(name);
 }
 
 void Label::SetDefaultFontSize(const float font_size) {
@@ -150,7 +151,6 @@ void Label::UpdateWidthToFitText(NVGcontext* context, const float max_width) {
         context, text_.c_str(), kExpectedLastCharToRender, max_width,
         text_rows, kExpectedNumberOfLines);
 
-    const char* last_char_to_render = nullptr;
     for (int i = 0; i < kActualNumberOfLines; ++i) {
       NVGtextRow* row = &text_rows[i];
       const float kWidth = std::ceil(
@@ -276,7 +276,7 @@ void Label::set_font_baseline(const float font_baseline) {
 
 std::string Label::font_name() const {
   if (font_name_.empty())
-    return default_font_name;
+    return *default_font_name;
   return font_name_;
 }
 

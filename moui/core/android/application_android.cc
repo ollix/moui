@@ -17,12 +17,11 @@
 
 #include "moui/core/application.h"
 
-#include "jni.h"  // NOLINT
-
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 
-#include "aasset.h"
+#include "aasset.h"  // NOLINT
+#include "jni.h"  // NOLINT
 
 #include "moui/core/base_application.h"
 #include "moui/core/device.h"
