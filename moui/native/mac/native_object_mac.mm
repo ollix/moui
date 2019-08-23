@@ -22,8 +22,10 @@
 namespace moui {
 
 void NativeObject::ReleaseNativeHandle() {
-  if (native_handle_ != nullptr)
+  if (native_handle_ != nullptr) {
     NSObject* object = (__bridge_transfer NSObject*)native_handle_;
+    (void)object;  // suppresses the unused variable warning.
+  }
 }
 
 }  // namespace moui

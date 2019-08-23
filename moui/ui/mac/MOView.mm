@@ -48,10 +48,6 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
 
 @implementation MOView (PrivateDelegateHandling)
 
-- (BOOL)backgroundIsOpaque {
-  NSAssert(NO, @"Subclasses need to overwrite this method");
-}
-
 - (NSPoint)convertToInternalPoint:(NSPoint)parentViewPoint {
   NSPoint point;
   point.x = parentViewPoint.x - self.frame.origin.x,
@@ -163,6 +159,11 @@ static CVReturn displaySourceLoop(CVDisplayLinkRef displayLink,
   CVDisplayLinkStop(_displayLink);
   dispatch_source_cancel(_displaySource);
   CVDisplayLinkRelease(_displayLink);
+}
+
+- (BOOL)backgroundIsOpaque {
+  NSAssert(NO, @"Subclasses need to overwrite this method");
+  return self.opaque;
 }
 
 - (void)drawRect:(NSRect)rect {
