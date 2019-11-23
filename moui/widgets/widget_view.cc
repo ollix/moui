@@ -388,6 +388,13 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   is_ready_ = true;
 }
 
+void WidgetView::ResetContext() {
+  if (context_ == nullptr) { 
+    return;
+  }
+  root_widget_->ResetContext(context_);
+}
+
 void WidgetView::SetBounds(const float x, const float y, const float width,
                            const float height) {
   NativeView::SetBounds(x, y, width, height);

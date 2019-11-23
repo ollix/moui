@@ -54,6 +54,9 @@ class WidgetView : public View {
   // Removes the specified widget from responder chain or do nothing if not
   // exists in the chain.
   void RemoveResponder(Widget* widget);
+  
+  // Resets the context of manages widgets.
+  void ResetContext();
 
   // Sets the bounds for the view and its managed widget.
   void SetBounds(const float x, const float y, const float width,

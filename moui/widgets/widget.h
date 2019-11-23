@@ -176,6 +176,9 @@ class Widget {
 
   // Returns `true` if the render function is binded.
   bool RenderFunctionIsBinded() const;
+  
+  // Resets the context for the widget and its descendants.
+  void ResetContext(NVGcontext* context);
 
   // Moves the specified child so that it appears beind its siblings.
   bool SendChildToBack(Widget* child);

@@ -545,6 +545,15 @@ void Widget::RenderOnDemand(NVGcontext* context) {
   }
 }
 
+void Widget::ResetContext(NVGcontext* context) {
+  for (Widget* child : *children()) {
+    child->ResetContext(context);
+  }
+  
+  ContextWillChange(context);
+  ContextDidChange(context);
+}
+
 void Widget::ResetMeasuredScale() {
   measured_scale_ = -1;
   Redraw();
