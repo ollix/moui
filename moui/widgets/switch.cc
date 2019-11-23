@@ -73,16 +73,7 @@ void Switch::Render(NVGcontext* context) {
   nvgBezierTo(context, 44.061, 31, 51, 24.061, 51, 15.5);
   nvgBezierTo(context, 51, 6.939, 44.061, 0, 35.5, 0);
   nvgClosePath(context);
-  nvgMoveTo(context, 35.292, 29.208);
-  nvgLineTo(context, 15.708, 29.208);
-  nvgBezierTo(context, 8.149, 29.208, 2, 23.06, 2, 15.5);
-  nvgBezierTo(context, 2.0, 7.940000000000001, 8.149, 1.792, 15.708, 1.792);
-  nvgLineTo(context, 35.291, 1.792);
-  nvgBezierTo(context, 42.852, 1.792, 49, 7.94, 49, 15.5);
-  nvgBezierTo(context, 49.0, 23.06, 42.852, 29.208, 35.292, 29.208);
-  nvgClosePath(context);
-  nvgPathWinding(context, NVG_HOLE);
-  nvgFillColor(context, nvgRGB(229, 229, 229));
+  nvgFillColor(context, nvgRGBA(175, 175, 175, 40));
   nvgFill(context);
 
   // Draws the background.
@@ -105,7 +96,7 @@ void Switch::Render(NVGcontext* context) {
   const NVGpaint kShadow = nvgRadialGradient(context, kKnobCenterX,
                                              kKnobCenterY, kKnobRadius,
                                              kShadowOuterRadius,
-                                             nvgRGBA(0, 0, 0, 20),
+                                             nvgRGBA(0, 0, 0, 10),
                                              nvgRGBA(0, 0, 0, 0));
   nvgBeginPath(context);
   nvgRect(context, kKnobCenterX - kShadowOuterRadius,
