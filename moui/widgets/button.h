@@ -121,6 +121,8 @@ class Button : public Control {
     return adjusts_button_height_to_fit_title_label_;
   }
   void set_adjusts_button_width_to_fit_title_label(const bool value);
+  float darkness() const { return darkness_; }
+  void set_darkness(const float darkness) { darkness_ = darkness; }
   Style default_disabled_style() const {
     return default_disabled_style_;
   }
@@ -237,6 +239,9 @@ class Button : public Control {
   // Keeps the reference to the framebuffer pointer of current control state.
   // This value is updated in the `RenderFramebuffer()` method.
   NVGframebuffer* current_framebuffer_;
+  
+  // Indiates the darkness (0-1) applied to the button.
+  float darkness_;
 
   // The style used to render default disabled state when no corresponded
   // render function is binded. The default style is `kSemiTransparent`. Note

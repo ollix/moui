@@ -60,6 +60,7 @@ Button::Button() : Control(false),
                    adjusts_button_height_to_fit_title_label_(false),
                    adjusts_button_width_to_fit_title_label_(false),
                    current_framebuffer_(nullptr),
+                   darkness_(0),
                    default_disabled_style_(Style::kSemiTransparent),
                    default_highlighted_style_(Style::kSemiTransparent),
                    disabled_state_framebuffer_(nullptr),
@@ -334,6 +335,17 @@ bool Button::RenderFramebufferForControlState(
   nvgSave(context);
   ExecuteRenderFunction(context, control_state);
   nvgRestore(context);
+  
+  // Applies darkness.
+  if (darkness_ > 0) {
+    nvgSave(context);    
+    nvgBeginPath(context);
+    nvgGlobalCompositeOperation(context, NVG_ATOP);
+    nvgRect(context, 0, 0, kWidth, kHeight);
+    nvgFillColor(context, nvgRGBAf(0, 0, 0, std::min(1.0f, darkness_)));
+    nvgFill(context);
+    nvgRestore(context);
+  }
 
   // Creates the semi-transparent effect.
   if ((renders_default_disabled_effect &&
