@@ -239,7 +239,7 @@ class Button : public Control {
   // Keeps the reference to the framebuffer pointer of current control state.
   // This value is updated in the `RenderFramebuffer()` method.
   NVGframebuffer* current_framebuffer_;
-  
+
   // Indiates the darkness (0-1) applied to the button.
   float darkness_;
 

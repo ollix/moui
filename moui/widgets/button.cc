@@ -272,6 +272,9 @@ void Button::RenderFramebuffer(NVGcontext* context) {
       framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
       state = ControlState::kSelected;
       renders_default_highlighted_effect = true;
+    // } else if (IsSelected()) {
+    //   framebuffer = &selected_state_with_highlighted_effect_framebuffer_;
+    //   renders_default_highlighted_effect = true;
     } else if (default_highlighted_style_ == Style::kNone) {
       framebuffer = &normal_state_framebuffer_;
     } else {
@@ -335,10 +338,10 @@ bool Button::RenderFramebufferForControlState(
   nvgSave(context);
   ExecuteRenderFunction(context, control_state);
   nvgRestore(context);
-  
+
   // Applies darkness.
   if (darkness_ > 0) {
-    nvgSave(context);    
+    nvgSave(context);
     nvgBeginPath(context);
     nvgGlobalCompositeOperation(context, NVG_ATOP);
     nvgRect(context, 0, 0, kWidth, kHeight);
@@ -396,7 +399,7 @@ bool Button::RenderFramebufferForTransition(NVGcontext* context,
   const int kWidth = static_cast<int>(GetWidth());
   const int kHeight = static_cast<int>(GetHeight());
   nvgBeginFrame(context, kWidth, kHeight, scale_factor);
-  nvgGlobalCompositeOperation(context, NVG_LIGHTER);
+  if (!IsSelected()) nvgGlobalCompositeOperation(context, NVG_LIGHTER);
   // Draws for the previous control state.
   nvgBeginPath(context);
   nvgRect(context, 0, 0, kWidth, kHeight);
