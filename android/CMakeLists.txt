@@ -22,3 +22,4 @@ add_library(moui-jni
 
 add_subdirectory("../moui" "native-moui")
 target_link_libraries(moui-jni LINK_PUBLIC moui)
+set_target_properties(moui-jni PROPERTIES DEBUG_POSTFIX "")
