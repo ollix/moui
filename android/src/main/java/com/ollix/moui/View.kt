@@ -101,8 +101,8 @@ abstract class View(context: Context, mouiViewPtr: Long)
         val locations = FloatArray(event.pointerCount * 2)
         var index = 0
         for (i in 0 until event.pointerCount) {
-            locations[index++] = (event.getX(i) - coords[0]) / displayDensity
-            locations[index++] = (event.getY(i) - coords[1]) / displayDensity
+            locations[index++] = (event.getX(i) + coords[0]) / displayDensity
+            locations[index++] = (event.getY(i) + coords[1]) / displayDensity
         }
 
         /**
