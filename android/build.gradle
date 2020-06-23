@@ -11,6 +11,12 @@ android {
         versionName "1.0"
         ndkVersion "21.1.6352462"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared'
+            }
+        }
     }
     externalNativeBuild {
         cmake {
