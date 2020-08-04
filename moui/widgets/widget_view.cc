@@ -315,6 +315,8 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   // Determines widgets to render in order and filters invisible onces.
   requests_redraw_ = true;
   int count = 0;
+  const float kScreenScaleFactor = \
+      Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
   while (requests_redraw_) {
     if (++count == 1000) {
 #ifdef DEBUG
@@ -323,7 +325,11 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
       break;
     }
     requests_redraw_ = false;
-    WidgetViewWillRender(widget);
+    if (widget == root_widget_) {
+      nvgBeginFrame(context, kWidth , kHeight, kScreenScaleFactor);
+      WidgetViewWillRender(widget);
+      nvgCancelFrame(context);
+    }
   }
   preparing_for_rendering_ = false;
   std::vector<WidgetItem*> widget_list;
@@ -341,9 +347,6 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
     nvgBindFramebuffer(framebuffer);
 
   // Clears the render buffer.
-  const float kScreenScaleFactor = \
-      Device::GetScreenScaleFactor() * widget->GetMeasuredScale();
-
   bool clears_color = !BackgroundIsOpaque();
 #ifdef MOUI_METAL
   if (!clears_color) {
@@ -389,7 +392,7 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
 }
 
 void WidgetView::ResetContext() {
-  if (context_ == nullptr) { 
+  if (context_ == nullptr) {
     return;
   }
   root_widget_->ResetContext(context_);
