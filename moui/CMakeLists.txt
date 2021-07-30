@@ -14,6 +14,12 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
+set(CMAKE_CXX_STANDARD 17)
+
+include("../cmake/hunter.cmake")
+
+project(moui)
+
 option(MOUI_USE_OPENGL_BACKEND "Always use OpenGL backend" OFF)
 option(MOUI_FREETYPE_WITHOUT_MD5 "Build freetype without md5" OFF)
 
@@ -29,8 +35,6 @@ if(APPLE)
         set(MAC YES)
     endif()
 endif()
-
-project(moui)
 
 # Freetype Library
 
@@ -77,7 +81,7 @@ target_include_directories(nanovg
     PUBLIC "deps/nanovg/src"
     PRIVATE "deps/3rdparty")  # for freetype
 
-target_link_libraries(nanovg LINK_PUBLIC freetype)
+target_link_libraries(nanovg PUBLIC freetype)
 
 if(APPLE AND NOT MOUI_USE_OPENGL_BACKEND)
     message("-- [moui] Build with Metal")
@@ -118,14 +122,11 @@ add_library(moui
 
 set_target_properties(moui
     PROPERTIES
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
     XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")
 
 target_include_directories(moui PUBLIC ".." "deps")
 
-target_link_libraries(moui LINK_PUBLIC nanovg)
+target_link_libraries(moui PUBLIC nanovg)
 
 if(ANDROID)
     target_compile_definitions(moui
@@ -135,7 +136,7 @@ if(ANDROID)
 
     add_subdirectory(deps/aasset)
     target_link_libraries(moui
-        LINK_PUBLIC
+        PUBLIC
         log
         aasset
         android

@@ -68,6 +68,8 @@ class Application : public BaseApplication {
 #ifdef MOUI_ANDROID
   // Initializes the JNI environemnt. This method must be called at least once.
   static void InitJNI(JNIEnv* env, jobject activity, jobject asset_manager);
+
+  static void RegisterApp(jobject moui_fragment);
 #endif  // MOUI_ANDROID
 
  private:

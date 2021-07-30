@@ -59,6 +59,14 @@ void Application::InitJNI(JNIEnv* env, jobject activity,
   Path::Init();
 }
 
+void Application::RegisterApp(jobject moui_fragment) {
+  jclass clazz = jni_env->GetObjectClass(moui_fragment);
+  jmethodID method = jni_env->GetMethodID(
+      clazz, "registerMainApplicationFromJNI", "(J)V");
+  jni_env->CallVoidMethod(moui_fragment, method,
+      reinterpret_cast<jlong>(Application::GetMainApplication()));
+}
+
 JNIEnv* Application::GetJNIEnv() {
   JNIEnv* env;
   java_vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);

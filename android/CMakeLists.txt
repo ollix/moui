@@ -14,12 +14,20 @@
 
 cmake_minimum_required(VERSION 3.10.2)
 
+set(CMAKE_CXX_STANDARD 17)
+
+set(MOUI_PROJECT_DIR "..")
+
+include("${MOUI_PROJECT_DIR}/cmake/hunter.cmake")
+
+project(moui-jni)
+
 add_library(moui-jni
             SHARED
             "src/main/cpp/clock.cc"
             "src/main/cpp/fragment.cc"
             "src/main/cpp/view.cc")
 
-add_subdirectory("../moui" "native-moui")
-target_link_libraries(moui-jni LINK_PUBLIC moui)
 set_target_properties(moui-jni PROPERTIES DEBUG_POSTFIX "")
+add_subdirectory("${MOUI_PROJECT_DIR}/moui" "moui")
+target_link_libraries(moui-jni PUBLIC moui)

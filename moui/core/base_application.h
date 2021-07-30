@@ -41,7 +41,7 @@ class BaseApplication {
   // later be retrieved through the `GetMainApplication()` method. If this
   // method is called multiple times, the last instance calling this method
   // will be the actual main application.
-  void RegisterMainApplication();
+  static void RegisterMainApplication(BaseApplication *app);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseApplication);

@@ -49,8 +49,8 @@ void BaseApplication::ResetMainApplication() {
   main_application = nullptr;
 }
 
-void BaseApplication::RegisterMainApplication() {
-  main_application = this;
+void BaseApplication::RegisterMainApplication(BaseApplication *app) {
+  main_application = app;
 }
 
 }  // namespace moui

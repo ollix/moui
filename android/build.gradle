@@ -1,27 +1,25 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 28
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-        ndkVersion "21.1.6352462"
+        ndkVersion "22.1.7171670"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_shared'
+                cppFlags "-std=c++17"
             }
         }
     }
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
-            version "3.10.2"
+            version "3.18.1"
         }
     }
 }

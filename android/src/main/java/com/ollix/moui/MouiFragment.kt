@@ -44,6 +44,7 @@ open class MouiFragment : Fragment() {
 
     /** JNI functions. */
     external fun launchUserInterfaceFromJNI()
+    external fun registerMainApplicationFromJNI(mouiAppPtr: Long)
 
     /** Loads native libraries. */
     companion object {

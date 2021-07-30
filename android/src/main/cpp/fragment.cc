@@ -29,4 +29,11 @@ Java_com_ollix_moui_MouiFragment_launchUserInterfaceFromJNI(
   moui_app->LaunchUserInterface();
 }
 
+JNIEXPORT void JNICALL
+Java_com_ollix_moui_MouiFragment_registerMainApplicationFromJNI(
+    JNIEnv *env, jobject obj, jlong moui_app_ptr) {
+  auto app = reinterpret_cast<moui::Application *>(moui_app_ptr);
+  moui::Application::RegisterMainApplication(app);
+}
+
 }  // extern "C"
