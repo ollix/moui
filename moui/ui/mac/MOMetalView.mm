@@ -48,6 +48,7 @@
         metalLayer.bounds.size.width * screen.backingScaleFactor,
         metalLayer.bounds.size.height * screen.backingScaleFactor);
     metalLayer.opaque = self.layer.opaque;
+    metalLayer.presentsWithTransaction = NO;
     CGFloat y = self.frame.size.height - CGRectGetHeight(metalLayer.bounds);
     metalLayer.frame = CGRectMake(0, y, CGRectGetWidth(metalLayer.bounds),
                                   CGRectGetHeight(metalLayer.bounds));

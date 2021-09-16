@@ -30,7 +30,7 @@
 - (void)createDrawableWithSize:(CGSize)size {
   CAMetalLayer* layer = (CAMetalLayer*)self.layer;
   layer.drawableSize = size;
-  layer.presentsWithTransaction = YES;
+  layer.presentsWithTransaction = NO;
 }
 
 @end
