@@ -21,7 +21,10 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-@implementation MOMetalView
+@implementation MOMetalView {
+ @private
+  BOOL _registeredNotification;
+}
 
 + (Class)layerClass {
   return [CAMetalLayer class];
@@ -30,6 +33,31 @@
 - (void)createDrawableWithSize:(CGSize)size {
   CAMetalLayer* layer = (CAMetalLayer*)self.layer;
   layer.drawableSize = size;
+  layer.presentsWithTransaction = YES;
+
+  if (!_registeredNotification) {
+    NSNotificationCenter *notificationCenter = \
+        [NSNotificationCenter defaultCenter];
+    UIApplication *application = [UIApplication sharedApplication];
+    [notificationCenter addObserver:self
+          selector:@selector(enableTransaction)
+          name:UIApplicationDidBecomeActiveNotification
+          object:application];
+    [notificationCenter addObserver:self
+        selector:@selector(disableTransaction)
+        name:UIApplicationWillResignActiveNotification
+        object:application];
+    _registeredNotification = YES;
+  }
+}
+
+- (void)enableTransaction {
+  CAMetalLayer* layer = (CAMetalLayer*)self.layer;
+  layer.presentsWithTransaction = YES;
+}
+
+- (void)disableTransaction {
+  CAMetalLayer* layer = (CAMetalLayer*)self.layer;
   layer.presentsWithTransaction = NO;
 }
 
