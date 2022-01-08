@@ -47,7 +47,7 @@ class BaseView : public NativeView {
   virtual void Redraw() {}
 
   // The place for writing rendering code.
-  virtual void Render() {}
+  virtual bool Render() { return false; }
 
   // Starts updating the view synchronized to the refresh rate of the display
   // continuously. `StopAnimation()` must be called for each `StartAnimation()`

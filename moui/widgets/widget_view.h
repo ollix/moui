@@ -54,7 +54,7 @@ class WidgetView : public View {
   // Removes the specified widget from responder chain or do nothing if not
   // exists in the chain.
   void RemoveResponder(Widget* widget);
-  
+
   // Resets the context of manages widgets.
   void ResetContext();
 
@@ -130,14 +130,14 @@ class WidgetView : public View {
                           WidgetItem* parent_item);
 
   // Inherited from `BaseView` class. Renders belonged widgets recursively.
-  void Render() final;
+  bool Render() final;
 
   // Renders the specified `widget` and all of its descendant widgets to the
   // specified `framebuffer`. If the `framebuffer` is `nullptr`, the `widget`
   // will be rendered without binding the `framebuffer`. Note that the
   // specified `widget` will always be rendered even if its `hidden_` property
   // is set to `true`.
-  void Render(Widget* widget, NVGframebuffer* framebuffer);
+  bool Render(Widget* widget, NVGframebuffer* framebuffer);
 
   // Sets the specified `widget` and all of its descendants as invisible.
   void SetWidgetAndDescendantsInvisible(Widget* widget);

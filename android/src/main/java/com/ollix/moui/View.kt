@@ -132,8 +132,9 @@ abstract class View(context: Context, mouiViewPtr: Long)
         }
 
         prepareDrawable()
-        drawFrameFromJNI(mouiViewPtr)
-        presentDrawable()
+        if (drawFrameFromJNI(mouiViewPtr)) {
+            presentDrawable()
+        }
 
         if (isAnimating && !animationIsPaused) {
             redrawView()
@@ -164,16 +165,17 @@ abstract class View(context: Context, mouiViewPtr: Long)
     }
 
     fun startUpdatingView() {
-        if (drawableIsValid && !isAnimating) {
+        if (!drawableIsValid) {
+            animationIsPaused = true
+        } else if (!isAnimating) {
             isAnimating = true
             redrawView()
         }
     }
 
     fun stopUpdatingView() {
-        if (drawableIsValid) {
-            isAnimating = false
-        }
+        isAnimating = false
+        animationIsPaused = false
     }
 
     /** Implements TextureView.SurfaceTextureListener methods */
@@ -230,7 +232,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
     abstract fun presentDrawable()
 
     /** JNI functions */
-    external fun drawFrameFromJNI(mouiViewPtr: Long)
+    external fun drawFrameFromJNI(mouiViewPtr: Long): Boolean
 
     external fun handleEventFromJNI(mouiViewPtr: Long,
                                     action: Int,

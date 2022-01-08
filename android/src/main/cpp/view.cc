@@ -24,12 +24,12 @@
 
 extern "C" {
 
-JNIEXPORT void
+JNIEXPORT bool
 JNICALL
 Java_com_ollix_moui_View_drawFrameFromJNI(
     JNIEnv* env, jobject, jlong moui_view_ptr) {
   auto view = reinterpret_cast<moui::View*>(moui_view_ptr);
-  view->Render();
+  return view->Render();
 }
 
 // Handles the event in moui view.

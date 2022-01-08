@@ -297,15 +297,15 @@ void WidgetView::RemoveResponder(Widget* widget) {
   }
 }
 
-void WidgetView::Render() {
-  Render(root_widget_, nullptr);
+bool WidgetView::Render() {
+  return Render(root_widget_, nullptr);
 }
 
-void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
+bool WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   const float kWidth = widget->GetWidth();
   const float kHeight = widget->GetHeight();
   if (kWidth == 0 || kHeight == 0) {
-    return;
+    return false;
   }
 
   preparing_for_rendering_ = true;
@@ -389,6 +389,7 @@ void WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   // Notifies all attached widgets that the rendering process is done.
   WidgetViewDidRender(widget);
   is_ready_ = true;
+  return true;
 }
 
 void WidgetView::ResetContext() {
