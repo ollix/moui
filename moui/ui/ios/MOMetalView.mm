@@ -43,10 +43,10 @@
           selector:@selector(enableTransaction)
           name:UIApplicationDidBecomeActiveNotification
           object:application];
-    [notificationCenter addObserver:self
-        selector:@selector(disableTransaction)
-        name:UIApplicationWillResignActiveNotification
-        object:application];
+  //   [notificationCenter addObserver:self
+  //       selector:@selector(disableTransaction)
+  //       name:UIApplicationWillResignActiveNotification
+  //       object:application];
     _registeredNotification = YES;
   }
 }
@@ -59,6 +59,11 @@
 - (void)disableTransaction {
   CAMetalLayer* layer = (CAMetalLayer*)self.layer;
   layer.presentsWithTransaction = NO;
+}
+
+- (void)presentMetalLayerWithTransaction:(bool)value {
+  CAMetalLayer* layer = (CAMetalLayer*)self.layer;
+  layer.presentsWithTransaction = value;
 }
 
 @end

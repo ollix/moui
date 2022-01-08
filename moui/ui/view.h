@@ -48,6 +48,10 @@ class View : public BaseView {
   // Inherited from `BaseView` class.
   void Redraw() override;
 
+#ifdef MOUI_METAL
+  void PresentMetalLayerWithTransaction(const bool value) const final;
+#endif  // MOUI_METAL
+
   // Sets whether the view's background is opaque.
   void SetBackgroundOpaque(const bool is_opaque) const;
 

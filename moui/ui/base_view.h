@@ -43,6 +43,8 @@ class BaseView : public NativeView {
   // updated continuously on the refresh rate of the display.
   bool IsAnimating() const;
 
+  virtual void PresentMetalLayerWithTransaction(const bool value) const {}
+
   // Redraws the view on the next display refresh.
   virtual void Redraw() {}
 

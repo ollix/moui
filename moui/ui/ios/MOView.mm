@@ -210,6 +210,10 @@
   // Implmenets this method in subclass.
 }
 
+- (void)presentMetalLayerWithTransaction:(bool)value {
+  // Implmenets this method in subclass.
+}
+
 - (void)prepareDrawable {
   // Implmenets this method in subclass.
 }

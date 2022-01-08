@@ -44,6 +44,8 @@ class View;
 // Presents the drawable. This method should be implemented in the subclass.
 - (void)presentDrawable;
 
+- (void)presentMetalLayerWithTransaction:(bool)value;
+
 // Prepares the environment for drawable to render. This method should be
 // implemented in the subclass.
 - (void)prepareDrawable;

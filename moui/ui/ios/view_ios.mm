@@ -52,6 +52,13 @@ void View::Redraw() {
   [native_view.layer setNeedsDisplay];
 }
 
+#ifdef MOUI_METAL
+void View::PresentMetalLayerWithTransaction(const bool value) const {
+  MOView* native_view = (__bridge MOView*)native_handle();
+  [native_view presentMetalLayerWithTransaction:value];
+}
+#endif  // MOUI_METAL
+
 void View::SetBackgroundOpaque(const bool is_opaque) const {
   MOView* native_view = (__bridge MOView*)native_handle();
   native_view.layer.opaque = is_opaque;
