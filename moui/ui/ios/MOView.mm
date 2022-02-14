@@ -96,8 +96,9 @@
   }
 
   [self prepareDrawable];
-  _mouiView->Render();
-  [self presentDrawable];
+  if (_mouiView->Render()) {
+    [self presentDrawable];
+  }
 
   // Pauses display link if stopped updating view and no redraw request.
   @synchronized(self) {
@@ -125,7 +126,7 @@
 
     // Initializes the display link.
     _displayLink = [CADisplayLink displayLinkWithTarget:self
-                                                selector:@selector(render)];
+                                               selector:@selector(render)];
     [_displayLink addToRunLoop:[NSRunLoop mainRunLoop]
                        forMode:NSRunLoopCommonModes];
 
