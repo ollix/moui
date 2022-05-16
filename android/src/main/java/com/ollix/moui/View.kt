@@ -195,6 +195,7 @@ abstract class View(context: Context, mouiViewPtr: Long)
                 redrawView()
             }
         } else {
+            drawableIsValid = false
             destroyDrawable()
         }
     }
