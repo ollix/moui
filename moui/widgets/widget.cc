@@ -549,7 +549,7 @@ void Widget::ResetContext(NVGcontext* context) {
   for (Widget* child : *children()) {
     child->ResetContext(context);
   }
-  
+
   ContextWillChange(context);
   ContextDidChange(context);
 }
@@ -813,9 +813,12 @@ void Widget::set_widget_view(WidgetView* widget_view) {
   }
   set_is_visible(false);
   widget_view_ = widget_view;
-  NVGcontext* new_context = (widget_view == nullptr) ? nullptr :
-                                                       widget_view->context();
-  NotifyContextChange(old_context, new_context);
+
+  if (widget_view == nullptr || widget_view->should_notify_context_change()) {
+    NVGcontext* new_context = (widget_view == nullptr) ? nullptr :
+                                                        widget_view->context();
+    NotifyContextChange(old_context, new_context);
+  }
 
   // Updates the widget view of all its child widgets as well.
   for (Widget* child_widget : children_)

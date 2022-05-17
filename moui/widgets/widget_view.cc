@@ -37,6 +37,11 @@ WidgetView::WidgetView(const int context_flags)
     : context_(nullptr), context_flags_(context_flags), is_ready_(false),
       preparing_for_rendering_(false), requests_redraw_(false),
       root_widget_(new Widget) {
+#ifdef MOUI_ANDROID
+  should_notify_context_change_ = false;
+#else
+  should_notify_context_change_ = true;
+#endif  // MOUI_ANDROID
   root_widget_->set_widget_view(this);
 }
 
@@ -307,6 +312,7 @@ bool WidgetView::Render(Widget* widget, NVGframebuffer* framebuffer) {
   if (kWidth == 0 || kHeight == 0) {
     return false;
   }
+  should_notify_context_change_ = true;
 
   preparing_for_rendering_ = true;
   NVGcontext* context = this->context();

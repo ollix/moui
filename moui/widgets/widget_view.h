@@ -69,6 +69,9 @@ class WidgetView : public View {
   NVGcontext* context();
   bool is_ready() const { return is_ready_; }
   Widget* root_widget() const { return root_widget_; }
+  bool should_notify_context_change() const {
+    return should_notify_context_change_;
+  }
 
  private:
   // Allows `Widget::GetSnapshot()` to call the `Render()` method.
@@ -194,6 +197,8 @@ class WidgetView : public View {
 
   // The root widget for rendering. All its children will be rendered as well.
   Widget* root_widget_;
+
+  bool should_notify_context_change_;
 
   // Keeps a list of currently visible widgets. The list will be updated
   // whenever executing the `Render()` method.

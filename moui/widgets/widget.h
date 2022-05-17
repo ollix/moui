@@ -176,7 +176,7 @@ class Widget {
 
   // Returns `true` if the render function is binded.
   bool RenderFunctionIsBinded() const;
-  
+
   // Resets the context for the widget and its descendants.
   void ResetContext(NVGcontext* context);
 
