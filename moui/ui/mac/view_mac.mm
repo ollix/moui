@@ -49,6 +49,13 @@ moui::Point View::GetMouseLocation() {
   return [native_view mouseLocation];
 }
 
+#ifdef MOUI_METAL
+void View::PresentMetalLayerWithTransaction(const bool value) const {
+  MOView* native_view = (__bridge MOView*)native_handle();
+  [native_view presentMetalLayerWithTransaction:value];
+}
+#endif  // MOUI_METAL
+
 void View::Redraw() {
   MOView* native_view = (__bridge MOView*)native_handle();
   [native_view setNeedsRedraw];

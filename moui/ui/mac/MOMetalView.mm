@@ -29,31 +29,24 @@
 }
 
 - (void)createDrawableWithSize:(NSSize)size {
-  if (self.layer == nil) {
-    NSScreen* screen = [NSScreen mainScreen];
-    self.layer = [CAMetalLayer new];
-    self.wantsLayer = YES;
-    self.layer.backgroundColor = [NSColor clearColor].CGColor;
-    self.layer.contentsScale = screen.backingScaleFactor;
+  self.wantsLayer = YES;
+}
 
-    // Creates the `CAMetalLayer` as a sublayer with large drawable size to
-    // avoid unwanted effect while resizing the drawable. Learn more about
-    // this issue at https://goo.gl/bXV9s9
-    CAMetalLayer* metalLayer = [CAMetalLayer new];
-    metalLayer.contentsScale = screen.backingScaleFactor;
-    metalLayer.autoresizingMask = kCALayerMinYMargin;
-    metalLayer.backgroundColor = self.layer.backgroundColor;
-    metalLayer.bounds = screen.frame;
-    metalLayer.drawableSize = CGSizeMake(
-        metalLayer.bounds.size.width * screen.backingScaleFactor,
-        metalLayer.bounds.size.height * screen.backingScaleFactor);
-    metalLayer.opaque = self.layer.opaque;
-    metalLayer.presentsWithTransaction = NO;
-    CGFloat y = self.frame.size.height - CGRectGetHeight(metalLayer.bounds);
-    metalLayer.frame = CGRectMake(0, y, CGRectGetWidth(metalLayer.bounds),
-                                  CGRectGetHeight(metalLayer.bounds));
-    [self.layer addSublayer:metalLayer];
-  }
+- (CALayer *)makeBackingLayer {
+  CAMetalLayer *metalLayer = [CAMetalLayer layer];
+  metalLayer.allowsNextDrawableTimeout = YES;
+  metalLayer.contentsScale = [NSScreen mainScreen].backingScaleFactor;
+  metalLayer.needsDisplayOnBoundsChange = YES;
+  metalLayer.opaque = YES;
+  metalLayer.presentsWithTransaction = NO;
+  self.layerContentsPlacement =  NSViewLayerContentsPlacementTopLeft;
+  self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawDuringViewResize;
+  return metalLayer;
+}
+
+- (void)presentMetalLayerWithTransaction:(bool)value {
+  CAMetalLayer* layer = (CAMetalLayer*)self.layer;
+  layer.presentsWithTransaction = value;
 }
 
 - (void)setBackgroundOpaque:(BOOL)isOpaque {
@@ -61,6 +54,12 @@
   for (CALayer* layer in self.layer.sublayers) {
     layer.opaque = isOpaque;
   }
+}
+
+- (void)setFrameSize:(NSSize)newSize {
+  [super setFrameSize:newSize];
+  CAMetalLayer *metalLayer = (CAMetalLayer *)self.layer;
+  metalLayer.drawableSize = [self convertSizeToBacking:newSize];;
 }
 
 @end

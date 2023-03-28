@@ -100,11 +100,7 @@ float NativeView::GetHeight() const {
 
 void* NativeView::GetLayer() const {
   NSView* native_view = (__bridge NSView*)native_handle();
-#ifdef MOUI_METAL
-  return (__bridge void*)[native_view.layer.sublayers firstObject];
-#else
   return (__bridge void*)native_view.layer;
-#endif  // MOUI_METAL
 }
 
 unsigned char* NativeView::GetSnapshot() const {
